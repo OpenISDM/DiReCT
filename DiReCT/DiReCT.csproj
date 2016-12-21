@@ -53,8 +53,6 @@
   <ItemGroup>
     <Compile Include="AAAModule.cs" />
     <Compile Include="DiReCTCore\MainProgram.cs" />
-    <Compile Include="DiReCTCore\ProgramDefinitions.cs" />
-    <Compile Include="DiReCTCore\ProgramSharedData.cs" />
     <Compile Include="DMModule.cs" />
     <Compile Include="DSModule.cs" />
     <Compile Include="MANModule.cs" />

@@ -16,65 +16,69 @@ namespace DiReCT
 
         public static void RTQCInit(object objectParameters)
         {
-            ThreadParameters threadParameters 
-                = (ThreadParameters)objectParameters;
-
-            // Event variables
-            WaitHandle[] initializationEvents 
-                = new WaitHandle[(int)EventIndex.NumberOfWorkEvents];
-            int indexOfSignalEvent;
-
-            if (IsInitialized == true)
+            try
             {
-                Debug.WriteLine("RTQCInit initial twice.");
-                return;
+                ThreadParameters threadParameters
+                    = (ThreadParameters)objectParameters;
+
+                // Event variables
+                WaitHandle[] initializationEvents
+                    = new WaitHandle[(int)EventIndex.NumberOfWorkEvents];
+                int indexOfSignalEvent;
+
+                if (IsInitialized == true)
+                {
+                    Debug.WriteLine("RTQCInit initial twice.");
+                    return;
+                }
+
+                // Variables initialization
+                IsInitialized = false;
+                IsReady = false;
+                IsContinue = true;
+
+                // Event variables initialization
+                initializationEvents[(int)EventIndex.StartWorkEvent]
+                    = threadParameters.StartWorkEvent;
+
+                //
+                // Modules initialization code here...
+                //
+
+                //
+                // End of Phase 1
+                //
+                threadParameters.ReadyToWorkEvent.Set();
+                Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
+
+                indexOfSignalEvent = WaitHandle.WaitAny(initializationEvents);
+
+                if (indexOfSignalEvent != (int)EventIndex.StartWorkEvent)
+                    goto Return;
+
+                IsInitialized = true;
+                Debug.WriteLine(
+                    "RTQCInit complete Phase 2 Initialization" +
+                    "and start working.");
+
+                //
+                // Main Thread of RTQC module (begin)
+                //
+                while (IsContinue == true)
+                {
+                    IsReady = true;
+
+                    //
+                    // Wait for working events
+                    // Switch case for different events
+                    //
+                }
             }
-
-            // Variables initialization
-            IsInitialized = false;
-            IsReady = false;
-            IsContinue = true;
-
-            // Event variables initialization
-            initializationEvents[(int)EventIndex.StartWorkEvent] 
-                = threadParameters.StartWorkEvent;
-            initializationEvents[(int)EventIndex.TerminateWorkEvent] 
-                = threadParameters.TerminateWorkEvent;
-
-            //
-            // Modules initialization code here...
-            //
-
-            //
-            // End of Phase 1
-            //
-            threadParameters.ReadyToWorkEvent.Set();
-            Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
-
-            indexOfSignalEvent = WaitHandle.WaitAny(initializationEvents);
-
-            if (indexOfSignalEvent != (int)EventIndex.StartWorkEvent)
-                goto Return;
-
-            IsInitialized = true;
-            Debug.WriteLine(
-                "RTQCInit complete Phase 2 Initialization and start work.");
-
-            //
-            // Main Thread of RTQC module (begin)
-            //
-            while (IsContinue == true)
+            catch(ThreadAbortException e)
             {
-                IsReady = true;
-
-                // temporary demo code
-                initializationEvents[(int)EventIndex.TerminateWorkEvent]
-                    .WaitOne();
-
-                //
-                // Wait for working events
-                // Switch case for different events
-                //
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine("RTQC module thread is aborting...");
+                goto Return;
             }
 
             Return:
