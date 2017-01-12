@@ -37,7 +37,7 @@ namespace DiReCT
                 IsReady = false;
                 IsContinue = true;
 
-                // Event variables initialization
+                // Event array for WaitHandle
                 initializationEvents[(int)EventIndex.StartWorkEvent]
                     = threadParameters.StartWorkEvent;
 
@@ -54,7 +54,7 @@ namespace DiReCT
                 indexOfSignalEvent = WaitHandle.WaitAny(initializationEvents);
 
                 if (indexOfSignalEvent != (int)EventIndex.StartWorkEvent)
-                    goto Return;
+                    goto CleanupExit;
 
                 IsInitialized = true;
                 Debug.WriteLine(
@@ -77,13 +77,14 @@ namespace DiReCT
                     //
                 }
             }
-            catch (ThreadAbortException e)
+            catch (ThreadAbortException e) // Catch the exception thrown by 
+                                           // Thread.Abort() in main.
             {
                 Debug.WriteLine(e.Message);
                 Debug.WriteLine("DS module thread is aborting...");
-                goto Return;
+                goto CleanupExit;
             }
-            Return:
+CleanupExit:
             //
             // Cleanup code
             //

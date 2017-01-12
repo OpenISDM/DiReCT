@@ -1,4 +1,34 @@
-﻿using System;
+﻿/*
+ * Copyright (c) 2016 Academia Sinica, Institude of Information Science
+ *
+ * License:
+ *      GPL 3.0 : This file is subject to the terms and conditions defined
+ *      in file 'COPYING.txt', which is part of this source code package.
+ *
+ * Project Name:
+ * 
+ *      DiReCT(Disaster Record Capture Tool)
+ * 
+ * File Description:
+ * File Name:
+ * 
+ *      RTQCModule.cs
+ * 
+ * Abstract:
+ *      
+ *      Real-time Quality Control module is a thread which examines the record
+ *      meta data and input data during the data collection. It detects defects
+ *      in real-time, alerting the user of the errors and overseeing the 
+ *      corrections are made.
+ *
+ * Authors:
+ * 
+ *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
+ *      Jeff Chen, jeff@iis.sinica.edu.tw
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,7 +67,7 @@ namespace DiReCT
                 IsReady = false;
                 IsContinue = true;
 
-                // Event variables initialization
+                // Event array for WaitHandle
                 initializationEvents[(int)EventIndex.StartWorkEvent]
                     = threadParameters.StartWorkEvent;
 
@@ -54,12 +84,11 @@ namespace DiReCT
                 indexOfSignalEvent = WaitHandle.WaitAny(initializationEvents);
 
                 if (indexOfSignalEvent != (int)EventIndex.StartWorkEvent)
-                    goto Return;
+                    goto CleanupExit;
 
                 IsInitialized = true;
-                Debug.WriteLine(
-                    "RTQCInit complete Phase 2 Initialization" +
-                    "and start working.");
+                Debug.WriteLine("RTQCInit complete Phase 2 Initialization" +
+                                "and start working.");
 
                 //
                 // Main Thread of RTQC module (begin)
@@ -74,14 +103,15 @@ namespace DiReCT
                     //
                 }
             }
-            catch(ThreadAbortException e)
+            catch (ThreadAbortException e) // Catch the exception thrown by 
+                                           // Thread.Abort() in main.
             {
                 Debug.WriteLine(e.Message);
                 Debug.WriteLine("RTQC module thread is aborting...");
-                goto Return;
+                goto CleanupExit;
             }
 
-            Return:
+CleanupExit:
             //
             // Cleanup code
             //
