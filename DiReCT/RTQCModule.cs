@@ -16,10 +16,11 @@
  * 
  * Abstract:
  *      
- *      Real-time Quality Control module is a thread which examines the record
- *      meta data and input data during the data collection. It detects defects
- *      in real-time, alerting the user of the errors and overseeing the 
- *      corrections are made.
+ *      Real-time Quality Control module is a DiReCT component which examines
+ *      the observational record meta data and input data during the data
+ *      collection. When it detects a defective record, it alerts the Monitor
+ *      and Notification module, which is responsible for alerting the user and
+ *      handles the defective record in specified ways.
  *
  * Authors:
  * 
@@ -40,21 +41,18 @@ namespace DiReCT
     class RTQCModule
     {
         // State control variable
-        static bool IsInitialized = false;
-        static bool IsReady = false;
-        static bool IsContinue = true;
+        static bool IsInitialized;
+        static bool IsReady;
+        static bool IsContinue;
+
+        static ThreadParameters threadParameters;
 
         public static void RTQCInit(object objectParameters)
         {
             try
             {
-                ThreadParameters threadParameters
-                    = (ThreadParameters)objectParameters;
-
-                // Event variables
-                WaitHandle[] initializationEvents
-                    = new WaitHandle[(int)EventIndex.NumberOfWorkEvents];
-                int indexOfSignalEvent;
+                
+                threadParameters = (ThreadParameters)objectParameters;
 
                 if (IsInitialized == true)
                 {
@@ -67,10 +65,6 @@ namespace DiReCT
                 IsReady = false;
                 IsContinue = true;
 
-                // Event array for WaitHandle
-                initializationEvents[(int)EventIndex.StartWorkEvent]
-                    = threadParameters.StartWorkEvent;
-
                 //
                 // Modules initialization code here...
                 //
@@ -78,13 +72,11 @@ namespace DiReCT
                 //
                 // End of Phase 1
                 //
-                threadParameters.ReadyToWorkEvent.Set();
+
+                threadParameters.ModuleReadyEvent.Set();
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
 
-                indexOfSignalEvent = WaitHandle.WaitAny(initializationEvents);
-
-                if (indexOfSignalEvent != (int)EventIndex.StartWorkEvent)
-                    goto CleanupExit;
+                DiReCTMainProgram.ModuleStartWorkEvent.WaitOne();
 
                 IsInitialized = true;
                 Debug.WriteLine("RTQCInit complete Phase 2 Initialization" +
@@ -98,16 +90,27 @@ namespace DiReCT
                     IsReady = true;
 
                     //
+                    // To do...
                     // Wait for working events
-                    // Switch case for different events
+                    // Switch case for different events, then
+                    // 1. Use Task & BlockingCollection
+                    // 2. Use BeginInvoke(Delegate, Object[])
                     //
                 }
             }
-            catch (ThreadAbortException e) // Catch the exception thrown by 
-                                           // Thread.Abort() in main.
+            catch (ThreadAbortException ex) // Catch the exception thrown by 
+                                            // Thread.Abort() in main.
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine(ex.Message);
                 Debug.WriteLine("RTQC module thread is aborting...");
+                Thread.ResetAbort(); // Avoid exception rethrowning at the end 
+                                     // of the catch block.
+                goto CleanupExit;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine("RTQC module thread failed.");
                 goto CleanupExit;
             }
 
@@ -115,6 +118,8 @@ CleanupExit:
             //
             // Cleanup code
             //
+            threadParameters.ModuleInitFailedEvent.Set();
+            Debug.WriteLine("RTQC ModuleInitFailedEvent Set");
             return;
         }
     }

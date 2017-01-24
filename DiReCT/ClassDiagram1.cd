@@ -1,42 +1,42 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="DiReCT.AAAModule" Collapsed="true">
-    <Position X="5.75" Y="2.5" Width="1.5" />
+    <Position X="7.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAACAgAAAAAAAAAAAAAAAACAAABAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAACAgAAAAAAAAAAgAAAAACAAABAAAAAA=</HashCode>
       <FileName>AAAModule.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.Constants">
-    <Position X="2.25" Y="0.5" Width="1.5" />
+    <Position X="3" Y="0.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAIACAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAIA=</HashCode>
+      <HashCode>AAIACAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAQAAAAIA=</HashCode>
       <FileName>DiReCTCore\MainProgram.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.ThreadParameters">
-    <Position X="4" Y="2.5" Width="1.5" />
+    <Position X="3" Y="2.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAgAAAAAAAAAAQAAAAEAAAAAAAAACAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAABA=</HashCode>
       <FileName>DiReCTCore\MainProgram.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.ModuleControlDataBlock">
-    <Position X="4" Y="0.5" Width="1.5" />
+    <Position X="3" Y="4.25" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DiReCTCore\MainProgram.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.DiReCTMainProgram">
-    <Position X="0.5" Y="0.5" Width="1.5" />
+    <Position X="0.5" Y="0.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAkAAAEAAIAIAAAIAAIgAAAIAAAAAAAABAAAAAA=</HashCode>
+      <HashCode>CAAAgEEAAAEAAIgAAAAIAAAgAAAAAAAIAAAABAAAAAE=</HashCode>
       <FileName>DiReCTCore\MainProgram.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.MainWindow" BaseTypeListCollapsed="true">
-    <Position X="0.5" Y="5.25" Width="1.5" />
+    <Position X="0.5" Y="4.25" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DiReCTCore\MainWindow.xaml.cs</FileName>
@@ -44,63 +44,56 @@
     <Lollipop Position="0.2" Collapsed="true" />
   </Class>
   <Class Name="DiReCT.DMModule" Collapsed="true">
-    <Position X="5.75" Y="4.75" Width="1.5" />
+    <Position X="7.25" Y="1.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAAAAAEAAACAAABAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAAAgAEAAACAAABAAAAAA=</HashCode>
       <FileName>DMModule.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.DSModule" Collapsed="true">
-    <Position X="5.75" Y="4" Width="1.5" />
+    <Position X="7.25" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAQAAAAAAACAAABAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAQAgAAAAACAAABAAAAAA=</HashCode>
       <FileName>DSModule.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.MANModule" Collapsed="true">
-    <Position X="5.75" Y="3.25" Width="1.5" />
+    <Position X="7.25" Y="2.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAiAAAAAAAAAAAAAAAACAAABAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAiAAAAAAAAAAgAAAAACAAABAAAAAA=</HashCode>
       <FileName>MANModule.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.RTQCModule">
-    <Position X="5.75" Y="0.5" Width="1.5" />
+    <Position X="7.25" Y="3.5" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAACAAABgAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAAAgAAAAACAAABgAAAAA=</HashCode>
       <FileName>RTQCModule.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.Properties.Resources" Collapsed="true">
-    <Position X="0.5" Y="4.5" Width="1.5" />
+    <Position X="0.5" Y="6.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAABEAAAAQAAAAAAAAAAAAAAAIA=</HashCode>
     </TypeIdentifier>
   </Class>
   <Class Name="DiReCT.Properties.Settings" Collapsed="true">
-    <Position X="0.5" Y="3.75" Width="1.5" />
+    <Position X="0.5" Y="5.75" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
     </TypeIdentifier>
   </Class>
   <Enum Name="DiReCT.ModuleThread">
-    <Position X="2.25" Y="5" Width="1.5" />
+    <Position X="5.5" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAABIBAAAAAIAAAAIAAAAAAAAAAAAAAAAAAACAAAA=</HashCode>
       <FileName>DiReCTCore\MainProgram.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Enum Name="DiReCT.TimeInterval">
-    <Position X="2.25" Y="3.5" Width="1.5" />
+    <Position X="5.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAQAAgAAAAAAAAAgAAAAAQAAAAAAAA=</HashCode>
-      <FileName>DiReCTCore\MainProgram.cs</FileName>
-    </TypeIdentifier>
-  </Enum>
-  <Enum Name="DiReCT.EventIndex">
-    <Position X="2.25" Y="2.25" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAQAAgAAAAAAAAEgAAAAAQAAAAAAAA=</HashCode>
       <FileName>DiReCTCore\MainProgram.cs</FileName>
     </TypeIdentifier>
   </Enum>

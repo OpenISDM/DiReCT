@@ -14,17 +14,14 @@ namespace DiReCT
         static bool IsReady = false;
         static bool IsContinue = true;
 
+        static ThreadParameters threadParameters;
+
         public static void DSInit(object objectParameters)
         {
             try
             {
-                ThreadParameters threadParameters
-                    = (ThreadParameters)objectParameters;
 
-                // Event variables
-                WaitHandle[] initializationEvents
-                    = new WaitHandle[(int)EventIndex.NumberOfWorkEvents];
-                int indexOfSignalEvent;
+                threadParameters = (ThreadParameters)objectParameters;
 
                 if (IsInitialized == true)
                 {
@@ -37,10 +34,6 @@ namespace DiReCT
                 IsReady = false;
                 IsContinue = true;
 
-                // Event array for WaitHandle
-                initializationEvents[(int)EventIndex.StartWorkEvent]
-                    = threadParameters.StartWorkEvent;
-
                 //
                 // Modules initialization code here...
                 //
@@ -48,18 +41,14 @@ namespace DiReCT
                 //
                 // End of Phase 1
                 //
-                threadParameters.ReadyToWorkEvent.Set();
+                threadParameters.ModuleReadyEvent.Set();
                 Debug.WriteLine("DSInit complete Phase 1 Initialization");
 
-                indexOfSignalEvent = WaitHandle.WaitAny(initializationEvents);
-
-                if (indexOfSignalEvent != (int)EventIndex.StartWorkEvent)
-                    goto CleanupExit;
+                DiReCTMainProgram.ModuleStartWorkEvent.WaitOne();
 
                 IsInitialized = true;
-                Debug.WriteLine(
-                    "DSInit complete Phase 2 Initialization" +
-                    "and start working.");
+                Debug.WriteLine("DSInit complete Phase 2 Initialization" +
+                                "and start working.");
 
                 //
                 // Main Thread of DS module (begin)
@@ -68,26 +57,35 @@ namespace DiReCT
                 {
                     IsReady = true;
 
-                    // temporary demo code
-
-
                     //
                     // Wait for working events
-                    // Switch case for different events
+                    // Switch case for different events, then
+                    // 1. Use Task & BlockingCollection
+                    // 2. Use BeginInvoke(Delegate, Object[])
                     //
                 }
             }
-            catch (ThreadAbortException e) // Catch the exception thrown by 
-                                           // Thread.Abort() in main.
+            catch (ThreadAbortException ex) // Catch the exception thrown by 
+                                            // Thread.Abort() in main.
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine(ex.Message);
                 Debug.WriteLine("DS module thread is aborting...");
+                Thread.ResetAbort(); // Avoid exception rethrowning at the end 
+                                     // of the catch block.
                 goto CleanupExit;
             }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine("DS module thread failed.");
+                goto CleanupExit;
+            }
+
 CleanupExit:
-            //
-            // Cleanup code
-            //
+//
+// Cleanup code
+//
+            threadParameters.ModuleInitFailedEvent.Set();
             return;
         }
     }

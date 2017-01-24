@@ -42,6 +42,7 @@ namespace DiReCT
     static class Constants
     {
         // Time interval constants
+        public const int VERY_VERY_SHORT_TIME = 100; // 0.1 seconds
         public const int VERY_SHORT_TIME = 1000; // 1000 milliseconds, 1 second 
         public const int SHORT_TIME = 10000; // 10000 milliseconds, 10 seconds
         public const int LONG_TIME = 60000; // 60000 milliseconds, 1 minute
@@ -62,84 +63,54 @@ namespace DiReCT
 
     public enum TimeInterval
     {
+        VeryVeryShortTime = Constants.VERY_VERY_SHORT_TIME,
         VeryShortTime = Constants.VERY_SHORT_TIME,   
         ShortTime = Constants.SHORT_TIME,      
         LongTime = Constants.LONG_TIME,       
         VeryLongTime = Constants.VERY_LONG_TIME   
-    };
-
-    public enum EventIndex
-    {
-        StartWorkEvent = 0,
-        NumberOfWorkEvents
     };
     #endregion
 
     #region Program Shared Data
     class ThreadParameters
     {
-        private AutoResetEvent readyToWorkEvent;
-        private AutoResetEvent startWorkEvent;
+        // Module initialization failed Event
+        // Pass by reference to ModuleInitFailedEvents[]
+        public AutoResetEvent ModuleInitFailedEvent;
+
+        // Module thread initialization complete and ready to work
+        // Pass by reference to ModuleReadyEvents[]
+        public AutoResetEvent ModuleReadyEvent;
 
         public ThreadParameters()
         {
-            readyToWorkEvent = new AutoResetEvent(false);
-            startWorkEvent = new AutoResetEvent(false);
+            ModuleInitFailedEvent = new AutoResetEvent(false);
+            ModuleReadyEvent = new AutoResetEvent(false);
         }
-
-        #region Properties
-
-        public AutoResetEvent ReadyToWorkEvent
-        {
-            get
-            {
-                return readyToWorkEvent;
-            }
-        }
-
-        public AutoResetEvent StartWorkEvent
-        {
-            get
-            {
-                return startWorkEvent;
-            }
-        }
-
-        #endregion
     }
     class ModuleControlDataBlock
     {
-        private ThreadParameters threadParameters;
-
+        public ThreadParameters ThreadParameters;
         public ModuleControlDataBlock()
         {
-            threadParameters = new ThreadParameters();
+            ThreadParameters = new ThreadParameters();
         }
-
-        #region Properties
-
-        public ThreadParameters ThreadParameters
-        {
-            get
-            {
-                return threadParameters;
-            }
-        }
-
-        #endregion
     }
     #endregion
 
-    /// <summary>
-    /// The main entry point of DiReCT application
-    /// </summary>
+
+    // The main entry point of DiReCT application
     class DiReCTMainProgram : Application
     {
-        private static Thread[] moduleThreadHandles;
+        private static Thread[] ModuleThreadHandles;
         private static Thread UIThreadHandle;
-        private static ModuleControlDataBlock[] moduleControlDataBlocks;
-        private static AutoResetEvent[] moduleReadyEvents;
-        private static bool HasInitFailed = false; // Whether initialization 
+        private static ModuleControlDataBlock[] ModuleControlDataBlocks;
+        private static AutoResetEvent[] ModuleReadyEvents;
+        private static AutoResetEvent[] ModuleInitFailedEvents;
+        public static ManualResetEvent ModuleStartWorkEvent 
+            = new ManualResetEvent(false);
+
+        private static bool InitHasFailed = false; // Whether initialization 
                                                    // processes were completed
                                                    // in time
         private static Timer InitializationTimer;
@@ -157,17 +128,19 @@ namespace DiReCT
             // Initialize thread objects and control data block of each modules
             try
             {
-                moduleThreadHandles
+                ModuleThreadHandles
                     = new Thread[(int)ModuleThread.NumberOfModules];
-                moduleControlDataBlocks = new ModuleControlDataBlock[
+                ModuleControlDataBlocks = new ModuleControlDataBlock[
                     (int)ModuleThread.NumberOfModules];
-                moduleReadyEvents = new AutoResetEvent[
+                ModuleReadyEvents = new AutoResetEvent[
+                    (int)ModuleThread.NumberOfModules];
+                ModuleInitFailedEvents = new AutoResetEvent[
                     (int)ModuleThread.NumberOfModules];
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
-                Debug.WriteLine("Objects of threads initialization failed.");
+                Debug.WriteLine("Thread resource creation failed.");
                 goto CleanupExit;
             }
             
@@ -175,12 +148,12 @@ namespace DiReCT
             try
             {
                 // Create and intialize AAA module
-                moduleThreadHandles[(int)ModuleThread.AAA]
+                ModuleThreadHandles[(int)ModuleThread.AAA]
                     = new Thread(AAAModule.AAAInit);
-                moduleControlDataBlocks[(int)ModuleThread.AAA]
+                ModuleControlDataBlocks[(int)ModuleThread.AAA]
                     = new ModuleControlDataBlock();
-                moduleThreadHandles[(int)ModuleThread.AAA]
-                        .Start(moduleControlDataBlocks[(int)ModuleThread.AAA]
+                ModuleThreadHandles[(int)ModuleThread.AAA]
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.AAA]
                         .ThreadParameters);
             }
             catch (ArgumentNullException ex)
@@ -194,12 +167,12 @@ namespace DiReCT
             try
             {
                 // Create and intialize DM module
-                moduleThreadHandles[(int)ModuleThread.DM]
+                ModuleThreadHandles[(int)ModuleThread.DM]
                         = new Thread(DMModule.DMInit);
-                moduleControlDataBlocks[(int)ModuleThread.DM]
+                ModuleControlDataBlocks[(int)ModuleThread.DM]
                     = new ModuleControlDataBlock();
-                moduleThreadHandles[(int)ModuleThread.DM]
-                        .Start(moduleControlDataBlocks[(int)ModuleThread.DM]
+                ModuleThreadHandles[(int)ModuleThread.DM]
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.DM]
                         .ThreadParameters);
             }
             catch (ArgumentNullException ex)
@@ -213,12 +186,12 @@ namespace DiReCT
             try
             {
                 // Create and intialize DS module
-                moduleThreadHandles[(int)ModuleThread.DS]
+                ModuleThreadHandles[(int)ModuleThread.DS]
                         = new Thread(DSModule.DSInit);
-                moduleControlDataBlocks[(int)ModuleThread.DS]
+                ModuleControlDataBlocks[(int)ModuleThread.DS]
                     = new ModuleControlDataBlock();
-                moduleThreadHandles[(int)ModuleThread.DS]
-                        .Start(moduleControlDataBlocks[(int)ModuleThread.DS]
+                ModuleThreadHandles[(int)ModuleThread.DS]
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.DS]
                         .ThreadParameters);
             }
             catch (ArgumentNullException ex)
@@ -232,12 +205,12 @@ namespace DiReCT
             try
             {
                 // Create and intialize MAN module
-                moduleThreadHandles[(int)ModuleThread.MAN]
+                ModuleThreadHandles[(int)ModuleThread.MAN]
                         = new Thread(MANModule.MANInit);
-                moduleControlDataBlocks[(int)ModuleThread.MAN]
+                ModuleControlDataBlocks[(int)ModuleThread.MAN]
                     = new ModuleControlDataBlock();
-                moduleThreadHandles[(int)ModuleThread.MAN]
-                        .Start(moduleControlDataBlocks[(int)ModuleThread.MAN]
+                ModuleThreadHandles[(int)ModuleThread.MAN]
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.MAN]
                         .ThreadParameters);
             }
             catch (ArgumentNullException ex)
@@ -251,12 +224,12 @@ namespace DiReCT
             try
             {
                 // Create and intialize RTQC module
-                moduleThreadHandles[(int)ModuleThread.RTQC]
+                ModuleThreadHandles[(int)ModuleThread.RTQC]
                         = new Thread(RTQCModule.RTQCInit);
-                moduleControlDataBlocks[(int)ModuleThread.RTQC]
+                ModuleControlDataBlocks[(int)ModuleThread.RTQC]
                     = new ModuleControlDataBlock();
-                moduleThreadHandles[(int)ModuleThread.RTQC]
-                        .Start(moduleControlDataBlocks[(int)ModuleThread.RTQC]
+                ModuleThreadHandles[(int)ModuleThread.RTQC]
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.RTQC]
                         .ThreadParameters);
             }
             catch (ArgumentNullException ex)
@@ -266,7 +239,7 @@ namespace DiReCT
                 goto CleanupExit;
             }
 
-            // Initialize the thread object of UI thread
+            // Initialize the thread object of GUI thread
             try
             {
                 UIThreadHandle = new Thread(UIMainFunction);
@@ -279,18 +252,21 @@ namespace DiReCT
                 goto CleanupExit;
             }
 
-            // Initialize the array of Ready events for WaitHandle
+            // Initialize the array of ready events for WaitHandle
             for (int i = 0; i < (int)ModuleThread.NumberOfModules; i++)
             {
-                moduleReadyEvents[i]
-                    = moduleControlDataBlocks[i].ThreadParameters
-                                                .ReadyToWorkEvent;
+                ModuleReadyEvents[i]
+                    = ModuleControlDataBlocks[i].ThreadParameters
+                                                .ModuleReadyEvent;
+                ModuleInitFailedEvents[i]
+                    = ModuleControlDataBlocks[i].ThreadParameters
+                                                .ModuleInitFailedEvent;
             }
 
-            while (!HasInitFailed)
+            while (!InitHasFailed)
             {
-                if (WaitHandle.WaitAll(moduleReadyEvents,
-                                       (int)TimeInterval.LongTime,
+                if (WaitHandle.WaitAll(ModuleReadyEvents,
+                                       (int)TimeInterval.VeryLongTime,
                                        true))
                 {
                     Debug.WriteLine(
@@ -299,29 +275,19 @@ namespace DiReCT
                 }
                 else
                 {
-                    for (int i = 0; i < moduleThreadHandles.Length; i++)
+                    int WaitReturnValue
+                       = WaitHandle.WaitAny(ModuleInitFailedEvents,
+                                            (int)TimeInterval.VeryVeryShortTime,
+                                            true);
+                    if (WaitReturnValue != WaitHandle.WaitTimeout)
                     {
-                        Thread moduleThreadHandle = moduleThreadHandles[i];
-                        if (!moduleThreadHandle.IsAlive)
-                        {
-                            string ModuleName
-                                = Enum.GetName(typeof(ModuleThread), i);
-                            Debug.WriteLine("Phase 1 initialization of "
-                                            + ModuleName + " module fails!");
-                            HasInitFailed = true;
-                        }
+                        InitHasFailed = true;
+                        goto CleanupExit;
                     }
-
-                    goto CleanupExit;
                 }
             }
 
-            // Signal all created threads to start working
-            foreach (ModuleControlDataBlock moduleControlData
-                     in moduleControlDataBlocks)
-            {
-                moduleControlData.ThreadParameters.StartWorkEvent.Set();
-            }
+            ModuleStartWorkEvent.Set();            
 
             //Start to execute UI
             try
@@ -343,8 +309,10 @@ namespace DiReCT
 
 CleanupExit:
 
+            Debug.WriteLine("Enter CleanupExit.");
+
             // Signal all created threads to prepare to terminate
-            foreach (Thread moduleThreadHandle in moduleThreadHandles)
+            foreach (Thread moduleThreadHandle in ModuleThreadHandles)
             {
                 if (moduleThreadHandle.ThreadState
                     != System.Threading.ThreadState.Unstarted)
@@ -355,12 +323,12 @@ CleanupExit:
 
             InitializationTimer 
                 = new Timer(new TimerCallback(AbortTimeOutEventHandler),
-                            moduleThreadHandles,
+                            ModuleThreadHandles,
                             (int)TimeInterval.LongTime,
                             Timeout.Infinite); // Callback is invoked once
 
             // Wait for all created threads to terminate
-            foreach (Thread moduleThreadHandle in moduleThreadHandles)
+            foreach (Thread moduleThreadHandle in ModuleThreadHandles)
             {
                 if (moduleThreadHandle.ThreadState
                     != System.Threading.ThreadState.Unstarted)
@@ -382,9 +350,9 @@ CleanupExit:
 
         private static void AbortTimeOutEventHandler(object state)
         {
-            for (int i = 0; i < moduleThreadHandles.Length; i++)
+            for (int i = 0; i < ModuleThreadHandles.Length; i++)
             {
-                Thread moduleThreadHandle = moduleThreadHandles[i];
+                Thread moduleThreadHandle = ModuleThreadHandles[i];
                 if (moduleThreadHandle.IsAlive)
                 {
                     string ModuleName
@@ -401,12 +369,39 @@ CleanupExit:
             Debug.WriteLine("Windows is shutting down...");
             Debug.WriteLine("Cleaning up...");
 
-            
+
             //
             // Cannot goto CleanupExit
             // Do clean up here...
             //
-            
+Cleanup:
+            // Signal all created threads to prepare to terminate
+            foreach (Thread moduleThreadHandle in ModuleThreadHandles)
+            {
+                if (moduleThreadHandle.ThreadState
+                    != System.Threading.ThreadState.Unstarted)
+                {
+                    moduleThreadHandle.Abort();
+                }
+            }
+
+            InitializationTimer
+                = new Timer(new TimerCallback(AbortTimeOutEventHandler),
+                            ModuleThreadHandles,
+                            (int)TimeInterval.LongTime,
+                            Timeout.Infinite); // Callback is invoked once
+
+            // Wait for all created threads to terminate
+            foreach (Thread moduleThreadHandle in ModuleThreadHandles)
+            {
+                if (moduleThreadHandle.ThreadState
+                    != System.Threading.ThreadState.Unstarted)
+                {
+                    moduleThreadHandle.Join();
+                }
+            }
+            return;
+
             //File.AppendAllText("Log.txt", DateTime.Now.ToString()+" DiReCT is shutting down..."+Environment.NewLine, Encoding.Unicode);
         }
     }    
