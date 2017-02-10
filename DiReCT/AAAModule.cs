@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,59 +11,61 @@ namespace DiReCT
     class AAAModule
     {
         // State control variable
-        static bool IsInitialized = false;
-        static bool IsReady = false;
-        static bool IsContinue = true;
-
+        static bool IsReady;
+        static bool IsContinuing;
+        static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
+        static PriorityWorkQueue<WorkItem> moduleWorkQueue;
 
         public static void AAAInit(object objectParameters)
         {
+
+            moduleControlDataBlock
+                = (ModuleControlDataBlock)objectParameters;
+            threadParameters = moduleControlDataBlock.ThreadParameters;
+            moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
             try
             {
-
-                threadParameters = (ThreadParameters)objectParameters;
-
-                if (IsInitialized == true)
-                {
-                    Debug.WriteLine("AAAInit initial twice.");
-                    return;
-                }
-
                 // Variables initialization
-                IsInitialized = false;
                 IsReady = false;
-                IsContinue = true;
+                IsContinuing = true;
 
                 //
                 // Modules initialization code here...
                 //
 
                 //
-                // End of Phase 1
-                //
+                // End of Phase 1 initialization
+                //                
+
                 threadParameters.ModuleReadyEvent.Set();
                 Debug.WriteLine("AAAInit complete Phase 1 Initialization");
 
+                //
+                // Phase 2 initialization code
+                //
+
                 DiReCTMainProgram.ModuleStartWorkEvent.WaitOne();
 
-                IsInitialized = true;
                 Debug.WriteLine("AAAInit complete Phase 2 Initialization" +
                                 "and start working.");
 
                 //
+                // End of Phase 2 initialization
+                //
+
+                //
                 // Main Thread of AAA module (begin)
                 //
-                while (IsContinue == true)
+                while (IsContinuing == true)
                 {
                     IsReady = true;
 
-                    //
                     // Wait for working events
+                    moduleWorkQueue.workArriveEvent.WaitOne();
+
                     // Switch case for different events, then
-                    // 1. Use Task & BlockingCollection
-                    // 2. Use BeginInvoke(Delegate, Object[])
-                    //
+                    // Use priority thread & priority queue
                 }
             }
             catch (ThreadAbortException ex) // Catch the exception thrown by 
@@ -86,8 +89,8 @@ CleanupExit:
 // Cleanup code
 //
             threadParameters.ModuleInitFailedEvent.Set();
+            Debug.WriteLine("AAA ModuleInitFailedEvent Set");
             return;
-
         }
     }
 }

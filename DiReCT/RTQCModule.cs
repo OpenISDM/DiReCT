@@ -2,8 +2,9 @@
  * Copyright (c) 2016 Academia Sinica, Institude of Information Science
  *
  * License:
- *      GPL 3.0 : This file is subject to the terms and conditions defined
- *      in file 'COPYING.txt', which is part of this source code package.
+ *      GPL 3.0 : The content of this file is subject to the terms and 
+ *      conditions defined in file 'COPYING.txt', which is part of this source
+ *      code package.
  *
  * Project Name:
  * 
@@ -31,6 +32,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -41,61 +43,61 @@ namespace DiReCT
     class RTQCModule
     {
         // State control variable
-        static bool IsInitialized;
         static bool IsReady;
-        static bool IsContinue;
-
+        static bool IsContinuing;
+        static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
+        static PriorityWorkQueue<WorkItem> moduleWorkQueue;
 
         public static void RTQCInit(object objectParameters)
         {
+            
+                moduleControlDataBlock 
+                    = (ModuleControlDataBlock)objectParameters;
+                threadParameters = moduleControlDataBlock.ThreadParameters;
+                moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
             try
             {
-                
-                threadParameters = (ThreadParameters)objectParameters;
-
-                if (IsInitialized == true)
-                {
-                    Debug.WriteLine("RTQCInit initial twice.");
-                    return;
-                }
-
                 // Variables initialization
-                IsInitialized = false;
                 IsReady = false;
-                IsContinue = true;
+                IsContinuing = true;
 
                 //
                 // Modules initialization code here...
                 //
 
                 //
-                // End of Phase 1
-                //
+                // End of Phase 1 initialization
+                //                
 
                 threadParameters.ModuleReadyEvent.Set();
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
 
+                //
+                // Phase 2 initialization code
+                //
+
                 DiReCTMainProgram.ModuleStartWorkEvent.WaitOne();
 
-                IsInitialized = true;
                 Debug.WriteLine("RTQCInit complete Phase 2 Initialization" +
                                 "and start working.");
 
                 //
+                // End of Phase 2 initialization
+                //
+
+                //
                 // Main Thread of RTQC module (begin)
                 //
-                while (IsContinue == true)
+                while (IsContinuing == true)
                 {
                     IsReady = true;
 
-                    //
-                    // To do...
                     // Wait for working events
+                    moduleWorkQueue.workArriveEvent.WaitOne();
+
                     // Switch case for different events, then
-                    // 1. Use Task & BlockingCollection
-                    // 2. Use BeginInvoke(Delegate, Object[])
-                    //
+                    // Use priority thread & priority queue
                 }
             }
             catch (ThreadAbortException ex) // Catch the exception thrown by 

@@ -2,8 +2,9 @@
  * Copyright (c) 2016 Academia Sinica, Institude of Information Science
  *
  * License:
- *      GPL 3.0 : This file is subject to the terms and conditions defined
- *      in file 'COPYING.txt', which is part of this source code package.
+ *      GPL 3.0 : The content of this file is subject to the terms and 
+ *      conditions defined in file 'COPYING.txt', which is part of this source
+ *      code package.
  *
  * Project Name:
  * 
@@ -29,6 +30,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -36,6 +38,8 @@ using System.Windows;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace DiReCT
 {
@@ -69,16 +73,38 @@ namespace DiReCT
         LongTime = Constants.LONG_TIME,       
         VeryLongTime = Constants.VERY_LONG_TIME   
     };
+
+    public enum WorkFunction
+    {
+        // AAA module function
+        UserLogin = 0,
+        UserLogout,
+
+        // DM module function
+        SaveRecord,
+        GetRecord,
+
+        // DS module function
+
+        // MAN module function
+        SetNotification,
+        SendNotification,
+
+        // RTQC module function
+        Validate,
+
+        NumberOfFunctions
+    };
     #endregion
 
     #region Program Shared Data
     class ThreadParameters
     {
-        // Module initialization failed Event
+        // Module initialization failed event
         // Pass by reference to ModuleInitFailedEvents[]
         public AutoResetEvent ModuleInitFailedEvent;
 
-        // Module thread initialization complete and ready to work
+        // Module thread initialization complete and ready to work event
         // Pass by reference to ModuleReadyEvents[]
         public AutoResetEvent ModuleReadyEvent;
 
@@ -88,11 +114,197 @@ namespace DiReCT
             ModuleReadyEvent = new AutoResetEvent(false);
         }
     }
+
+    class WorkItem : IDisposable, IComparable<WorkItem>
+    {        
+        private WorkFunction workFunctionName; // Enum of different functions
+        private Delegate workFunctionDelegate; // For functions not included in
+                                               // WorkFunction enumerator
+        private AsyncCallback callBackFunction;
+        private Object inputParameters; // Parameters for work function
+        private Object outputParameters; // Parameters for call back function
+        private IntPtr moduleAsyncResult; // Returning results
+        private int priority; // Lower-priority numeric values mean 
+                              // higher priority (Level 1~10)
+
+        // Private member used for implementation of IDisposable interface
+        private bool IsDisposed = false;
+
+        // Constructor using WorkFunction enumerator
+        public WorkItem(WorkFunction WorkFunctionName,
+                        AsyncCallback CallBackFunction,
+                        Object InputParameters,
+                        int Priority)
+        {
+            // Initialize members
+            workFunctionName = WorkFunctionName;
+            callBackFunction = CallBackFunction;
+            inputParameters = InputParameters;
+            outputParameters = null;
+            moduleAsyncResult = IntPtr.Zero;
+            priority = Priority;
+        }
+
+        // Constructor using WorkFunctionDelegate
+        public WorkItem(Delegate WorkFunctionDelegate,
+                        AsyncCallback CallBackFunction,
+                        Object InputParameters,
+                        int Priority)
+        {
+            // Initialize members
+            workFunctionDelegate = WorkFunctionDelegate;
+            callBackFunction = CallBackFunction;
+            inputParameters = InputParameters;
+            outputParameters = null;
+            moduleAsyncResult = IntPtr.Zero;
+            priority = Priority;
+        }
+
+        public int CompareTo(WorkItem other)
+        {
+            if (this.priority < other.priority) return -1; // Higher priority
+            else if (this.priority > other.priority) return 1; // Lower priority
+            else return 0; // Same priority
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(Boolean disposing)
+        {
+            if (!IsDisposed)
+            {
+                if(disposing)
+                {
+                    //
+                    // Dispose managed resources
+                    //
+                }
+
+                //
+                // Dispose unmanaged resources
+                //
+                if (moduleAsyncResult != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(moduleAsyncResult);
+                    moduleAsyncResult = IntPtr.Zero;
+                }
+
+                // Note disposing has been done
+                IsDisposed = true;
+            }
+        }
+        
+        ~WorkItem()
+        {
+            Dispose(false);
+        }
+    }
+
+    class PriorityWorkQueue<T> where T : IComparable<T>
+    {
+        private List<T> dataList;
+        public ManualResetEvent workArriveEvent;
+        private Mutex mutex;
+
+        public PriorityWorkQueue()
+        {
+            this.dataList = new List<T>();
+            workArriveEvent = new ManualResetEvent(false);
+            mutex = new Mutex();
+        }
+
+        public void Enqueue(T item)
+        {
+            mutex.WaitOne();
+
+            dataList.Add(item);
+            int childIndex = dataList.Count - 1; // Child index start at end
+
+            while (childIndex > 0)
+            {
+                int parentIndex = (childIndex - 1) / 2;
+                if (dataList[childIndex].CompareTo(dataList[parentIndex]) >= 0)
+                    break; // Child item is larger than (or equal) parent
+
+                //Swap child and parent
+                T tmp = dataList[childIndex];
+                dataList[childIndex] = dataList[parentIndex];
+                dataList[parentIndex] = tmp;
+
+                childIndex = parentIndex;
+            }
+
+            workArriveEvent.Set();
+            mutex.ReleaseMutex();
+        }
+
+        public T Dequeue()
+        {
+            mutex.WaitOne();
+
+            int lastIndex = dataList.Count - 1;
+            T frontItem = dataList[0];   // Fetch the front
+            dataList[0] = dataList[lastIndex];
+            dataList.RemoveAt(lastIndex);
+            --lastIndex;
+
+            int parentIndex = 0; // Parent index start at front of queue
+
+            while (true)
+            {
+                int childIndex = parentIndex * 2 + 1;
+                if (childIndex > lastIndex) break;  // No children
+
+                int rightChild = childIndex + 1;
+
+                if (rightChild <= lastIndex && 
+                    dataList[rightChild].CompareTo(dataList[childIndex]) < 0)
+                    // if there is a rightChild (childIndex + 1), 
+                    // and it is smaller than left child, 
+                    // use the rightChild instead
+                    childIndex = rightChild;
+
+                if (dataList[parentIndex].CompareTo(dataList[childIndex]) <= 0)
+                    break; // Parent is smaller than (or equal to) 
+                           // smallest child
+                
+                // Swap parent and child
+                T tmp = dataList[parentIndex];
+                dataList[parentIndex] = dataList[childIndex];
+                dataList[childIndex] = tmp;
+                parentIndex = childIndex;
+            }
+
+            if(dataList.Count==0)
+                workArriveEvent.Reset();
+
+            return frontItem;
+        }
+
+        public T Peek()
+        {
+            T frontItem = dataList[0];
+            return frontItem;
+        }
+
+        public int Count()
+        {
+            return dataList.Count;
+        }
+    }
+
     class ModuleControlDataBlock
     {
+        // Core work-queue of each module
+        public PriorityWorkQueue<WorkItem> ModuleWorkQueue;
+
         public ThreadParameters ThreadParameters;
         public ModuleControlDataBlock()
         {
+            ModuleWorkQueue = new PriorityWorkQueue<WorkItem>();
             ThreadParameters = new ThreadParameters();
         }
     }
@@ -113,7 +325,6 @@ namespace DiReCT
         private static bool InitHasFailed = false; // Whether initialization 
                                                    // processes were completed
                                                    // in time
-        private static Timer InitializationTimer;
 
         [MTAThread]
         static void Main()
@@ -153,8 +364,7 @@ namespace DiReCT
                 ModuleControlDataBlocks[(int)ModuleThread.AAA]
                     = new ModuleControlDataBlock();
                 ModuleThreadHandles[(int)ModuleThread.AAA]
-                        .Start(ModuleControlDataBlocks[(int)ModuleThread.AAA]
-                        .ThreadParameters);
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.AAA]);
             }
             catch (ArgumentNullException ex)
             {
@@ -172,8 +382,7 @@ namespace DiReCT
                 ModuleControlDataBlocks[(int)ModuleThread.DM]
                     = new ModuleControlDataBlock();
                 ModuleThreadHandles[(int)ModuleThread.DM]
-                        .Start(ModuleControlDataBlocks[(int)ModuleThread.DM]
-                        .ThreadParameters);
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.DM]);
             }
             catch (ArgumentNullException ex)
             {
@@ -191,8 +400,7 @@ namespace DiReCT
                 ModuleControlDataBlocks[(int)ModuleThread.DS]
                     = new ModuleControlDataBlock();
                 ModuleThreadHandles[(int)ModuleThread.DS]
-                        .Start(ModuleControlDataBlocks[(int)ModuleThread.DS]
-                        .ThreadParameters);
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.DS]);
             }
             catch (ArgumentNullException ex)
             {
@@ -210,8 +418,7 @@ namespace DiReCT
                 ModuleControlDataBlocks[(int)ModuleThread.MAN]
                     = new ModuleControlDataBlock();
                 ModuleThreadHandles[(int)ModuleThread.MAN]
-                        .Start(ModuleControlDataBlocks[(int)ModuleThread.MAN]
-                        .ThreadParameters);
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.MAN]);
             }
             catch (ArgumentNullException ex)
             {
@@ -229,8 +436,7 @@ namespace DiReCT
                 ModuleControlDataBlocks[(int)ModuleThread.RTQC]
                     = new ModuleControlDataBlock();
                 ModuleThreadHandles[(int)ModuleThread.RTQC]
-                        .Start(ModuleControlDataBlocks[(int)ModuleThread.RTQC]
-                        .ThreadParameters);
+                        .Start(ModuleControlDataBlocks[(int)ModuleThread.RTQC]);
             }
             catch (ArgumentNullException ex)
             {
@@ -252,7 +458,8 @@ namespace DiReCT
                 goto CleanupExit;
             }
 
-            // Initialize the array of ready events for WaitHandle
+            // Set the array of events for waiting signals raised by 
+            // modules using WaitAll and WaitAny below
             for (int i = 0; i < (int)ModuleThread.NumberOfModules; i++)
             {
                 ModuleReadyEvents[i]
@@ -321,19 +528,13 @@ CleanupExit:
                 }
             }
 
-            InitializationTimer 
-                = new Timer(new TimerCallback(AbortTimeOutEventHandler),
-                            ModuleThreadHandles,
-                            (int)TimeInterval.LongTime,
-                            Timeout.Infinite); // Callback is invoked once
-
             // Wait for all created threads to terminate
             foreach (Thread moduleThreadHandle in ModuleThreadHandles)
             {
                 if (moduleThreadHandle.ThreadState
                     != System.Threading.ThreadState.Unstarted)
                 {
-                    moduleThreadHandle.Join();
+                    moduleThreadHandle.Join((int)TimeInterval.LongTime);
                 }
             }
             return;
@@ -385,19 +586,13 @@ Cleanup:
                 }
             }
 
-            InitializationTimer
-                = new Timer(new TimerCallback(AbortTimeOutEventHandler),
-                            ModuleThreadHandles,
-                            (int)TimeInterval.LongTime,
-                            Timeout.Infinite); // Callback is invoked once
-
             // Wait for all created threads to terminate
             foreach (Thread moduleThreadHandle in ModuleThreadHandles)
             {
                 if (moduleThreadHandle.ThreadState
                     != System.Threading.ThreadState.Unstarted)
                 {
-                    moduleThreadHandle.Join();
+                    moduleThreadHandle.Join((int)TimeInterval.LongTime);
                 }
             }
             return;
