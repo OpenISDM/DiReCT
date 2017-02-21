@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="AAAModule.cs" />
     <Compile Include="DiReCTCore\MainProgram.cs" />
+    <Compile Include="Model\Utilities.cs" />
     <Compile Include="DMModule.cs" />
     <Compile Include="DSModule.cs" />
     <Compile Include="MANModule.cs" />
@@ -84,7 +85,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

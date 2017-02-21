@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 
+using DiReCT.Model.Utilities;
+
 namespace DiReCT
 {
     class DSModule
@@ -15,7 +17,7 @@ namespace DiReCT
         static bool IsContinuing;
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-        static PriorityWorkQueue<WorkItem> moduleWorkQueue;
+        static PriorityWorkQueue moduleWorkQueue;
 
         public static void DSInit(object objectParameters)
         {
@@ -62,10 +64,9 @@ namespace DiReCT
                     IsReady = true;
 
                     // Wait for working events
-                    moduleWorkQueue.workArriveEvent.WaitOne();
+                    moduleWorkQueue.Dequeue();
 
-                    // Switch case for different events, then
-                    // Use priority thread & priority queue
+                    // To do...
                 }
             }
             catch (ThreadAbortException ex) // Catch the exception thrown by 
