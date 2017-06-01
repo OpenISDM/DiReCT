@@ -52,17 +52,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AAAModule.cs" />
-    <Compile Include="DiReCTCore\MainProgram.cs" />
+    <Compile Include="Core\DiReCTCore.cs" />
+    <Compile Include="Core\DiRecTCoreDataManagement.cs" />
+    <Compile Include="Core\MainProgram.cs" />
+    <Compile Include="Model\ObservationRecord.cs" />
     <Compile Include="Model\Utilities.cs" />
     <Compile Include="DMModule.cs" />
     <Compile Include="DSModule.cs" />
     <Compile Include="MANModule.cs" />
     <Compile Include="RTQCModule.cs" />
-    <Page Include="DiReCTCore\MainWindow.xaml">
+    <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="DiReCTCore\MainWindow.xaml.cs">
+    <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>

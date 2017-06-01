@@ -1,10 +1,43 @@
-﻿using System;
+﻿/*
+ * Copyright (c) 2016 Academia Sinica, Institude of Information Science
+ *
+ * License:
+ *      GPL 3.0 : The content of this file is subject to the terms and 
+ *      conditions defined in file 'COPYING.txt', which is part of this source
+ *      code package.
+ *
+ * Project Name:
+ * 
+ *      DiReCT(Disaster Record Capture Tool)
+ * 
+ * File Description:
+ * File Name:
+ * 
+ *      DMModule.cs
+ * 
+ * Abstract:
+ *      
+ *      Real-time Quality Control module is a DiReCT component which examines
+ *      the observational record meta data and input data during the data
+ *      collection. When it detects a defective record, it alerts the Monitor
+ *      and Notification module, which is responsible for alerting the user and
+ *      handles the defective record in specified ways.
+ *
+ * Authors:
+ * 
+ *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
+ *      Jeff Chen, jeff@iis.sinica.edu.tw
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
 
@@ -12,86 +45,79 @@ namespace DiReCT
 {
     class DMModule
     {
-        // State control variable
-        static bool IsReady;
-        static bool IsContinuing;
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-        static PriorityWorkQueue moduleWorkQueue;
+
+        static ManualResetEvent ModuleAbortEvent;
+        static AutoResetEvent ModuleReadyEvent, ModuleStartWorkEvent;
+
+        static WorkerThreadPool<WorkItem> moduleThreadPool;
+        static WorkItem workItem;
 
         public static void DMInit(object objectParameters)
         {
-
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
+            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
+
             try
             {
-                // Variables initialization
-                IsReady = false;
-                IsContinuing = true;
-
                 //
                 // Modules initialization code here...
-                //
+                //            
 
-                //
-                // End of Phase 1 initialization
-                //                
-
-                threadParameters.ModuleReadyEvent.Set();
+                ModuleReadyEvent.Set();
                 Debug.WriteLine("DMInit complete Phase 1 Initialization");
 
                 //
                 // Phase 2 initialization code
                 //
 
-                DiReCTMainProgram.ModuleStartWorkEvent.WaitOne();
+                ModuleStartWorkEvent.WaitOne();
 
-                Debug.WriteLine("DMInit complete Phase 2 Initialization" +
-                                "and start working.");
-
-                //
-                // End of Phase 2 initialization
-                //
+                Debug.WriteLine("DMInit complete Phase 2 Initialization");
 
                 //
                 // Main Thread of DM module (begin)
                 //
-                while (IsContinuing == true)
+
+                Debug.WriteLine("DM module is working...");
+
+                // Check ModuleAbortEvent periodically
+                while (!ModuleAbortEvent
+                        .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
-                    IsReady = true;
 
-                    // Wait for working events
-                    moduleWorkQueue.Dequeue();
-
-                    // To do...
+                    //
+                    // Wait for work event
+                    // A switch case for each work event, 
+                    //   e.g. DMSaveRecordWorkEvent.
+                    //
                 }
-            }
-            catch (ThreadAbortException ex) // Catch the exception thrown by 
-                                            // Thread.Abort() in main.
-            {
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine("DM module thread is aborting...");
-                Thread.ResetAbort(); // Avoid exception rethrowning at the end 
-                                     // of the catch block.
-                goto CleanupExit;
+
+                Debug.WriteLine("DM module is aborting.");
+                CleanupExit();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine("DM module thread failed.");
-                goto CleanupExit;
+                threadParameters.ModuleInitFailedEvent.Set();
+                Debug.WriteLine("DM ModuleInitFailedEvent Set");
+                CleanupExit();
             }
+        }
 
-CleanupExit:
-//
-// Cleanup code
-//
-            threadParameters.ModuleInitFailedEvent.Set();
-            Debug.WriteLine("DM ModuleInitFailedEvent Set");
+        private static void CleanupExit()
+        {
+            //
+            // Cleanup code
+            //
+            Debug.WriteLine("DM module stopped successfully.");
             return;
         }
     }
 }
+
+
