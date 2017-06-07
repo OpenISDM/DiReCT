@@ -17,11 +17,13 @@
  * 
  * Abstract:
  *      
- *      Real-time Quality Control module is a DiReCT component which examines
- *      the observational record meta data and input data during the data
- *      collection. When it detects a defective record, it alerts the Monitor
- *      and Notification module, which is responsible for alerting the user and
- *      handles the defective record in specified ways.
+ *      Monitor and Notification (MaN) is a run-time monitoring tool. 
+ *      It provides the capabilities for real-time monitoring, 
+ *      capture and analysis of events and conditions that indicate the 
+ *      potential for occurrences, or actual occurrences, of errors, 
+ *      and issuing alerts and notifications to trigger error handling 
+ *      or prevention actions. It also provides notification functions 
+ *      other modules can call to send reminders and alerts.
  *
  * Authors:
  * 

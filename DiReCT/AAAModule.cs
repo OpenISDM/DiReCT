@@ -17,11 +17,9 @@
  * 
  * Abstract:
  *      
- *      Real-time Quality Control module is a DiReCT component which examines
- *      the observational record meta data and input data during the data
- *      collection. When it detects a defective record, it alerts the Monitor
- *      and Notification module, which is responsible for alerting the user and
- *      handles the defective record in specified ways.
+ *      Authentication and Authorization (AaA) module authenticates 
+ *      the user during login. It checks the user for authorization 
+ *      to download event data and upload record data to and from DiReCT.
  *
  * Authors:
  * 
