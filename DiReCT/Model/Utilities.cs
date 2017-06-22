@@ -184,22 +184,22 @@ namespace DiReCT.Model.Utilities
         private IntPtr moduleAsyncAPIResult;// Returning results
 
         // Constructor using WorkFunction enumerator
-        public WorkItem(FunctionGroupName GroupName,
-                        AsyncCallName AsyncCallName,
-                        Object Parameters,
-                        AsyncCallback CallBackFunction,
-                        Object AsyncStates)
+        public WorkItem(FunctionGroupName groupName,
+                        AsyncCallName asyncCallName,
+                        Object parameters,
+                        AsyncCallback callBackFunction,
+                        Object asyncState)
         {
             // Initialize members
-            asyncState = AsyncState;
+            this.asyncState = asyncState;
             asyncCompletedEvent = new ManualResetEvent(false);
             completedSynchronously = false;
             isCompleted = false;
             isDisposed = false;
-            callBackFunction = CallBackFunction;
-            groupName = GroupName;
-            functionName = AsyncCallName;
-            inputParameters = Parameters;
+            this.callBackFunction = callBackFunction;
+            this.groupName = groupName;
+            functionName = asyncCallName;
+            inputParameters = parameters;
             outputParameters = null;
             exceptionCode = ErrorAndExceptionCode.NoException;
             exception = null;

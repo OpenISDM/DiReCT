@@ -62,7 +62,8 @@ namespace DiReCT
         public void Run()
         {
             //
-            // Wait for events
+            // Wait for work arrive events
+            // Dequeue and unwrap Workitems
             // A switch case for each events, e.g. WorkArriveEvent
             // {
             //      A switch case for each FunctionGroupName

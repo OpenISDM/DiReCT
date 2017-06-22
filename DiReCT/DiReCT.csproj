@@ -37,6 +37,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Device" />
+    <Reference Include="System.Windows" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -52,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AAAModule.cs" />
+    <Compile Include="MAN\NotificationClass.cs" />
     <Compile Include="Core\DiReCTCore.cs" />
     <Compile Include="Core\DiRecTCoreDataManagement.cs" />
     <Compile Include="Core\MainProgram.cs" />

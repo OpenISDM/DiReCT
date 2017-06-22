@@ -49,16 +49,16 @@ namespace DiReCT
 {
     public partial class DiReCTCore
     {
-        public void SaveRecord(ObservationRecord RecordData, 
-                               AsyncCallback CallBackFunction, 
-                               Object AsyncState)
+        public void SaveRecord(ObservationRecord recordData, 
+                               AsyncCallback callBackFunction, 
+                               Object asyncState)
         {
             WorkItem workItem
                 = new WorkItem(FunctionGroupName.DataManagementFunction,
                                AsyncCallName.SaveRecord,
-                               (Object)RecordData,
-                               CallBackFunction,
-                               AsyncState);
+                               (Object)recordData,
+                               callBackFunction,
+                               asyncState);
             
             // Token for work cancelling
             CancellationToken cancellationToken = new CancellationToken();
@@ -68,14 +68,24 @@ namespace DiReCT
                                   cancellationToken);
         }
 
-        // Implement the processor to handle work items
-        private void DataManagementFunctionProcessor(WorkItem WorkItem)
+        /// <summary>
+        /// This function runs on DM Module worker thread. 
+        /// The aim of this function is to implement the processor 
+        /// to dequeue and handle work items.
+        /// </summary>
+        private void DataManagementFunctionProcessor()
         {
+            // Dequeue and unwrap Workitem and get AsyncCallName
             // A switch case for each AsyncCallName
             // {
-            //      Update current record buffer
-            //      Raise DMSaveRecordEvent and pass the ID of current buffer
-            //      Wait for AsyncResult if needed
+            //      case ...
+            //
+            //      case SaveRecord:
+            //          Update current record buffer
+            //          Raise DMSaveRecordEvent and pass the ID of current buffer
+            //          Wait for AsyncResult if needed
+            //
+            //      case ...
             // }
         }
 

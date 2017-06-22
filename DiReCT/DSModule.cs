@@ -91,7 +91,8 @@ namespace DiReCT
 
                     //
                     // Wait for work event
-                    // A switch case for each work event.
+                    // Wrap work into workitem
+                    // Enqueue the workitem to its threadpool
                     //
                 }
 
