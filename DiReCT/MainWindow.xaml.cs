@@ -36,5 +36,10 @@ namespace DiReCT
 
             //coreControl.SaveRecord(...);
         }
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
