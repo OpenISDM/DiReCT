@@ -42,7 +42,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Runtime.InteropServices;
-
+using System.Collections;
 
 namespace DiReCT.Model.Utilities
 {
@@ -401,11 +401,15 @@ namespace DiReCT.Model.Utilities
     public class PriorityWorkQueue<T>
     {
         private Queue<T>[] queue;
+        BitArray bitmap;  //keep track of empty queues
+        ManualResetEvent wakesWorkerEvent;
 
         // Priority level start from 0
         public PriorityWorkQueue(int levels)
         {
             queue = new Queue<T>[levels];
+            bitmap = new BitArray(levels);
+            wakesWorkerEvent = new ManualResetEvent(false);
 
             for ( int i=0;i< levels; i++)
             {
@@ -423,7 +427,21 @@ namespace DiReCT.Model.Utilities
                             int priority,
                             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            lock (bitmap)
+            {
+                //check if priority is not within level limit
+                if (priority > queue.Length || priority < 0)
+                {
+                    return false;
+                }
+
+                queue[priority].Enqueue(item);
+                bitmap[priority] = true;
+
+                wakesWorkerEvent.Set();
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -435,8 +453,41 @@ namespace DiReCT.Model.Utilities
         /// cancelled or an item could not be removed.</returns>
         public int Dequeue(out T workItem)
         {
-            throw new NotImplementedException();
+            int priority = -1;
+
+            lock (bitmap)
+            {
+                workItem = default(T);
+
+                for (int i = 0; i < bitmap.Length; i++)
+                {
+                    if (bitmap[i])
+                    {
+                        priority = i;
+                        workItem = queue[i].Dequeue();
+
+                        //update queue status
+                        if (queue[i].Count == 0)
+                        {
+                            bitmap[i] = false;
+                        }
+
+                        break;
+                    }
+                }
+            }
+            return priority;
         }
+
+        public WaitHandle WakesWorkerEvent
+        {
+            get
+            {
+                return wakesWorkerEvent;
+             }
+            
+        }
+
     }
 
 
