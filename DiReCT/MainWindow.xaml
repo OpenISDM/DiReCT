@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:DiReCT"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <StackPanel>
-        <Button x:Name="button" Content="Close" Width="75" Click="button_Click"/>
-        <Button x:Name="btnSaveRecord" Content="Save" Width="75" Click="btnSaveRecord_Click"></Button>
+    <StackPanel VerticalAlignment="Center">
+        <Button x:Name="btnSaveRecord" Content="Save" Width="75" Margin="5" Click="btnSaveRecord_Click"></Button>
+        <Button x:Name="button" Content="Close" Width="75" Margin="5" Click="button_Click"/>
     </StackPanel>
 </Window>

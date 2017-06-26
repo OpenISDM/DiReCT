@@ -150,7 +150,7 @@ namespace DiReCT
             // Initialize objects for main thread
             try
             {
-                coreControl = new DiReCTCore();
+                coreControl = DiReCTCore.getInstance();
             }
             catch (Exception ex)
             {
@@ -289,6 +289,7 @@ namespace DiReCT
                 ModuleReadyEvents[i]
                     = ModuleControlDataBlocks[i].ThreadParameters
                                                 .ModuleReadyEvent;
+                
                 ModuleInitFailedEvents[i]
                     = ModuleControlDataBlocks[i].ThreadParameters
                                                 .ModuleInitFailedEvent;
@@ -298,7 +299,7 @@ namespace DiReCT
             while (!InitHasFailed)
             {
                 if (WaitHandle.WaitAll(ModuleReadyEvents,
-                                       (int)TimeInterval.VeryLongTime,
+                                       (int)TimeInterval.LongTime,
                                        true))
                 {
                     Debug.WriteLine(
@@ -319,6 +320,7 @@ namespace DiReCT
                 }
             }
 
+            //Signal modules to start working
             ModuleStartWorkEvent.Set();
 
             //Start to execute UI

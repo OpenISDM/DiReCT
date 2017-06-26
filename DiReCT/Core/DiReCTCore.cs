@@ -45,22 +45,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
+using System.Threading;
 
 namespace DiReCT
 {
     public partial class DiReCTCore
     {
         PriorityWorkQueue<WorkItem> coreWorkQueue;
+        private AutoResetEvent workArriveEvent;
+        public AutoResetEvent WorkArriveEvent
+        {
+            get
+            {
+                return workArriveEvent;
+            }
+            set
+            {
+                workArriveEvent = value;
+            }
+        }
 
         public DiReCTCore()
         {
             // Initialize DiReCTCore
             coreWorkQueue = new PriorityWorkQueue<WorkItem>(
                                           (int)WorkPriority.NumberOfPriorities);
+            WorkArriveEvent = new AutoResetEvent(false);
         }
 
         public void Run()
-        {
+        {           
             //
             // Wait for work arrive events
             // Dequeue and unwrap Workitems
@@ -72,6 +86,19 @@ namespace DiReCT
             //      }
             // }
             //
+           
+        }
+
+        public static DiReCTCore _instance { get; set; }
+
+        public static DiReCTCore getInstance()
+        {
+            if(_instance == null)
+            {
+                _instance = new DiReCTCore();
+            }
+
+            return _instance;
         }
     }
 }
