@@ -50,8 +50,8 @@ namespace DiReCT
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
 
-        static ManualResetEvent ModuleAbortEvent;
-        static AutoResetEvent ModuleReadyEvent, ModuleStartWorkEvent;
+        static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
+        static AutoResetEvent ModuleReadyEvent;
 
         static WorkerThreadPool<WorkItem> moduleThreadPool;
         static WorkItem workItem;
@@ -65,17 +65,15 @@ namespace DiReCT
 
             try
             {
-                //
-                // Modules initialization code here...
-                //            
-
+                //Initialize ready/abort event 
+                ModuleReadyEvent = threadParameters.ModuleReadyEvent;
+                ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 ModuleReadyEvent.Set();
+
                 Debug.WriteLine("MANInit complete Phase 1 Initialization");
 
-                //
-                // Phase 2 initialization code
-                //
-
+                //Wait for starwork signal
+                ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
                 Debug.WriteLine("MANInit complete Phase 2 Initialization");

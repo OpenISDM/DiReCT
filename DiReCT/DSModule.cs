@@ -48,8 +48,8 @@ namespace DiReCT
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
 
-        static ManualResetEvent ModuleAbortEvent;
-        static AutoResetEvent ModuleReadyEvent, ModuleStartWorkEvent;
+        static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
+        static AutoResetEvent ModuleReadyEvent;
 
         static WorkerThreadPool<WorkItem> moduleThreadPool;
         static WorkItem workItem;
@@ -63,17 +63,15 @@ namespace DiReCT
 
             try
             {
-                //
-                // Modules initialization code here...
-                //            
-
+                //Initialize ready/abort event         
+                ModuleReadyEvent = threadParameters.ModuleReadyEvent;
+                ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 ModuleReadyEvent.Set();
+
                 Debug.WriteLine("DSInit complete Phase 1 Initialization");
 
-                //
-                // Phase 2 initialization code
-                //
-
+                //Wait for startwork signal
+                ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
                 Debug.WriteLine("DSInit complete Phase 2 Initialization");
@@ -81,7 +79,6 @@ namespace DiReCT
                 //
                 // Main Thread of DS module (begin)
                 //
-
                 Debug.WriteLine("DS module is working...");
 
                 // Check ModuleAbortEvent periodically

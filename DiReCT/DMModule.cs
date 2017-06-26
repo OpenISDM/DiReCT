@@ -38,6 +38,8 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
+using DiReCT;
+using System.Collections;
 
 namespace DiReCT
 {
@@ -46,11 +48,13 @@ namespace DiReCT
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
 
-        static ManualResetEvent ModuleAbortEvent;
-        static AutoResetEvent ModuleReadyEvent, ModuleStartWorkEvent;
+        static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
+        static AutoResetEvent ModuleReadyEvent;
 
         static WorkerThreadPool<WorkItem> moduleThreadPool;
         static WorkItem workItem;
+        static PriorityWorkQueue<WorkItem> priorityworkQueue;
+        //static IDictionary dictionary;
 
         public static void DMInit(object objectParameters)
         {
@@ -61,37 +65,36 @@ namespace DiReCT
 
             try
             {
-                //
-                // Modules initialization code here...
-                //            
-
+                //Initialize Ready/Abort Event      
+                ModuleReadyEvent = threadParameters.ModuleReadyEvent;
+                ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 ModuleReadyEvent.Set();
+
                 Debug.WriteLine("DMInit complete Phase 1 Initialization");
 
-                //
-                // Phase 2 initialization code
-                //
-
+                //Wait for core StartWork Signal
+                ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
                 Debug.WriteLine("DMInit complete Phase 2 Initialization");
 
                 //
                 // Main Thread of DM module (begin)
-                //
+                //               
 
+                priorityworkQueue = new PriorityWorkQueue<WorkItem>(5);
                 Debug.WriteLine("DM module is working...");
 
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
-
-                    //
                     // Wait for work event
+                    priorityworkQueue.WakesWorkerEvent.WaitOne();
                     // Wrap work into workitem
+                    
                     // Enqueue the workitem to its threadpool
-                    //
+                    
                 }
 
                 Debug.WriteLine("DM module is aborting.");
@@ -112,6 +115,7 @@ namespace DiReCT
             //
             // Cleanup code
             //
+            priorityworkQueue.WakesWorkerEvent.Close();
             Debug.WriteLine("DM module stopped successfully.");
             return;
         }
