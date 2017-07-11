@@ -58,6 +58,7 @@
     <Compile Include="Core\DiReCTCore.cs" />
     <Compile Include="Core\DiRecTCoreDataManagement.cs" />
     <Compile Include="Core\MainProgram.cs" />
+    <Compile Include="Model\FloodRecord.cs" />
     <Compile Include="Model\ObservationRecord.cs" />
     <Compile Include="Model\Utilities.cs" />
     <Compile Include="DMModule.cs" />

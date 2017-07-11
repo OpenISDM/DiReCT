@@ -33,25 +33,28 @@ namespace DiReCT.Model.Observations
 {
     public class Flood : ObservationRecord
     {
-        Flood fl = new Flood();
+        
 
 
         public void sSetObservationRecord(string a, int b, int c)
         {
-            fl.NotesOnRecord = a;
-            fl.WaterLevel = b;
-            fl.IsPowerFailure = c;
+            
+        }
+
+        public override void SetObservationRecord()
+        {
+            throw new NotImplementedException();
         }
 
 
 
 
 
-            /// <summary>
-            /// 淹水深度
-            /// The water levels of the flood.
-            /// </summary>
-            public double WaterLevel { get; set; }
+        /// <summary>
+        /// 淹水深度
+        /// The water levels of the flood.
+        /// </summary>
+        public double WaterLevel { get; set; }
 
             /// <summary>
             /// 水質混濁度

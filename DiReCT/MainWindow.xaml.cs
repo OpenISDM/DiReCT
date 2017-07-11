@@ -37,8 +37,7 @@ namespace DiReCT
 
             //testing
             InvalidateVisual();
-            ObservationRecord testingRecord = new ObservationRecord();
-            coreControl.SaveRecord(testingRecord,null,null);
+            
             coreControl.WorkArriveEvent.Set();
             Debug.WriteLine("Saveing Records");          
         }

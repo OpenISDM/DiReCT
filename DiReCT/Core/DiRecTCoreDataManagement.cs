@@ -44,6 +44,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using DiReCT.Model.Utilities;
+using DiReCT.Model.Observations;
 
 namespace DiReCT
 {
