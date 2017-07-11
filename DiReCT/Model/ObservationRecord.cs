@@ -38,6 +38,12 @@ namespace DiReCT.Model.Observations
         //or的放constructor + flood新的 
         //堤共 個別method set property
 
+        private int recordID;
+
+        public int getID()
+        {
+            return recordID;
+        }
 
         /// <summary>
         /// Constructor.
@@ -47,6 +53,9 @@ namespace DiReCT.Model.Observations
             RecorderRecordLocation = new GeoCoordinate();
             EstimatedOccurrenceLocation = new GeoCoordinate();
             MultiMediaFilePaths = new List<string>();
+
+
+            recordID = IDMananger.getID();
         }
 
         /// <summary>

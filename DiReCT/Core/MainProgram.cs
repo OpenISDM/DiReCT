@@ -100,12 +100,18 @@ namespace DiReCT
         // It is set by MainProgram when terminating the program needed
         public ManualResetEvent ModuleAbortEvent;
 
+        // Priority Queue for passing work to each module
+        // Each module should provide API to enqueue
+        public PriorityWorkQueue<WorkItem> ModuleWorkQueue;
+
         public ThreadParameters()
         {
             ModuleInitFailedEvent = new AutoResetEvent(false);
             ModuleReadyEvent = new AutoResetEvent(false);
             ModuleStartWorkEvent = DiReCTMainProgram.ModuleStartWorkEvent;
             ModuleAbortEvent = DiReCTMainProgram.ModuleAbortEvent;
+            ModuleWorkQueue = new PriorityWorkQueue<WorkItem>(
+               (int)WorkPriority.NumberOfPriorities);
         }
     }
 
@@ -138,9 +144,14 @@ namespace DiReCT
                                                    // processes were completed
                                                    // in time
 
+
+        public static PriorityWorkQueue<WorkItem>[] ModuleWorkQueue;
+
         [MTAThread]
         static void Main()
         {
+
+            
             // Subscribe system log off/shutdown or application close events
             SystemEvents.SessionEnding
                 += new SessionEndingEventHandler(ShutdownEventHandler);
@@ -170,6 +181,8 @@ namespace DiReCT
                 ModuleReadyEvents = new AutoResetEvent[
                     (int)ModuleThread.NumberOfModules];
                 ModuleInitFailedEvents = new AutoResetEvent[
+                    (int)ModuleThread.NumberOfModules];
+                ModuleWorkQueue = new PriorityWorkQueue<WorkItem>[
                     (int)ModuleThread.NumberOfModules];
             }
             catch (Exception ex)

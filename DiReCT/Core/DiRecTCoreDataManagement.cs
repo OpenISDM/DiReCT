@@ -90,6 +90,11 @@ namespace DiReCT
             // }
         }
 
+        internal static bool GetRecordFromBuffer(int index, out ObservationRecord record)
+        {
+            throw new NotImplementedException();
+        }
+
         //
         // More Data management functions here...
         //

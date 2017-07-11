@@ -40,6 +40,8 @@ using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using DiReCT;
 using System.Collections;
+using DiReCT.Model;
+using DiReCT.Model.Observations;
 
 namespace DiReCT
 {
@@ -51,10 +53,16 @@ namespace DiReCT
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
 
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
+        static DiReCTThreadPool moduleThreadPool;
         static WorkItem workItem;
-        static PriorityWorkQueue<WorkItem> priorityworkQueue;
+        static PriorityWorkQueue<WorkItem> ModuleWorkQueue;
+
+        static DictionaryManager dictionary;
+
+
         //static IDictionary dictionary;
+
+        const int MAX_NUMBER_OF_THREADS = 10;
 
         public static void DMInit(object objectParameters)
         {
@@ -68,6 +76,9 @@ namespace DiReCT
                 //Initialize Ready/Abort Event      
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                ModuleWorkQueue = threadParameters.ModuleWorkQueue;
+                moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
+
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DMInit complete Phase 1 Initialization");
@@ -81,19 +92,15 @@ namespace DiReCT
                 //
                 // Main Thread of DM module (begin)
                 //               
+                dictionary = new DictionaryManager();
 
-                priorityworkQueue = new PriorityWorkQueue<WorkItem>(5);
                 Debug.WriteLine("DM module is working...");
 
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
-                    // Wait for work event
-                    priorityworkQueue.WakesWorkerEvent.WaitOne();
-                    // Wrap work into workitem
-                    
-                    // Enqueue the workitem to its threadpool
+                    //Does nothing
                     
                 }
 
@@ -115,9 +122,83 @@ namespace DiReCT
             //
             // Cleanup code
             //
-            priorityworkQueue.WakesWorkerEvent.Close();
             Debug.WriteLine("DM module stopped successfully.");
             return;
+        }
+
+        internal static void DMWorkerFunctionProcessor(WorkItem work)
+        {
+            switch (workItem.AsyncCallName)
+            {
+                case AsyncCallName.SaveRecord:
+
+                    SendRecordToRTQC(workItem);
+                    break;
+
+            }
+        }
+
+
+        /// <summary>
+        /// DM API to wrap up workItem and enqueue
+        /// </summary>
+        /// <param name="asyncCallName"></param>
+        /// <param name="callBackFunction"></param>
+        /// <param name="inputParameter"></param>
+        /// <param name="state"></param>
+        public static void DMWrapWorkItem(AsyncCallName asyncCallName,
+                                          AsyncCallback callBackFunction,
+                                          Object inputParameter,
+                                          Object state)
+        {
+
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.DataManagementFunction,
+                asyncCallName,
+                inputParameter,
+                callBackFunction,
+                state);
+
+            moduleThreadPool.AddThreadWork(workItem);
+
+        }
+
+
+        /// <summary>
+        /// Pass record to RTQC for validate
+        /// </summary>
+        /// <param name="workItem"></param>
+        internal static void SendRecordToRTQC(WorkItem workItem)
+        {
+            //random Data
+            int index = (int)workItem.InputParameters;
+            ObservationRecord record;
+
+            //Get the record from buffer 
+            if (DiReCTCore.GetRecordFromBuffer(index, out record))
+            {
+                //Call RTQC API
+                RTQCModule.RTQCWrapWorkItem(AsyncCallName.Validate,
+                    new AsyncCallback(SaveRecordtoDictionary),
+                    record,
+                    null);
+            }
+            else
+            {
+                //Exception, index not valid
+            }
+
+        }
+
+        /// <summary>
+        /// Save the record into Dictionary
+        /// </summary>
+        /// <param name="result"></param>
+        static void SaveRecordtoDictionary(IAsyncResult result)
+        {
+            WorkItem workItem = (WorkItem)result;
+            dictionary.SaveRecord(false,
+                            (ObservationRecord)workItem.InputParameters);
         }
     }
 }

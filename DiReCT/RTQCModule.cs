@@ -40,6 +40,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
+using DiReCT.Model.Observations;
 
 namespace DiReCT
 {
@@ -115,6 +116,11 @@ namespace DiReCT
             ModuleStartWorkEvent.Close(); 
             Debug.WriteLine("RTQC module stopped successfully.");
             return;
+        }
+
+        internal static void RTQCWrapWorkItem(AsyncCallName validate, AsyncCallback asyncCallback, ObservationRecord record, object p)
+        {
+            throw new NotImplementedException();
         }
     }
 }
