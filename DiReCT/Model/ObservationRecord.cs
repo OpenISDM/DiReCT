@@ -38,11 +38,9 @@ namespace DiReCT.Model.Observations
         //or的放constructor + flood新的 
         //堤共 個別method set property
 
-        private int recordID;
-
-        public int getID()
+        public int RecordID
         {
-            return recordID;
+            get; set;
         }
 
         /// <summary>
@@ -55,7 +53,7 @@ namespace DiReCT.Model.Observations
             MultiMediaFilePaths = new List<string>();
 
 
-            recordID = IDMananger.getID();
+            RecordID = IDMananger.getID();
         }
 
         /// <summary>
@@ -70,7 +68,7 @@ namespace DiReCT.Model.Observations
         /// 
         /// e.g. Time entered by recorder manually or with tool's help.
         /// </summary>
-        public long EstimatedOccurrenceTime { get; protected set; }
+        public long EstimatedOccurrenceTime { get; set; }
 
 
         /// <summary>
@@ -80,7 +78,7 @@ namespace DiReCT.Model.Observations
         /// e.g. The time of recorder observes or measures water depth and 
         /// captures the value.
         /// </summary>
-        public long ObservationRecordCapturedTime { get; protected set; }
+        public long ObservationRecordCapturedTime { get; set; }
 
 
         /// <summary>
@@ -89,14 +87,14 @@ namespace DiReCT.Model.Observations
         /// 
         /// e.g. The time of recorder saves record.
         /// </summary>
-        public long ObservationRecordSavedTime { get; protected set; }
+        public long ObservationRecordSavedTime { get; set; }
 
         
         /// <summary>
         /// This member stores the coordinates of the location where
         /// the recorder is when the observation record is captured.
         /// </summary>
-        public GeoCoordinate RecorderRecordLocation { get; protected set; }
+        public GeoCoordinate RecorderRecordLocation { get;  set; }
 
 
         /// <summary>
@@ -107,20 +105,20 @@ namespace DiReCT.Model.Observations
         /// e.g. The landslide occurred location.  
         /// </summary>
         public GeoCoordinate EstimatedOccurrenceLocation
-        { get; protected set; }
+        { get; set; }
         
 
         /// <summary>
         /// This string stores the notes or others information.
         /// </summary>
-        public string NotesOnRecord { get; protected set; }
+        public string NotesOnRecord { get; set; }
 
 
         /// <summary>
         /// This list stores paths to video, audio and photo
         /// associated with this observation record. 
         /// </summary>
-        public List<string> MultiMediaFilePaths { get; protected set; }
+        public List<string> MultiMediaFilePaths { get; set; }
         #endregion
     }
 }

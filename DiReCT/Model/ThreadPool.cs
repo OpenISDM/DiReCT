@@ -333,11 +333,12 @@ namespace DiReCT.Model
 
                                 //All DM Function
                                 case FunctionGroupName.DataManagementFunction:
+                                    
                                     DMModule.DMWorkerFunctionProcessor(Work);
                                     break;
 
                                 case FunctionGroupName.QualityControlFunction:
-
+                                    RTQCModule.RTQCWorkerFunctionProcessor(Work);
 
                                     break;
                             }

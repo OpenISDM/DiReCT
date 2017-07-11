@@ -11,8 +11,8 @@ namespace DiReCT.Model
 {
     class DictionaryManager
     {
-        private static Dictionary<int, ObservationRecord> cleanData;
-        private static Dictionary<int, ObservationRecord> defectedData;
+        public static volatile Dictionary<int, ObservationRecord> cleanData;
+        public static volatile Dictionary<int, ObservationRecord> defectedData;
         static IDMananger IDmanager;
 
         /// <summary>
@@ -59,6 +59,8 @@ namespace DiReCT.Model
             return HasSucceeded;
         }
 
+        
+
         /// <summary>
         /// save a specific ObservationRecord item to defect or clean dictionary
         /// </summary>
@@ -71,7 +73,7 @@ namespace DiReCT.Model
             bool HasSucceeded = false;
             try
             {
-                recordID = record.getID();
+                recordID = record.RecordID;
 
                 //Save record to defect or clean dictioanry
                 if (isDefected)
@@ -122,6 +124,27 @@ namespace DiReCT.Model
             }
 
             return HasSucceeded;
+        }
+
+
+
+        //To be deleted
+        internal static ObservationRecord[] getAllCleanRecords()
+        {
+            ObservationRecord[] records = null;
+
+            records = cleanData.Values.ToArray();
+
+            return records;
+        }
+
+        internal static ObservationRecord[] getAllDefectedRecords()
+        {
+            ObservationRecord[] records = null;
+
+            records = defectedData.Values.ToArray();
+
+            return records;
         }
 
     }

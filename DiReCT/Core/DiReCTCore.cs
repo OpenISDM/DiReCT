@@ -46,59 +46,94 @@ using System.Text;
 using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using System.Threading;
+using DiReCT.Model.Observations;
 
 namespace DiReCT
 {
     public partial class DiReCTCore
     {
-        PriorityWorkQueue<WorkItem> coreWorkQueue;
-        private AutoResetEvent workArriveEvent;
-        public AutoResetEvent WorkArriveEvent
-        {
-            get
-            {
-                return workArriveEvent;
-            }
-            set
-            {
-                workArriveEvent = value;
-            }
-        }
+        public static PriorityWorkQueue<WorkItem> coreWorkQueue;
+        public static bool isRunning;
 
         public DiReCTCore()
         {
             // Initialize DiReCTCore
             coreWorkQueue = new PriorityWorkQueue<WorkItem>(
                                           (int)WorkPriority.NumberOfPriorities);
-            WorkArriveEvent = new AutoResetEvent(false);
+            isRunning = true;
+
+            //DM Object initialization
+            recordBuffer = new ObservationRecord[Constant.BUFFER_NUMBER];
+            isBufferFull = false;
+            BufferLock = new object();
+
+
         }
 
         public void Run()
-        {           
-            //
-            // Wait for work arrive events
-            // Dequeue and unwrap Workitems
-            // A switch case for each events, e.g. WorkArriveEvent
-            // {
-            //      A switch case for each FunctionGroupName
-            //      {
-            //          Execute each function processor
-            //      }
-            // }
-            //
-           
+        {
+            while (isRunning)
+            {
+                WorkItem workItem; //record
+                int priority = coreWorkQueue.Dequeue(out workItem);
+
+                if (priority != -1)
+                {
+                    switch (workItem.GroupName)
+                    {
+                        //send the item to each queue
+                        case FunctionGroupName.DataManagementFunction:
+                            //make a method in Core DM to handle different methods
+                            CoreDMFunctionProcessor(workItem);
+                            break;
+
+                        case FunctionGroupName.AuthenticateAuthoriseFunction:
+                            break;
+
+                        case FunctionGroupName.DataSyncFunction:
+                            break;
+
+                        case FunctionGroupName.MonitorAlertNotificationFunction:
+                            break;
+
+                        case FunctionGroupName.QualityControlFunction:
+                            break;
+
+                        case FunctionGroupName.TerminateFunction:
+                            isRunning = false;
+                            break;
+                    }
+                }
+                else
+                {
+                    //Throws error
+                }
+            }
+
         }
 
         public static DiReCTCore _instance { get; set; }
 
         public static DiReCTCore getInstance()
         {
-            if(_instance == null)
+            if (_instance == null)
             {
                 _instance = new DiReCTCore();
             }
 
             return _instance;
+        }
+
+
+        /// <summary>
+        /// function to escape from the Run function and close the program
+        /// </summary>
+        public void TerminateProgram()
+        {
+            WorkItem workItem = new WorkItem(FunctionGroupName.TerminateFunction,
+                AsyncCallName.TerminateProgram, null, null, null);
+            coreWorkQueue.Enqueue(workItem, (int)WorkPriority.Highest,
+                new CancellationToken());
         }
     }
 }

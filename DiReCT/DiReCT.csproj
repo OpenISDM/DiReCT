@@ -62,6 +62,7 @@
     <Compile Include="Model\FloodRecord.cs" />
     <Compile Include="Model\IDMananger.cs" />
     <Compile Include="Model\ObservationRecord.cs" />
+    <Compile Include="Model\SerializeHelper.cs" />
     <Compile Include="Model\ThreadPool.cs" />
     <Compile Include="Model\Utilities.cs" />
     <Compile Include="DMModule.cs" />
@@ -102,7 +103,15 @@
     </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resource\testingg.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resource\bg.png" />
+    <Resource Include="Resource\close.png" />
+    <Resource Include="Resource\load.jpg" />
+    <Resource Include="Resource\save.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

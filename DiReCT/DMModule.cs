@@ -54,7 +54,6 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
 
         static DiReCTThreadPool moduleThreadPool;
-        static WorkItem workItem;
         static PriorityWorkQueue<WorkItem> ModuleWorkQueue;
 
         static DictionaryManager dictionary;
@@ -126,12 +125,15 @@ namespace DiReCT
             return;
         }
 
-        internal static void DMWorkerFunctionProcessor(WorkItem work)
+        internal static void DMWorkerFunctionProcessor(WorkItem workItem)
         {
+
+            
+
             switch (workItem.AsyncCallName)
             {
                 case AsyncCallName.SaveRecord:
-
+                    
                     SendRecordToRTQC(workItem);
                     break;
 
@@ -173,7 +175,7 @@ namespace DiReCT
             //random Data
             int index = (int)workItem.InputParameters;
             ObservationRecord record;
-
+            
             //Get the record from buffer 
             if (DiReCTCore.GetRecordFromBuffer(index, out record))
             {
@@ -197,9 +199,20 @@ namespace DiReCT
         static void SaveRecordtoDictionary(IAsyncResult result)
         {
             WorkItem workItem = (WorkItem)result;
-            dictionary.SaveRecord(false,
-                            (ObservationRecord)workItem.InputParameters);
+
+            if ((bool)workItem.OutputParameters)
+            {
+                dictionary.SaveRecord(false,
+                                (ObservationRecord)workItem.InputParameters);
+            }
+            else
+            {
+                dictionary.SaveRecord(true,
+                                (ObservationRecord)workItem.InputParameters);
+            }
         }
+
+        
     }
 }
 

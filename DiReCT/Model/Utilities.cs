@@ -70,7 +70,8 @@ namespace DiReCT.Model.Utilities
         DataManagementFunction,
         DataSyncFunction,
         MonitorAlertNotificationFunction,
-        QualityControlFunction
+        QualityControlFunction,
+        TerminateFunction
     };
 
     public enum AsyncCallName
@@ -81,13 +82,15 @@ namespace DiReCT.Model.Utilities
         
         // DM module function
         SaveRecord,
-
+        GetRecord,
         // DS module function
 
         // MAN module function
-        
+
         // RTQC module function
-        Validate
+        Validate,
+        //Others
+        TerminateProgram
     };
 
     public enum ErrorAndExceptionCode
@@ -453,6 +456,9 @@ namespace DiReCT.Model.Utilities
         /// cancelled or an item could not be removed.</returns>
         public int Dequeue(out T workItem)
         {
+            wakesWorkerEvent.WaitOne();
+            wakesWorkerEvent.Reset();
+
             int priority = -1;
 
             lock (bitmap)

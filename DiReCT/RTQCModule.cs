@@ -41,6 +41,7 @@ using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
 using DiReCT.Model.Observations;
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -52,8 +53,12 @@ namespace DiReCT
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
 
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
+        static DiReCTThreadPool moduleThreadPool;
         static WorkItem workItem;
+
+        static PriorityWorkQueue<WorkItem> ModuleWorkQueue;
+
+        const int MAX_NUMBER_OF_THREADS = 10;
 
         public static void RTQCInit(object objectParameters)
         {
@@ -67,6 +72,8 @@ namespace DiReCT
                 //Initialize ready/abort event           
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                ModuleWorkQueue = threadParameters.ModuleWorkQueue;
+                moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
@@ -118,9 +125,55 @@ namespace DiReCT
             return;
         }
 
-        internal static void RTQCWrapWorkItem(AsyncCallName validate, AsyncCallback asyncCallback, ObservationRecord record, object p)
+
+
+
+
+        public static void RTQCWrapWorkItem(AsyncCallName asyncCallName,
+                                          AsyncCallback callBackFunction,
+                                          Object inputParameter,
+                                          Object state)
         {
-            throw new NotImplementedException();
+
+
+
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.QualityControlFunction,
+                asyncCallName,
+                inputParameter,
+                callBackFunction,
+                state);
+
+            moduleThreadPool.AddThreadWork(workItem);
+
+        }
+
+        internal static void RTQCWorkerFunctionProcessor(WorkItem workItem)
+        {
+            switch (workItem.AsyncCallName)
+            {
+                case AsyncCallName.Validate:
+
+                    Validate(workItem);
+                    break;
+
+            }
+        }
+
+        private static void Validate(WorkItem workItem)
+        {
+            Flood flood = (Flood)workItem.InputParameters;
+
+            if(flood.WaterLevel < 0)
+            {
+                workItem.OutputParameters = false;
+            }
+            else
+            {
+                workItem.OutputParameters = true;
+            }
+
+            workItem.Complete();
         }
     }
 }

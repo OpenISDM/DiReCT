@@ -5,9 +5,77 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DiReCT"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <StackPanel VerticalAlignment="Center">
-        <Button x:Name="btnSaveRecord" Content="Save" Width="75" Margin="5" Click="btnSaveRecord_Click"></Button>
-        <Button x:Name="button" Content="Close" Width="75" Margin="5" Click="button_Click"/>
-    </StackPanel>
+        Title="MainWindow" Height="550" Width="1000" WindowStyle="None"  WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <DockPanel Background="#FF6FACF5">
+
+        <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+            <StackPanel Height="35" Background="White" Orientation="Horizontal" VerticalAlignment="Center" >
+                <TextBlock FontSize="25"  Foreground="Blue" Margin="20,3,0,0" FontWeight="Bold">DiReCT</TextBlock>
+                <Button x:Name="Close" Width="30" Height="30" Margin="855,3,5,5" Click="Close_Click"  HorizontalAlignment="Right" Background="white" BorderBrush="white">
+                    <StackPanel>
+                        <Image Source="Resource/close.png"  ></Image>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Width="860" HorizontalAlignment="Left" Orientation="Horizontal">
+                    <Button Margin="10,5,10,5" Width="120" Foreground="Black" Background="White" BorderBrush="Black" FontSize="20">
+                        Recording
+                    </Button>
+                    <Button Margin="10,5,10,5" Width="120" Foreground="Black" Background="White" BorderBrush="Black" FontSize="20">
+                        Map
+                    </Button>
+                    <Button Margin="10,5,10,5" Width="120" Foreground="Black" Background="White" BorderBrush="Black" FontSize="20">
+                        User
+                    </Button>
+                    <Button Margin="10,5,10,5" Width="120" Foreground="Black" Background="White" BorderBrush="Black" FontSize="20">
+                        Setting
+                    </Button>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Orientation="Horizontal" >
+                    <Button x:Name="btnGetRecord" Width="48" Height="48" Margin="10" Click="btnGetRecord_Click" Background="white" BorderBrush="white">
+                        <StackPanel>
+                            <Image Source="Resource/load.jpg"  ></Image>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="btnSaveRecord" Width="48"  Height="48" Margin="10" Click="btnSaveFile_Click" BorderBrush="white" Background="white">
+                        <StackPanel>
+                            <Image Source="Resource/save.png"  ></Image>
+                        </StackPanel>
+                    </Button>
+
+
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+        <Border DockPanel.Dock="Right" BorderBrush="Black" BorderThickness="3" Margin="5">
+            <StackPanel  HorizontalAlignment="Right" Width="800" Background="White">
+                <Label Margin="10" HorizontalAlignment="Center" FontSize="25">Record</Label>
+                <StackPanel Orientation="Horizontal" Margin="10" Width="380" HorizontalAlignment="Left">
+                    <Label Width="100">Water Level</Label>
+                    <TextBox Name="WaterLevelBox" Width="100"></TextBox>
+                </StackPanel>
+                <Button Click="btnSaveRecord_Click" HorizontalAlignment="Left" Margin="120,20,0,0" Width="75" Height="30">Save</Button>
+            </StackPanel>
+        </Border>
+        <Border BorderBrush="Black" BorderThickness="3" Margin="5">
+
+            <StackPanel DockPanel.Dock="Left" Width="180" Background="White">
+                <Label>Clean Records</Label>
+                <Label Margin="20,0,0,0">ID__________________WL</Label>
+                <Grid Height="140" Width="130">
+                    <ScrollViewer>
+                        <TextBlock x:Name="showMessageBlock"  Margin="0,0,0,0" HorizontalAlignment="Left" Foreground="Blue"/>
+                    </ScrollViewer>
+                </Grid>
+                <Label>Defected Records</Label>
+                <Label Margin="20,0,0,0">ID__________________WL</Label>
+                <Grid Height="140" Width="130">
+                    <ScrollViewer>
+                        <TextBlock x:Name="showDefectedBlock"  Margin="0,0,0,0" HorizontalAlignment="Left" Foreground="Red" />
+                    </ScrollViewer>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </DockPanel>
 </Window>

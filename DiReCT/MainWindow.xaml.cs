@@ -1,8 +1,14 @@
-﻿using System;
+﻿using DiReCT.Model;
+using DiReCT.Model.Observations;
+using DiReCT.Model.Utilities;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,14 +25,16 @@ namespace DiReCT
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    
+
     public partial class MainWindow : Window
     {
         DiReCTCore coreControl;
+        Type CurrentType;
         public MainWindow()
         {
             InitializeComponent();
             coreControl = DiReCTCore.getInstance();
+            CurrentType = (new Flood()).GetType();
         }
 
         private void btnSaveRecord_Click(object sender, RoutedEventArgs e)
@@ -36,16 +44,107 @@ namespace DiReCT
             //
 
             //testing
-            InvalidateVisual();
-            
-            coreControl.WorkArriveEvent.Set();
-            Debug.WriteLine("Saveing Records");          
+            Flood testing = new Flood();
+            if (WaterLevelBox.Text == null || string.IsNullOrWhiteSpace(WaterLevelBox.Text))
+            {
+                WaterLevelBox.Text = "-1";
+            }
+            testing.WaterLevel = Int32.Parse(this.WaterLevelBox.Text);
+
+
+            DiReCTCore.CoreSaveRecord(testing, null, null);
+
+            Thread.Sleep(500);
+
+
+            ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
+            String post = "";
+            for (int i = 0; i < or.Length; i++)
+            {
+                post += or[i].RecordID + "          " + ((Flood)or[i]).WaterLevel + "\n";
+            }
+            this.showMessageBlock.Text = post;
+
+
+            ObservationRecord[] Dor = DictionaryManager.getAllDefectedRecords();
+            post = "";
+            for (int i = 0; i < Dor.Length; i++)
+            {
+                post += Dor[i].RecordID + "          " + ((Flood)Dor[i]).WaterLevel + "\n";
+            }
+            this.showDefectedBlock.Text = post;
         }
 
-        private void button_Click(object sender, RoutedEventArgs e)
+        private void Close_Click(object sender, RoutedEventArgs e)
         {
-            
             this.Close();
+            coreControl.TerminateProgram();
+            
+        }
+
+
+        private void btnSaveFile_Click(object sender, RoutedEventArgs e)
+        {
+            Stream myStream;
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+
+            saveFileDialog1.Filter = "xml files (*.xml)|*.xml";
+            saveFileDialog1.FilterIndex = 2;
+            saveFileDialog1.RestoreDirectory = true;
+            if (saveFileDialog1.ShowDialog() == true)
+            {
+
+                if ((myStream = saveFileDialog1.OpenFile()) != null)
+                {
+                    
+                        SerializeHelper.SerializeDictionary(myStream, DictionaryManager.cleanData);
+                        myStream.Close();
+                }
+            }
+
+
+            
+        }
+
+
+        private void btnGetRecord_Click(object sender, RoutedEventArgs e)
+        {
+            Stream stream = null;
+            Dictionary<int, ObservationRecord> dic = null;
+
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "xml files (*.xml)|*.xml";
+            ofd.FilterIndex = 2;
+            ofd.RestoreDirectory = true;
+            if (ofd.ShowDialog() == true)
+            {
+
+                if ((stream = ofd.OpenFile()) != null)
+                {
+                    using (stream)
+                    {
+                        
+                        SerializeHelper.DeserializeDictionary(stream, out dic, CurrentType);
+
+                        //inappropriate setup
+                        
+                    }
+                }
+            }
+
+            foreach(KeyValuePair<int, ObservationRecord> x in dic)
+            {
+                Console.WriteLine(x.Key);
+                DictionaryManager.cleanData.Add(x.Key, x.Value);
+            }
+            
+            ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
+            String post = "";
+            for (int i = 0; i < or.Length; i++)
+            {
+                post += or[i].RecordID + "          " + ((Flood)or[i]).WaterLevel + "\n";
+            }
+            this.showMessageBlock.Text = post;
         }
     }
 }
