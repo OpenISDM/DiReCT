@@ -13,7 +13,7 @@ namespace DiReCT.Model
         static int CURRENT_MAX;
         static int CURRENT_INDEX;
         static BitArray IDAvailability;
-
+        static HashSet<int> IDStore;
 
         public IDMananger()
         {
@@ -39,14 +39,24 @@ namespace DiReCT.Model
             if (CURRENT_INDEX < CURRENT_MAX)
             {
                 IDAvailability[CURRENT_INDEX] = true;
-                return CURRENT_INDEX++;
+                DateTime currentTime = DateTime.Now;
+                int timeConverter = (int)(currentTime.Ticks % 100000);
+                String temp = timeConverter.ToString() + CURRENT_INDEX.ToString();
+                CURRENT_INDEX++;
+                int id = Int32.Parse(temp);
+                return id;
             }
             else
             {
                 if (expandBitMap())
                 {
                     IDAvailability[CURRENT_INDEX] = true;
-                    return CURRENT_INDEX++;
+                    DateTime currentTime = DateTime.Now;
+                    int timeConverter = (int)(currentTime.Ticks % 100000);
+                    String temp = timeConverter.ToString() + CURRENT_INDEX.ToString();
+                    CURRENT_INDEX++;
+                    int id = Int32.Parse(temp);
+                    return id;
                 }
                 else
                 {
