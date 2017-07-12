@@ -54,12 +54,9 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
 
         static DiReCTThreadPool moduleThreadPool;
-        static PriorityWorkQueue<WorkItem> ModuleWorkQueue;
+        static PriorityWorkQueue<WorkItem> moduleWorkQueue;
 
         static DictionaryManager dictionary;
-
-
-        //static IDictionary dictionary;
 
         const int MAX_NUMBER_OF_THREADS = 10;
 
@@ -75,7 +72,7 @@ namespace DiReCT
                 //Initialize Ready/Abort Event      
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
-                ModuleWorkQueue = threadParameters.ModuleWorkQueue;
+                moduleWorkQueue = threadParameters.ModuleWorkQueue;
                 moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
 
                 ModuleReadyEvent.Set();
@@ -99,8 +96,7 @@ namespace DiReCT
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
-                    //Does nothing
-                    
+                    //Does nothing and wait for abort event
                 }
 
                 Debug.WriteLine("DM module is aborting.");
@@ -125,24 +121,25 @@ namespace DiReCT
             return;
         }
 
+        /// <summary>
+        /// determines which methods to call. This function is aimed to be called
+        /// by Threadpool worker thread.
+        /// </summary>
+        /// <param name="workItem"></param>
         internal static void DMWorkerFunctionProcessor(WorkItem workItem)
         {
-
-            
-
             switch (workItem.AsyncCallName)
             {
                 case AsyncCallName.SaveRecord:
-                    
                     SendRecordToRTQC(workItem);
                     break;
-
+                //More cases
             }
         }
 
 
         /// <summary>
-        /// DM API to wrap up workItem and enqueue
+        /// DM API to wrap up workItem and enqueue it to threadpool
         /// </summary>
         /// <param name="asyncCallName"></param>
         /// <param name="callBackFunction"></param>
@@ -172,9 +169,9 @@ namespace DiReCT
         /// <param name="workItem"></param>
         internal static void SendRecordToRTQC(WorkItem workItem)
         {
-            //random Data
+            //Get the index of record in buffer from workItem
             int index = (int)workItem.InputParameters;
-            ObservationRecord record;
+            ObservationRecord record;  
             
             //Get the record from buffer 
             if (DiReCTCore.GetRecordFromBuffer(index, out record))
@@ -184,12 +181,15 @@ namespace DiReCT
                     new AsyncCallback(SaveRecordtoDictionary),
                     record,
                     null);
+
+                workItem.Complete();
             }
             else
             {
                 //Exception, index not valid
             }
 
+            
         }
 
         /// <summary>

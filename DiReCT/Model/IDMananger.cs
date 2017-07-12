@@ -15,11 +15,15 @@ namespace DiReCT.Model
         static BitArray IDAvailability;
         static HashSet<int> IDStore;
 
+        /// <summary>
+        /// Sets up IDMananger
+        /// </summary>
         public IDMananger()
         {
             CURRENT_MAX = 10;
             CURRENT_INDEX = 0;
             IDAvailability = new BitArray(CURRENT_MAX);
+            IDStore = new HashSet<int>();
             try
             {
                 for (int i = 0; i < CURRENT_MAX; i++)
@@ -34,6 +38,10 @@ namespace DiReCT.Model
             }
         }
 
+        /// <summary>
+        /// get an available ID and save it to HashSet
+        /// </summary>
+        /// <returns></returns>
         public static int getID()
         {
             if (CURRENT_INDEX < CURRENT_MAX)
@@ -44,6 +52,7 @@ namespace DiReCT.Model
                 String temp = timeConverter.ToString() + CURRENT_INDEX.ToString();
                 CURRENT_INDEX++;
                 int id = Int32.Parse(temp);
+                IDStore.Add(id);
                 return id;
             }
             else
@@ -56,6 +65,7 @@ namespace DiReCT.Model
                     String temp = timeConverter.ToString() + CURRENT_INDEX.ToString();
                     CURRENT_INDEX++;
                     int id = Int32.Parse(temp);
+                    IDStore.Add(id);
                     return id;
                 }
                 else
@@ -65,6 +75,10 @@ namespace DiReCT.Model
             }
         }
 
+        /// <summary>
+        /// Expand the bit array when the index reaches the limit
+        /// </summary>
+        /// <returns></returns>
         private static bool expandBitMap()
         {
             bool success = false;

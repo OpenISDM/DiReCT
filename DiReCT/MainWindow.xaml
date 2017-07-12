@@ -71,6 +71,7 @@
                     <ScrollViewer>
                         <TextBlock x:Name="showDefectedBlock"  Margin="0,0,0,0" HorizontalAlignment="Left" Foreground="Red" />
                     </ScrollViewer>
+
                 </Grid>
             </StackPanel>
         </Border>

@@ -37,15 +37,19 @@ namespace DiReCT
             CurrentType = (new Flood()).GetType();
         }
 
+
+        /// <summary>
+        /// saves the current waterlevel value
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnSaveRecord_Click(object sender, RoutedEventArgs e)
         {
-            //
-            // Do some GUI works, such as refreshing the screen and so on.
-            //
-
-            //testing
+            
+            //Sample records
             Flood testing = new Flood();
             int temp = -1;
+            //Check if the input is appropriate, if not change the input to -1
             if (WaterLevelBox.Text == null ||
                 string.IsNullOrWhiteSpace(WaterLevelBox.Text) || 
                 !Int32.TryParse(this.WaterLevelBox.Text,out temp))
@@ -54,20 +58,23 @@ namespace DiReCT
             }
             testing.WaterLevel = (double)temp;
 
+            //Pass record to Core
+            DiReCTCore.CoreSaveRecord(testing, 
+                                      null,
+                                      null);
 
-            DiReCTCore.CoreSaveRecord(testing, null, null);
+            //Wait for record to be saved
+            Thread.Sleep(100);
 
-            Thread.Sleep(500);
-
-
+            //Updates the dictionary on the Screen
             ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
             String post = "";
             for (int i = 0; i < or.Length; i++)
             {
-                post += or[i].RecordID + "          " 
+                post += or[i].RecordID + "          "
                     + ((Flood)or[i]).WaterLevel + "\n";
             }
-            this.showMessageBlock.Text = post;
+            showMessageBlock.Text = post;
 
 
             ObservationRecord[] Dor = DictionaryManager.getAllDefectedRecords();
@@ -77,9 +84,15 @@ namespace DiReCT
                 post += Dor[i].RecordID + "          "
                     + ((Flood)Dor[i]).WaterLevel + "\n";
             }
-            this.showDefectedBlock.Text = post;
+            showDefectedBlock.Text = post;
         }
 
+        
+        /// <summary>
+        /// close the program
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -87,18 +100,23 @@ namespace DiReCT
             
         }
 
-
+        /// <summary>
+        /// save the current clean dictionary to XML files
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnSaveFile_Click(object sender, RoutedEventArgs e)
         {
             Stream myStream;
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-
+            //Set up save file dialog
             saveFileDialog1.Filter = "xml files (*.xml)|*.xml";
             saveFileDialog1.FilterIndex = 2;
             saveFileDialog1.RestoreDirectory = true;
+            
             if (saveFileDialog1.ShowDialog() == true)
             {
-
+                //if a file is selected
                 if ((myStream = saveFileDialog1.OpenFile()) != null)
                 {
                     
@@ -115,11 +133,13 @@ namespace DiReCT
         {
             Stream stream = null;
             Dictionary<int, ObservationRecord> dic = null;
+
             //Set up open file dialog
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "xml files (*.xml)|*.xml";
             ofd.FilterIndex = 2;
             ofd.RestoreDirectory = true;
+
             //Check if user opens a file
             if (ofd.ShowDialog() == true)
             {
@@ -129,7 +149,6 @@ namespace DiReCT
                 {
                     using (stream)
                     {
-                        
                         SerializeHelper.DeserializeDictionary(
                                                         stream, 
                                                         out dic, 
@@ -143,7 +162,6 @@ namespace DiReCT
                         DictionaryManager.cleanData.Add(x.Key, x.Value);
                     }
 
-
                     //Reflect new records on screen
                     ObservationRecord[] or = DictionaryManager.
                                                     getAllCleanRecords();
@@ -155,18 +173,20 @@ namespace DiReCT
                     }
                     this.showMessageBlock.Text = post;
                 }
-            }
-
-            
-            
+            } 
         }
 
+        /// <summary>
+        /// clean the current clean dictionary 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnResetRecord_Click(object sender, RoutedEventArgs e)
         {
-            //to be modified
-
+            
             DictionaryManager.cleanData.Clear();
 
+            //Updates the dictionary on the Screen
             ObservationRecord[] or = DictionaryManager.
                                                     getAllCleanRecords();
             String post = "";

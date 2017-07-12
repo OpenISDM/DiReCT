@@ -95,11 +95,6 @@ namespace DiReCT
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
 
-                    //
-                    // Wait for work event
-                    // Wrap work into workitem
-                    // Enqueue the workitem to its threadpool
-                    //
                 }
 
                 Debug.WriteLine("RTQC module is aborting.");
@@ -128,7 +123,13 @@ namespace DiReCT
 
 
 
-
+        /// <summary>
+        /// RTQC API to wrap workItem 
+        /// </summary>
+        /// <param name="asyncCallName"></param>
+        /// <param name="callBackFunction"></param>
+        /// <param name="inputParameter"></param>
+        /// <param name="state"></param>
         public static void RTQCWrapWorkItem(AsyncCallName asyncCallName,
                                           AsyncCallback callBackFunction,
                                           Object inputParameter,
@@ -148,6 +149,11 @@ namespace DiReCT
 
         }
 
+        /// <summary>
+        /// determines which methods to process. The function is aimed to be 
+        /// used by RTQC Worker threads.
+        /// </summary>
+        /// <param name="workItem"></param>
         internal static void RTQCWorkerFunctionProcessor(WorkItem workItem)
         {
             switch (workItem.AsyncCallName)
@@ -160,10 +166,18 @@ namespace DiReCT
             }
         }
 
+
+        /// <summary>
+        /// Demo function to determine whether Flood Waterlevel is position or 
+        /// negative
+        /// </summary>
+        /// <param name="workItem"></param>
         private static void Validate(WorkItem workItem)
         {
+            //Get the record from input parameters
             Flood flood = (Flood)workItem.InputParameters;
 
+            //whether waterlevel is negative or positive
             if(flood.WaterLevel < 0)
             {
                 workItem.OutputParameters = false;
@@ -173,6 +187,7 @@ namespace DiReCT
                 workItem.OutputParameters = true;
             }
 
+            //Signal workItem is finished
             workItem.Complete();
         }
     }
