@@ -532,14 +532,19 @@ namespace DiReCT.MAN
         }
         private static void CreateToast(string contentText)
         {
-            Popup codePopup = new Popup();
-            TextBlock popupText = new TextBlock();
-            popupText.Text = contentText;
-            popupText.Background = Brushes.LightBlue;
-            popupText.Foreground = Brushes.Blue;
-            codePopup.Child = popupText;
-            codePopup.Placement = PlacementMode.Center;
-            codePopup.IsOpen = true;
+            
+            MessageBox.Show(contentText,"HI", MessageBoxButton.OK);
+            //Popup codepopup = new Popup();
+            //TextBlock popuptext = new TextBlock();
+
+            //popuptext.Text = contentText;
+            //popuptext.Background = Brushes.LightBlue;
+            //popuptext.Foreground = Brushes.Blue;
+
+            //codepopup.Child = popuptext;
+            //codepopup.Placement = PlacementMode.Right;
+            //codepopup.IsOpen = true;
+
         }
     }
 }

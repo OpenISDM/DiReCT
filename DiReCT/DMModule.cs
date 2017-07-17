@@ -42,6 +42,7 @@ using DiReCT;
 using System.Collections;
 using DiReCT.Model;
 using DiReCT.Model.Observations;
+using System.Windows.Threading;
 
 namespace DiReCT
 {
@@ -90,6 +91,10 @@ namespace DiReCT
                 //               
                 dictionary = new DictionaryManager();
 
+                //Testing
+                SavingRecord += new SaveRecordEventHanlder(DM_SavingRecord);
+                
+                Debug.WriteLine("DM Core: " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("DM module is working...");
 
                 // Check ModuleAbortEvent periodically
@@ -150,7 +155,6 @@ namespace DiReCT
                                           Object inputParameter,
                                           Object state)
         {
-
             WorkItem workItem = new WorkItem(
                 FunctionGroupName.DataManagementFunction,
                 asyncCallName,
@@ -159,10 +163,8 @@ namespace DiReCT
                 state);
 
             moduleThreadPool.AddThreadWork(workItem);
-
         }
-
-
+        
         /// <summary>
         /// Pass record to RTQC for validate
         /// </summary>
@@ -187,9 +189,7 @@ namespace DiReCT
             else
             {
                 //Exception, index not valid
-            }
-
-            
+            }         
         }
 
         /// <summary>
@@ -212,7 +212,34 @@ namespace DiReCT
             }
         }
 
-        
+
+        public delegate void SaveRecordEventHanlder(int index);
+        //Event handler
+        public static event SaveRecordEventHanlder SavingRecord;
+
+        public static void OnSavingRecord(int index)
+        {
+            Debug.WriteLine("On Saving record" + Thread.CurrentThread.ManagedThreadId);
+            SavingRecord?.BeginInvoke(index,null,null);
+        }
+
+        public static void DM_SavingRecord(int index)
+        {
+
+            
+            Debug.WriteLine("Saving DM:" + Thread.CurrentThread.ManagedThreadId);
+
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.DataManagementFunction,
+                AsyncCallName.SaveRecord,
+                index,
+                null,
+                null);
+
+            moduleThreadPool.AddThreadWork(workItem);
+
+        }
+
     }
 }
 

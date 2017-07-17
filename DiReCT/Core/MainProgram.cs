@@ -43,8 +43,9 @@ using System.Threading;
 using System.Windows;
 using System.Diagnostics;
 using Microsoft.Win32;
-
+using AppHost;
 using DiReCT.Model.Utilities;
+
 
 namespace DiReCT
 {
@@ -127,7 +128,7 @@ namespace DiReCT
     #endregion
 
     // The main entry point of DiReCT application
-    class DiReCTMainProgram
+    public class DiReCTMainProgram
     {
         private static DiReCTCore coreControl;
         private static Thread[] ModuleThreadHandles;
@@ -148,10 +149,9 @@ namespace DiReCT
         public static PriorityWorkQueue<WorkItem>[] ModuleWorkQueue;
 
         [MTAThread]
-        static void Main()
+        public static void Main()
         {
 
-            
             // Subscribe system log off/shutdown or application close events
             SystemEvents.SessionEnding
                 += new SessionEndingEventHandler(ShutdownEventHandler);
@@ -332,7 +332,7 @@ namespace DiReCT
                     }
                 }
             }
-
+            Debug.WriteLine("Core Thread ID: " + Thread.CurrentThread.ManagedThreadId);
             //Signal modules to start working
             ModuleStartWorkEvent.Set();
 
@@ -356,6 +356,9 @@ namespace DiReCT
 
         private static void UIMainFunction()
         {
+            //App app2 = new App();
+            //app2.InitializeComponent();
+            //app2.Run();
             Application App = new Application();
             App.StartupUri = new Uri("MainWindow.xaml",
                                  UriKind.Relative);

@@ -42,6 +42,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
+using DiReCT.MAN;
 
 namespace DiReCT
 {
@@ -56,6 +57,7 @@ namespace DiReCT
         static WorkerThreadPool<WorkItem> moduleThreadPool;
         static WorkItem workItem;
 
+        static Notification.Builder builder = new Notification.Builder();
         public static void MANInit(object objectParameters)
         {
             moduleControlDataBlock
@@ -81,7 +83,7 @@ namespace DiReCT
                 //
                 // Main Thread of MAN module (begin)
                 //
-
+                Debug.WriteLine("Man Core: " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("MAN module is working...");
 
                 // Check ModuleAbortEvent periodically

@@ -42,6 +42,7 @@ using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using DiReCT.Model.Observations;
 using DiReCT.Model;
+using DiReCT.MAN;
 
 namespace DiReCT
 {
@@ -87,7 +88,7 @@ namespace DiReCT
                 //
                 // Main Thread of RTQC module (begin)
                 //
-
+                Debug.WriteLine("RTQC Core: " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("RTQC module is working...");
 
                 // Check ModuleAbortEvent periodically
@@ -180,6 +181,17 @@ namespace DiReCT
             //whether waterlevel is negative or positive
             if(flood.WaterLevel < 0)
             {
+
+                //Call Notificaiton
+                Notification.Builder mBuilder = new Notification.Builder();
+                mBuilder.SetWhen(DateTime.Now);
+                mBuilder.SetContentText("This record might be wrong. Please check again!");
+                mBuilder.SetNotificationType(NotificationTypes.Toast);
+                mBuilder.Build(10, null);
+                //
+                /* Push a notification */
+                NotificationManager.Notify(10);
+
                 workItem.OutputParameters = false;
             }
             else

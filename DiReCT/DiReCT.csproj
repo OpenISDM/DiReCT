@@ -115,6 +115,15 @@
   <ItemGroup>
     <Resource Include="Resource\reset.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resource\minimize.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\DiRect UI\WF_WPF\AppHost.csproj">
+      <Project>{6c10daab-3dcb-4c7e-9c17-a838a5a03ed1}</Project>
+      <Name>AppHost</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -47,6 +47,8 @@ using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using System.Threading;
 using DiReCT.Model.Observations;
+using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace DiReCT
 {
@@ -54,7 +56,9 @@ namespace DiReCT
     {
         public static PriorityWorkQueue<WorkItem> coreWorkQueue;
         public static bool isRunning;
-
+        /// <summary>
+        /// 
+        /// </summary>
         public DiReCTCore()
         {
             // Initialize DiReCTCore
@@ -67,9 +71,10 @@ namespace DiReCT
             isBufferFull = false;
             BufferLock = new object();
 
-
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void Run()
         {
             while (isRunning)
@@ -84,6 +89,8 @@ namespace DiReCT
                         //send the item to each queue
                         case FunctionGroupName.DataManagementFunction:
                             //make a method in Core DM to handle different methods
+                            Debug.WriteLine("Run Core ID: "+Thread.CurrentThread.ManagedThreadId);
+
                             CoreDMFunctionProcessor(workItem);
                             break;
 

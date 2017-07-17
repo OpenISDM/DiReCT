@@ -46,6 +46,9 @@ using System.Threading;
 using DiReCT.Model.Utilities;
 using DiReCT.Model.Observations;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Threading;
+using System.Threading.Tasks;
 
 namespace DiReCT
 {
@@ -116,7 +119,7 @@ namespace DiReCT
         /// by Core to call different DM API.
         /// </summary>
         /// <param name="workItem">WorkItem for DM</param>
-        public void CoreDMFunctionProcessor(WorkItem workItem)
+        public async void CoreDMFunctionProcessor(WorkItem workItem)
         {
             //Switch based on method 
             switch (workItem.AsyncCallName)
@@ -125,9 +128,14 @@ namespace DiReCT
                     //Get the record from workItem
                     try
                     {
+                        Debug.WriteLine("CoreDM FunctionP:" + Thread.CurrentThread.ManagedThreadId);
+
+                        
 
                         ObservationRecord record =
                             (ObservationRecord)workItem.InputParameters;
+
+                        
 
                         int index;
                         lock (BufferLock)
@@ -137,12 +145,19 @@ namespace DiReCT
                         }
 
                         //Call DM API wrapper
-                        DMModule.DMWrapWorkItem(
-                            AsyncCallName.SaveRecord,
-                            null,
-                            index,
-                            null);
+                        //DMModule.DMWrapWorkItem(
+                        //    AsyncCallName.SaveRecord,
+                        //    null,
+                        //    index,
+                        //    null);
 
+
+                        //Application.Current.Dispatcher.BeginInvoke(
+                        //   System.Windows.Threading.DispatcherPriority.Background,
+                        //   new DMModule.DMSaveRecord(DMModule.DMSavingRecord),
+                        //   index);
+
+                        DMModule.OnSavingRecord(index);
                     }
                     catch (Exception ex)
                     {
@@ -298,7 +313,7 @@ namespace DiReCT
                                    AsyncCallName.SaveRecord,
                                    (Object)recordData,
                                    callBackFunction,
-                                   asyncState);
+                                   asyncState); 
 
                 // Token for work cancelling
                 CancellationToken cancellationToken = new CancellationToken();

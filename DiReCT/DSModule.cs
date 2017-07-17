@@ -85,7 +85,7 @@ namespace DiReCT
                 // Main Thread of DS module (begin)
                 //
                 Debug.WriteLine("DS module is working...");
-
+                Debug.WriteLine("DS Core: " + Thread.CurrentThread.ManagedThreadId);
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))

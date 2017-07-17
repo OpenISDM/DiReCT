@@ -1,4 +1,5 @@
-﻿using DiReCT.Model;
+﻿using DiReCT.MAN;
+using DiReCT.Model;
 using DiReCT.Model.Observations;
 using DiReCT.Model.Utilities;
 using Microsoft.Win32;
@@ -35,6 +36,7 @@ namespace DiReCT
             InitializeComponent();
             coreControl = DiReCTCore.getInstance();
             CurrentType = (new Flood()).GetType();
+            Debug.WriteLine("MainWindow : " + Thread.CurrentThread.ManagedThreadId);
         }
 
 
@@ -64,7 +66,7 @@ namespace DiReCT
                                       null);
 
             //Wait for record to be saved
-            Thread.Sleep(100);
+            Thread.Sleep(500);
 
             //Updates the dictionary on the Screen
             ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
@@ -95,6 +97,7 @@ namespace DiReCT
         /// <param name="e"></param>
         private void Close_Click(object sender, RoutedEventArgs e)
         {
+            
             this.Close();
             coreControl.TerminateProgram();
             
@@ -117,6 +120,7 @@ namespace DiReCT
             if (saveFileDialog1.ShowDialog() == true)
             {
                 //if a file is selected
+                
                 if ((myStream = saveFileDialog1.OpenFile()) != null)
                 {
                     
@@ -196,6 +200,11 @@ namespace DiReCT
                         ((Flood)or[i]).WaterLevel + "\n";
             }
             this.showMessageBlock.Text = post;
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
         }
     }
 }
