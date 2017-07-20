@@ -417,6 +417,7 @@ namespace DiReCT.MAN
             else
                 nH.NotificationTimer
                     = new Timer(notify, nH, delayTime, n.RepeatInterval);
+  
         }
 
         public delegate void UINotificationDelegate(string contentText);

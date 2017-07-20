@@ -49,6 +49,7 @@ using System.Threading;
 using DiReCT.Model.Observations;
 using System.Diagnostics;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace DiReCT
 {
@@ -71,7 +72,23 @@ namespace DiReCT
             isBufferFull = false;
             BufferLock = new object();
 
+
+            MainWindow.MainWindowSavingRecord += new MainWindow.CallCoreEventHanlder(Core_SavingRecord);
+
         }
+
+        public static void Core_SavingRecord(object obj)
+        {
+
+            Debug.WriteLine("Saving DM:" + Thread.CurrentThread.ManagedThreadId);
+
+            ObservationRecord newRecord = (ObservationRecord)obj;
+
+            //Save Record
+            CoreSaveRecord(newRecord, null, null);
+
+        }
+
         /// <summary>
         /// 
         /// </summary>

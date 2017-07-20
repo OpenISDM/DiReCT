@@ -119,7 +119,7 @@ namespace DiReCT
         /// by Core to call different DM API.
         /// </summary>
         /// <param name="workItem">WorkItem for DM</param>
-        public async void CoreDMFunctionProcessor(WorkItem workItem)
+        public void CoreDMFunctionProcessor(WorkItem workItem)
         {
             //Switch based on method 
             switch (workItem.AsyncCallName)
@@ -128,9 +128,7 @@ namespace DiReCT
                     //Get the record from workItem
                     try
                     {
-                        Debug.WriteLine("CoreDM FunctionP:" + Thread.CurrentThread.ManagedThreadId);
-
-                        
+                        Debug.WriteLine("CoreDM Function:" + Thread.CurrentThread.ManagedThreadId);
 
                         ObservationRecord record =
                             (ObservationRecord)workItem.InputParameters;
@@ -158,6 +156,8 @@ namespace DiReCT
                         //   index);
 
                         DMModule.OnSavingRecord(index);
+
+                        workItem.Complete();
                     }
                     catch (Exception ex)
                     {

@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiReCT", "DiReCT\DiReCT.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "..\..\DiRect UI\WF_WPF\AppHost.csproj", "{6C10DAAB-3DCB-4C7E-9C17-A838A5A03ED1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOPObservationRecord", "SOPObservationRecord\SOPObservationRecord.csproj", "{86C44542-DC30-4E2E-9787-4D4E5D1B9F68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOPFlood", "SOPFlood\SOPFlood.csproj", "{332E7973-5B1C-45B3-A56E-D41746327052}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{6C10DAAB-3DCB-4C7E-9C17-A838A5A03ED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C10DAAB-3DCB-4C7E-9C17-A838A5A03ED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C10DAAB-3DCB-4C7E-9C17-A838A5A03ED1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86C44542-DC30-4E2E-9787-4D4E5D1B9F68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86C44542-DC30-4E2E-9787-4D4E5D1B9F68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86C44542-DC30-4E2E-9787-4D4E5D1B9F68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86C44542-DC30-4E2E-9787-4D4E5D1B9F68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{332E7973-5B1C-45B3-A56E-D41746327052}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{332E7973-5B1C-45B3-A56E-D41746327052}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{332E7973-5B1C-45B3-A56E-D41746327052}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{332E7973-5B1C-45B3-A56E-D41746327052}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

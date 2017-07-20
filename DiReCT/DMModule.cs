@@ -91,18 +91,21 @@ namespace DiReCT
                 //               
                 dictionary = new DictionaryManager();
 
-                //Testing
-                SavingRecord += new SaveRecordEventHanlder(DM_SavingRecord);
+                //Whenever the SaveRecord Event is called, DM_SavingRecordWrapper 
+                //will be called
+                SavingRecord += new SaveRecordEventHanlder(DM_SavingRecordWrapper);
                 
                 Debug.WriteLine("DM Core: " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("DM module is working...");
-
+                
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
                     //Does nothing and wait for abort event
                 }
+
+                
 
                 Debug.WriteLine("DM module is aborting.");
                 CleanupExit();
@@ -143,27 +146,27 @@ namespace DiReCT
         }
 
 
-        /// <summary>
-        /// DM API to wrap up workItem and enqueue it to threadpool
-        /// </summary>
-        /// <param name="asyncCallName"></param>
-        /// <param name="callBackFunction"></param>
-        /// <param name="inputParameter"></param>
-        /// <param name="state"></param>
-        public static void DMWrapWorkItem(AsyncCallName asyncCallName,
-                                          AsyncCallback callBackFunction,
-                                          Object inputParameter,
-                                          Object state)
-        {
-            WorkItem workItem = new WorkItem(
-                FunctionGroupName.DataManagementFunction,
-                asyncCallName,
-                inputParameter,
-                callBackFunction,
-                state);
+        ///// <summary>
+        ///// DM API to wrap up workItem and enqueue it to threadpool
+        ///// </summary>
+        ///// <param name="asyncCallName"></param>
+        ///// <param name="callBackFunction"></param>
+        ///// <param name="inputParameter"></param>
+        ///// <param name="state"></param>
+        //public static void DMWrapWorkItem(AsyncCallName asyncCallName,
+        //                                  AsyncCallback callBackFunction,
+        //                                  Object inputParameter,
+        //                                  Object state)
+        //{
+        //    WorkItem workItem = new WorkItem(
+        //        FunctionGroupName.DataManagementFunction,
+        //        asyncCallName,
+        //        inputParameter,
+        //        callBackFunction,
+        //        state);
 
-            moduleThreadPool.AddThreadWork(workItem);
-        }
+        //    moduleThreadPool.AddThreadWork(workItem);
+        //}
         
         /// <summary>
         /// Pass record to RTQC for validate
@@ -175,6 +178,10 @@ namespace DiReCT
             int index = (int)workItem.InputParameters;
             ObservationRecord record;  
             
+            //
+            //SOP should decide the action, eg. save record, pass to rtqc
+            //
+
             //Get the record from buffer 
             if (DiReCTCore.GetRecordFromBuffer(index, out record))
             {
@@ -214,20 +221,26 @@ namespace DiReCT
 
 
         public delegate void SaveRecordEventHanlder(int index);
-        //Event handler
+        
         public static event SaveRecordEventHanlder SavingRecord;
 
+        /// <summary>
+        /// Function to initiate the Saving Record event
+        /// </summary>
+        /// <param name="index"></param>
         public static void OnSavingRecord(int index)
         {
             Debug.WriteLine("On Saving record" + Thread.CurrentThread.ManagedThreadId);
             SavingRecord?.BeginInvoke(index,null,null);
         }
 
-        public static void DM_SavingRecord(int index)
+        /// <summary>
+        /// This method will be called when SavingRecord Event is raised
+        /// </summary>
+        /// <param name="index">the index of the record in the buffer</param>
+        public static void DM_SavingRecordWrapper(int index)
         {
-
-            
-            Debug.WriteLine("Saving DM:" + Thread.CurrentThread.ManagedThreadId);
+            Debug.WriteLine("Saving DM Thread ID:" + Thread.CurrentThread.ManagedThreadId);
 
             WorkItem workItem = new WorkItem(
                 FunctionGroupName.DataManagementFunction,
@@ -237,7 +250,6 @@ namespace DiReCT
                 null);
 
             moduleThreadPool.AddThreadWork(workItem);
-
         }
 
     }

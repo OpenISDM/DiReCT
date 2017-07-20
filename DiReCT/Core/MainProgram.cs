@@ -45,7 +45,7 @@ using System.Diagnostics;
 using Microsoft.Win32;
 using AppHost;
 using DiReCT.Model.Utilities;
-
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -144,9 +144,11 @@ namespace DiReCT
         private static bool InitHasFailed = false; // Whether initialization 
                                                    // processes were completed
                                                    // in time
-
+        
 
         public static PriorityWorkQueue<WorkItem>[] ModuleWorkQueue;
+
+        public static DllFileLoader dllFileLoader;
 
         [MTAThread]
         public static void Main()
@@ -335,7 +337,7 @@ namespace DiReCT
             Debug.WriteLine("Core Thread ID: " + Thread.CurrentThread.ManagedThreadId);
             //Signal modules to start working
             ModuleStartWorkEvent.Set();
-
+            
             //Start to execute UI
             try
             {
@@ -347,6 +349,10 @@ namespace DiReCT
                 Debug.WriteLine("UI thread can not start!");
                 CleanupExit();
             }
+
+            //Load dll files
+            dllFileLoader = new DllFileLoader();
+
 
             coreControl.Run();
             UIThreadHandle.Join();

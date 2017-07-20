@@ -5,9 +5,11 @@ using DiReCT.Model.Utilities;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +30,7 @@ namespace DiReCT
     /// </summary>
 
     public partial class MainWindow : Window
+
     {
         DiReCTCore coreControl;
         Type CurrentType;
@@ -47,28 +50,33 @@ namespace DiReCT
         /// <param name="e"></param>
         private void btnSaveRecord_Click(object sender, RoutedEventArgs e)
         {
-            
             //Sample records
             Flood testing = new Flood();
             int temp = -1;
             //Check if the input is appropriate, if not change the input to -1
             if (WaterLevelBox.Text == null ||
-                string.IsNullOrWhiteSpace(WaterLevelBox.Text) || 
-                !Int32.TryParse(this.WaterLevelBox.Text,out temp))
+                string.IsNullOrWhiteSpace(WaterLevelBox.Text) ||
+                !Int32.TryParse(this.WaterLevelBox.Text, out temp))
             {
                 WaterLevelBox.Text = "-1";
             }
             testing.WaterLevel = (double)temp;
 
+            //Signal Core event
+            WindowOnSavingRecord(testing);
+
             //Pass record to Core
-            DiReCTCore.CoreSaveRecord(testing, 
-                                      null,
-                                      null);
-
-            //Wait for record to be saved
+            //DiReCTCore.CoreSaveRecord(testing, 
+            //                          null,
+            //                          null);
             Thread.Sleep(500);
+            UpdateDictionary();
+            
+        }
 
-            //Updates the dictionary on the Screen
+
+        public void UpdateDictionary()
+        {
             ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
             String post = "";
             for (int i = 0; i < or.Length; i++)
@@ -89,7 +97,6 @@ namespace DiReCT
             showDefectedBlock.Text = post;
         }
 
-        
         /// <summary>
         /// close the program
         /// </summary>
@@ -206,5 +213,24 @@ namespace DiReCT
         {
             this.WindowState = WindowState.Minimized;
         }
+
+
+
+        #region Event Handlers
+
+        public delegate void CallCoreEventHanlder(object obj);
+        //Event handler
+        public static event CallCoreEventHanlder MainWindowSavingRecord;
+
+        public static void WindowOnSavingRecord(object obj)
+        {
+            Debug.WriteLine("WindowOnSavingRecord Event Signaling. Thread ID: " + Thread.CurrentThread.ManagedThreadId);
+            MainWindowSavingRecord?.BeginInvoke(obj, null, null);
+            
+        }
+
+        
+        #endregion
+
     }
 }
