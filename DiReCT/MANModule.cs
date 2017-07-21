@@ -55,8 +55,7 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
 
         static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
-
+        
         static Notification.Builder builder = new Notification.Builder();
         public static void MANInit(object objectParameters)
         {

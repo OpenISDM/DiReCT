@@ -55,9 +55,6 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
 
         static DiReCTThreadPool moduleThreadPool;
-        static WorkItem workItem;
-
-        static PriorityWorkQueue<WorkItem> ModuleWorkQueue;
 
         const int MAX_NUMBER_OF_THREADS = 10;
 
@@ -73,7 +70,6 @@ namespace DiReCT
                 //Initialize ready/abort event           
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
-                ModuleWorkQueue = threadParameters.ModuleWorkQueue;
                 moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
                 ModuleReadyEvent.Set();
 
@@ -121,9 +117,6 @@ namespace DiReCT
             return;
         }
 
-
-
-
         /// <summary>
         /// RTQC API to wrap workItem 
         /// </summary>
@@ -137,8 +130,6 @@ namespace DiReCT
                                           Object state)
         {
 
-
-
             WorkItem workItem = new WorkItem(
                 FunctionGroupName.QualityControlFunction,
                 asyncCallName,
@@ -147,7 +138,6 @@ namespace DiReCT
                 state);
 
             moduleThreadPool.AddThreadWork(workItem);
-
         }
 
         /// <summary>
@@ -181,7 +171,7 @@ namespace DiReCT
             //whether waterlevel is negative or positive
             if(flood.WaterLevel < 0)
             {
-
+                //Notfiy user that the input might be wrong
                 //Call Notificaiton
                 Notification.Builder mBuilder = new Notification.Builder();
                 mBuilder.SetWhen(DateTime.Now);

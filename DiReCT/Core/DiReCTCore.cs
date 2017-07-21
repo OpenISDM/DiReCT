@@ -36,7 +36,7 @@
  * 
  *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
  *      Jeff Chen, jeff@iis.sinica.edu.tw
- * 
+ *      Joe Huang, huangjoe9@gmail.com
  */
 
 using System;
@@ -58,7 +58,8 @@ namespace DiReCT
         public static PriorityWorkQueue<WorkItem> coreWorkQueue;
         public static bool isRunning;
         /// <summary>
-        /// 
+        /// Initialize necessary variables and set up event handlers between
+        /// Core and individual modules
         /// </summary>
         public DiReCTCore()
         {
@@ -67,26 +68,8 @@ namespace DiReCT
                                           (int)WorkPriority.NumberOfPriorities);
             isRunning = true;
 
-            //DM Object initialization
-            recordBuffer = new ObservationRecord[Constant.BUFFER_NUMBER];
-            isBufferFull = false;
-            BufferLock = new object();
-
-
-            MainWindow.MainWindowSavingRecord += new MainWindow.CallCoreEventHanlder(Core_SavingRecord);
-
-        }
-
-        public static void Core_SavingRecord(object obj)
-        {
-
-            Debug.WriteLine("Saving DM:" + Thread.CurrentThread.ManagedThreadId);
-
-            ObservationRecord newRecord = (ObservationRecord)obj;
-
-            //Save Record
-            CoreSaveRecord(newRecord, null, null);
-
+            //Initialize CoreDM variables
+            InitCoreDM();
         }
 
         /// <summary>
@@ -97,7 +80,7 @@ namespace DiReCT
             while (isRunning)
             {
                 WorkItem workItem; //record
-                int priority = coreWorkQueue.Dequeue(out workItem);
+                int priority = coreWorkQueue.Dequeue(out workItem); //wait for work to arrive
 
                 if (priority != -1)
                 {
@@ -106,8 +89,6 @@ namespace DiReCT
                         //send the item to each queue
                         case FunctionGroupName.DataManagementFunction:
                             //make a method in Core DM to handle different methods
-                            Debug.WriteLine("Run Core ID: "+Thread.CurrentThread.ManagedThreadId);
-
                             CoreDMFunctionProcessor(workItem);
                             break;
 
@@ -136,6 +117,7 @@ namespace DiReCT
 
         }
 
+        //Singleton pattern
         public static DiReCTCore _instance { get; set; }
 
         public static DiReCTCore getInstance()
@@ -150,7 +132,7 @@ namespace DiReCT
 
 
         /// <summary>
-        /// function to escape from the Run function and close the program
+        /// Function to escape from the Run function and close the program
         /// </summary>
         public void TerminateProgram()
         {

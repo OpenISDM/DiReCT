@@ -146,9 +146,9 @@ namespace DiReCT
                                                    // in time
         
 
-        public static PriorityWorkQueue<WorkItem>[] ModuleWorkQueue;
+        //public static PriorityWorkQueue<WorkItem>[] ModuleWorkQueue;
 
-        public static DllFileLoader dllFileLoader;
+        public static DllFileLoader dllFileLoader; //Dll file initializer
 
         [MTAThread]
         public static void Main()
@@ -184,8 +184,8 @@ namespace DiReCT
                     (int)ModuleThread.NumberOfModules];
                 ModuleInitFailedEvents = new AutoResetEvent[
                     (int)ModuleThread.NumberOfModules];
-                ModuleWorkQueue = new PriorityWorkQueue<WorkItem>[
-                    (int)ModuleThread.NumberOfModules];
+                //ModuleWorkQueue = new PriorityWorkQueue<WorkItem>[
+                //    (int)ModuleThread.NumberOfModules];
             }
             catch (Exception ex)
             {
@@ -360,6 +360,9 @@ namespace DiReCT
             //return;
         }
 
+        /// <summary>
+        /// Initialize UI
+        /// </summary>
         private static void UIMainFunction()
         {
             //App app2 = new App();

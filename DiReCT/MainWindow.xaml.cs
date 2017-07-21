@@ -26,14 +26,15 @@ using System.Windows.Shapes;
 namespace DiReCT
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for MainWindow.xaml. Current Front End is set up to 
+    /// test Methods, but the desired final mark up
     /// </summary>
-
     public partial class MainWindow : Window
 
     {
         DiReCTCore coreControl;
-        Type CurrentType;
+        Type CurrentType; //current type of Record
+
         public MainWindow()
         {
             InitializeComponent();
@@ -44,7 +45,7 @@ namespace DiReCT
 
 
         /// <summary>
-        /// saves the current waterlevel value
+        /// Demo function that saves the current waterlevel value
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -65,16 +66,20 @@ namespace DiReCT
             //Signal Core event
             WindowOnSavingRecord(testing);
 
-            //Pass record to Core
-            //DiReCTCore.CoreSaveRecord(testing, 
-            //                          null,
-            //                          null);
+            //Wait 0.5 second before updating dictionary
+            //This will not be the desired method to update dictionary
             Thread.Sleep(500);
             UpdateDictionary();
+
+            //To be implemented
+            //Implement callback function that automatically updates the UI 
+            //once the Record is processed.
             
         }
 
-
+        /// <summary>
+        /// Demo function that updates the UI dictionary list.
+        /// </summary>
         public void UpdateDictionary()
         {
             ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
@@ -98,7 +103,7 @@ namespace DiReCT
         }
 
         /// <summary>
-        /// close the program
+        /// Demo function that closes the program
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -111,7 +116,7 @@ namespace DiReCT
         }
 
         /// <summary>
-        /// save the current clean dictionary to XML files
+        /// Demo function that save the current clean dictionary to XML files
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -139,7 +144,11 @@ namespace DiReCT
             }  
         }
 
-
+        /// <summary>
+        /// Demo function that deserialized a XML file and save it to clean record
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnGetRecord_Click(object sender, RoutedEventArgs e)
         {
             Stream stream = null;
@@ -188,7 +197,7 @@ namespace DiReCT
         }
 
         /// <summary>
-        /// clean the current clean dictionary 
+        /// Demo function that clean the current clean dictionary 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -209,6 +218,11 @@ namespace DiReCT
             this.showMessageBlock.Text = post;
         }
 
+        /// <summary>
+        /// Minimize the screen
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Minimize_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
@@ -218,13 +232,18 @@ namespace DiReCT
 
         #region Event Handlers
 
+        //Event Handler for Saving Record
         public delegate void CallCoreEventHanlder(object obj);
         //Event handler
         public static event CallCoreEventHanlder MainWindowSavingRecord;
 
+        /// <summary>
+        /// This method is used to raise MainWindowSavingRecord event. It will
+        /// ask a worker thread to process each subscribed method 
+        /// </summary>
+        /// <param name="obj"></param>
         public static void WindowOnSavingRecord(object obj)
-        {
-            Debug.WriteLine("WindowOnSavingRecord Event Signaling. Thread ID: " + Thread.CurrentThread.ManagedThreadId);
+        {           
             MainWindowSavingRecord?.BeginInvoke(obj, null, null);
             
         }

@@ -55,7 +55,6 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
 
         static DiReCTThreadPool moduleThreadPool;
-        static PriorityWorkQueue<WorkItem> moduleWorkQueue;
 
         static DictionaryManager dictionary;
 
@@ -73,7 +72,7 @@ namespace DiReCT
                 //Initialize Ready/Abort Event      
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
-                moduleWorkQueue = threadParameters.ModuleWorkQueue;
+                
                 moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
 
                 ModuleReadyEvent.Set();

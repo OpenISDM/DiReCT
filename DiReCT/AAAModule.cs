@@ -50,7 +50,6 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
 
         static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
 
         public static void AAAInit(object objectParameters)
         {

@@ -54,11 +54,26 @@ namespace DiReCT
 {
     public partial class DiReCTCore
     {
+
+        private void InitCoreDM()
+        {
+            //DM Object initialization
+            recordBuffer = new ObservationRecord[Constant.BUFFER_NUMBER];
+            isBufferFull = false;
+            bufferLock = new object();
+
+            //Subscribe to Main Window Saving Record Event
+            MainWindow.MainWindowSavingRecord +=
+                new MainWindow.CallCoreEventHanlder(Core_SavingRecord);
+        }
+
+        //Utility currently not useful. 
         #region Utility
 
+        //Buffer variables
         public volatile static ObservationRecord[] recordBuffer;
         private static bool isBufferFull;
-        private static object BufferLock;
+        private static object bufferLock;
 
         public static class Constant
         {
@@ -74,9 +89,14 @@ namespace DiReCT
 
         }
 
+        
         private struct USER
         {
-            //to be implemented...
+            //
+            //Incomplete...
+            //More to be implemented...
+            //
+
             public String UserID;
             public String LastName;
             public String FirstName;
@@ -86,12 +106,22 @@ namespace DiReCT
 
         private enum SCHEDULEEVENT_TYPE
         {
+            //
+            //Incomplete...
+            //More to be implemented...
+            //
+
             Appointment,
             Without_Appointment
         }
 
         private struct SCHEDULELOCATION
         {
+            //
+            //Incomplete...
+            //More to be implemented...
+            //
+
             public String Location_Name;
             public Double CoordinateX;
             public Double CoordinateY;
@@ -100,6 +130,11 @@ namespace DiReCT
 
         private struct SCHEDULEEVENT
         {
+            //
+            //Incomplete...
+            //More to be implemented...
+            //
+
             public String EventID;
             public SCHEDULEEVENT_TYPE ScheduleEvent_Type;
             public DateTime EventDateTime;
@@ -108,7 +143,7 @@ namespace DiReCT
             public TimeSpan TimeInterval;
 
             //
-            //TO BE ADDED...location, how many times, etc
+            //TO BE ADDED...location, how many times to record, etc
             //
         }
 
@@ -116,7 +151,7 @@ namespace DiReCT
 
         /// <summary>
         /// Function processor for DM. This function is aimed to be used
-        /// by Core to call different DM API.
+        /// by Core to raise DM event.
         /// </summary>
         /// <param name="workItem">WorkItem for DM</param>
         public void CoreDMFunctionProcessor(WorkItem workItem)
@@ -128,36 +163,19 @@ namespace DiReCT
                     //Get the record from workItem
                     try
                     {
-                        Debug.WriteLine("CoreDM Function:" + Thread.CurrentThread.ManagedThreadId);
-
                         ObservationRecord record =
                             (ObservationRecord)workItem.InputParameters;
 
-                        
-
                         int index;
-                        lock (BufferLock)
+                        lock (bufferLock)
                         {
                             //save record to buffer
                             index = SaveRecordToBuffer(record);
                         }
 
-                        //Call DM API wrapper
-                        //DMModule.DMWrapWorkItem(
-                        //    AsyncCallName.SaveRecord,
-                        //    null,
-                        //    index,
-                        //    null);
-
-
-                        //Application.Current.Dispatcher.BeginInvoke(
-                        //   System.Windows.Threading.DispatcherPriority.Background,
-                        //   new DMModule.DMSaveRecord(DMModule.DMSavingRecord),
-                        //   index);
-
+                        //Raise DM Event to save record
                         DMModule.OnSavingRecord(index);
-
-                        workItem.Complete();
+  
                     }
                     catch (Exception ex)
                     {
@@ -199,7 +217,7 @@ namespace DiReCT
 
             try
             {
-                lock (BufferLock)
+                lock (bufferLock)
                 {
                     //Get the record from buffer
                     record = recordBuffer[index];
@@ -232,7 +250,7 @@ namespace DiReCT
                 throw new ArgumentOutOfRangeException();
             }
 
-            lock (BufferLock)
+            lock (bufferLock)
             {
                 recordBuffer[index] = null;
 
@@ -257,7 +275,7 @@ namespace DiReCT
 
             while (!IsFound)
             {
-                lock (BufferLock)
+                lock (bufferLock)
                 {
                     //Look for any available index
                     for (int i = 0; i < recordBuffer.Length; i++)
@@ -333,6 +351,26 @@ namespace DiReCT
             return HasSucceeded;
         }
 
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// This function is subscribed Main Window Saving Record Event and will
+        /// pass the record to Core when the event raised. It is aimed to handled
+        /// by Main Window worker Thread (BeginInvoke)
+        /// </summary>
+        /// <param name="obj">Object to pass to DM Save Record</param>
+        public static void Core_SavingRecord(object obj)
+        {
+
+            ObservationRecord newRecord = (ObservationRecord)obj;
+
+            //Save Record
+            CoreSaveRecord(newRecord, null, null);
+
+        }
 
         #endregion
 

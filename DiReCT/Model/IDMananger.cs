@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace DiReCT.Model
 {
+    /// <summary>
+    /// This assign an ID for each record. This class only served to separate 
+    /// each records for DEMO purpose and should be replaced with better ID
+    /// management system
+    /// </summary>
     class IDMananger
     {
         static int CURRENT_MAX;
