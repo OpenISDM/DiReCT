@@ -22,11 +22,11 @@ namespace DiReCT.Model
         /// <returns></returns>
         public static bool DeserializeDictionary(
                             Stream stream,
-                            out Dictionary<int, ObservationRecord> dictionary,
+                            out Dictionary<int, dynamic> dictionary,
                             Type type)
         {
             bool HasSucceeded = false;
-            dictionary = new Dictionary<int, ObservationRecord>();
+            dictionary = new Dictionary<int, dynamic>();
             ArrayList list = new ArrayList();
 
             try
@@ -39,7 +39,7 @@ namespace DiReCT.Model
                 list = (ArrayList)deserializer.Deserialize(stream);
 
                 //Add each record in list to dictionary based on ID
-                foreach (ObservationRecord record in list)
+                foreach (dynamic record in list)
                 {
                     dictionary.Add(record.RecordID, record);
                 }
@@ -64,7 +64,7 @@ namespace DiReCT.Model
         /// <returns></returns>
         public static bool SerializeDictionary(
                             Stream stream,
-                            Dictionary<int, ObservationRecord> dictionary)
+                            Dictionary<int, dynamic> dictionary)
         {
 
             
@@ -80,7 +80,7 @@ namespace DiReCT.Model
                     new Type[] { dictionary.First().Value.GetType() });
 
                 //Add all records in dictionary to arraylist
-                foreach (KeyValuePair<int, ObservationRecord> x in dictionary)
+                foreach (KeyValuePair<int, dynamic> x in dictionary)
                 {
                     list.Add(x.Value);
                 }

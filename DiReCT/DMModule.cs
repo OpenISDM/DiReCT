@@ -175,27 +175,32 @@ namespace DiReCT
         {
             //Get the index of record in buffer from workItem
             int index = (int)workItem.InputParameters;
-            ObservationRecord record;  
-            
+            dynamic record;
+
             //
             //SOP should decide the action, eg. save record, pass to rtqc
             //
-
-            //Get the record from buffer 
-            if (DiReCTCore.GetRecordFromBuffer(index, out record))
+            try
             {
-                //Call RTQC API
-                RTQCModule.RTQCWrapWorkItem(AsyncCallName.Validate,
-                    new AsyncCallback(SaveRecordtoDictionary),
-                    record,
-                    null);
+                //Get the record from buffer 
+                if (DiReCTCore.GetRecordFromBuffer(index, out record))
+                {
+                    //Call RTQC API
+                    RTQCModule.RTQCWrapWorkItem(AsyncCallName.Validate,
+                        new AsyncCallback(SaveRecordtoDictionary),
+                        record,
+                        null);
 
-                workItem.Complete();
+                    workItem.Complete();
+                }
+                else
+                {
+                    //Exception, index not valid
+                }
+            }catch(Exception ex)
+            {
+                Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
             }
-            else
-            {
-                //Exception, index not valid
-            }         
         }
 
         /// <summary>
@@ -209,12 +214,12 @@ namespace DiReCT
             if ((bool)workItem.OutputParameters)
             {
                 dictionary.SaveRecord(false,
-                                (ObservationRecord)workItem.InputParameters);
+                                workItem.InputParameters);
             }
             else
             {
                 dictionary.SaveRecord(true,
-                                (ObservationRecord)workItem.InputParameters);
+                                workItem.InputParameters);
             }
         }
 
@@ -229,7 +234,6 @@ namespace DiReCT
         /// <param name="index"></param>
         public static void OnSavingRecord(int index)
         {
-            Debug.WriteLine("On Saving record" + Thread.CurrentThread.ManagedThreadId);
             SavingRecord?.BeginInvoke(index,null,null);
         }
 
@@ -239,8 +243,7 @@ namespace DiReCT
         /// <param name="index">the index of the record in the buffer</param>
         public static void DM_SavingRecordWrapper(int index)
         {
-            Debug.WriteLine("Saving DM Thread ID:" + Thread.CurrentThread.ManagedThreadId);
-
+            
             WorkItem workItem = new WorkItem(
                 FunctionGroupName.DataManagementFunction,
                 AsyncCallName.SaveRecord,

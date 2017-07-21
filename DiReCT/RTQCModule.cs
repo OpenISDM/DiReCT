@@ -166,7 +166,7 @@ namespace DiReCT
         private static void Validate(WorkItem workItem)
         {
             //Get the record from input parameters
-            Flood flood = (Flood)workItem.InputParameters;
+            dynamic flood = workItem.InputParameters;
 
             //whether waterlevel is negative or positive
             if(flood.WaterLevel < 0)

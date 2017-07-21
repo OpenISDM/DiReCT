@@ -11,8 +11,8 @@ namespace DiReCT.Model
 {
     class DictionaryManager
     {
-        public static volatile Dictionary<int, ObservationRecord> cleanData;
-        public static volatile Dictionary<int, ObservationRecord> defectedData;
+        public static volatile Dictionary<int, dynamic> cleanData;
+        public static volatile Dictionary<int, dynamic> defectedData;
         static IDMananger IDmanager;
 
         /// <summary>
@@ -20,8 +20,8 @@ namespace DiReCT.Model
         /// </summary>
         public DictionaryManager()
         {
-            cleanData = new Dictionary<int, ObservationRecord>();
-            defectedData = new Dictionary<int, ObservationRecord>();
+            cleanData = new Dictionary<int, dynamic>();
+            defectedData = new Dictionary<int, dynamic>();
             IDmanager = IDMananger.getInstance();
         }
 
@@ -31,7 +31,7 @@ namespace DiReCT.Model
         /// <param name="recordID">the ID of record</param>
         /// <param name="record">the record to be initialized</param>
         /// <returns>whether record is successfully obtained</returns>
-        public bool GetRecord(int recordID, out ObservationRecord record)
+        public bool GetRecord(int recordID, out dynamic record)
         {
             bool HasSucceeded = false;
             record = null;
@@ -67,7 +67,7 @@ namespace DiReCT.Model
         /// <param name="isDefected">whether the record is saving to clean or 
         /// defected Dictionary</param>
         /// <param name="record">the record being saved</param>
-        public bool SaveRecord(bool isDefected, ObservationRecord record)
+        public bool SaveRecord(bool isDefected, dynamic record)
         {
             int recordID;
             bool HasSucceeded = false;
@@ -103,7 +103,7 @@ namespace DiReCT.Model
         /// <param name="newDictionary">dictioanry to be added</param>
         /// <returns>whether dictionary was successfully added</returns>
         public bool AddRecordsToCleanDictionary(
-                            Dictionary<int, ObservationRecord> newDictionary)
+                            Dictionary<int, dynamic> newDictionary)
         {
             bool HasSucceeded = false;
 
@@ -129,18 +129,18 @@ namespace DiReCT.Model
 
 
         //To be deleted
-        internal static ObservationRecord[] getAllCleanRecords()
+        internal static dynamic[] getAllCleanRecords()
         {
-            ObservationRecord[] records = null;
+            dynamic[] records = null;
 
             records = cleanData.Values.ToArray();
 
             return records;
         }
 
-        internal static ObservationRecord[] getAllDefectedRecords()
+        internal static dynamic[] getAllDefectedRecords()
         {
-            ObservationRecord[] records = null;
+            dynamic[] records = null;
 
             records = defectedData.Values.ToArray();
 

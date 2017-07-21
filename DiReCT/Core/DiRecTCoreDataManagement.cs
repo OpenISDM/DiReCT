@@ -58,7 +58,7 @@ namespace DiReCT
         private void InitCoreDM()
         {
             //DM Object initialization
-            recordBuffer = new ObservationRecord[Constant.BUFFER_NUMBER];
+            recordBuffer = new dynamic[Constant.BUFFER_NUMBER];
             isBufferFull = false;
             bufferLock = new object();
 
@@ -71,7 +71,7 @@ namespace DiReCT
         #region Utility
 
         //Buffer variables
-        public volatile static ObservationRecord[] recordBuffer;
+        public volatile static dynamic[] recordBuffer;
         private static bool isBufferFull;
         private static object bufferLock;
 
@@ -163,8 +163,7 @@ namespace DiReCT
                     //Get the record from workItem
                     try
                     {
-                        ObservationRecord record =
-                            (ObservationRecord)workItem.InputParameters;
+                        dynamic record = workItem.InputParameters;
 
                         int index;
                         lock (bufferLock)
@@ -203,7 +202,7 @@ namespace DiReCT
         /// <param name="record">the record to be assigned</param>
         /// <returns>whether record was assigned successfully</returns>
         public static bool GetRecordFromBuffer(int index,
-                                               out ObservationRecord record)
+                                               out dynamic record)
         {
 
             //Check if index is valid
@@ -265,7 +264,7 @@ namespace DiReCT
         /// <param name="record">the record to be saved</param>
         /// <returns>the index of buffer that the record is saved to; 
         /// -1 if not found</returns>
-        public int SaveRecordToBuffer(ObservationRecord record)
+        public int SaveRecordToBuffer(dynamic record)
         {
             int index = -1;
             bool IsFound = false;
@@ -318,7 +317,7 @@ namespace DiReCT
         /// <param name="recordData">the record to be saved</param>
         /// <param name="callBackFunction">call back function</param>
         /// <param name="asyncState"></param>
-        public static bool CoreSaveRecord(ObservationRecord recordData,
+        public static bool CoreSaveRecord(dynamic recordData,
                                AsyncCallback callBackFunction,
                                Object asyncState)
         {
@@ -365,10 +364,10 @@ namespace DiReCT
         public static void Core_SavingRecord(object obj)
         {
 
-            ObservationRecord newRecord = (ObservationRecord)obj;
+            
 
             //Save Record
-            CoreSaveRecord(newRecord, null, null);
+            CoreSaveRecord(obj, null, null);
 
         }
 

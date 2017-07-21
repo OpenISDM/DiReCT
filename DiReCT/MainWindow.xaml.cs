@@ -52,7 +52,7 @@ namespace DiReCT
         private void btnSaveRecord_Click(object sender, RoutedEventArgs e)
         {
             //Sample records
-            Flood testing = new Flood();
+            dynamic testing = DllFileLoader.CreateAnInstance();
             int temp = -1;
             //Check if the input is appropriate, if not change the input to -1
             if (WaterLevelBox.Text == null ||
@@ -82,22 +82,22 @@ namespace DiReCT
         /// </summary>
         public void UpdateDictionary()
         {
-            ObservationRecord[] or = DictionaryManager.getAllCleanRecords();
+            dynamic[] or = DictionaryManager.getAllCleanRecords();
             String post = "";
             for (int i = 0; i < or.Length; i++)
             {
                 post += or[i].RecordID + "          "
-                    + ((Flood)or[i]).WaterLevel + "\n";
+                    + (or[i]).WaterLevel + "\n";
             }
             showMessageBlock.Text = post;
 
 
-            ObservationRecord[] Dor = DictionaryManager.getAllDefectedRecords();
+            dynamic[] Dor = DictionaryManager.getAllDefectedRecords();
             post = "";
             for (int i = 0; i < Dor.Length; i++)
             {
                 post += Dor[i].RecordID + "          "
-                    + ((Flood)Dor[i]).WaterLevel + "\n";
+                    + (Dor[i]).WaterLevel + "\n";
             }
             showDefectedBlock.Text = post;
         }
@@ -152,7 +152,7 @@ namespace DiReCT
         private void btnGetRecord_Click(object sender, RoutedEventArgs e)
         {
             Stream stream = null;
-            Dictionary<int, ObservationRecord> dic = null;
+            Dictionary<int, dynamic> dic = null;
 
             //Set up open file dialog
             OpenFileDialog ofd = new OpenFileDialog();
@@ -176,14 +176,14 @@ namespace DiReCT
                     }
 
                     //Load saved dictionary to Clean Dictioanry
-                    foreach (KeyValuePair<int, ObservationRecord> x in dic)
+                    foreach (KeyValuePair<int, dynamic> x in dic)
                     {
                         Console.WriteLine(x.Key);
                         DictionaryManager.cleanData.Add(x.Key, x.Value);
                     }
 
                     //Reflect new records on screen
-                    ObservationRecord[] or = DictionaryManager.
+                    dynamic[] or = DictionaryManager.
                                                     getAllCleanRecords();
                     String post = "";
                     for (int i = 0; i < or.Length; i++)
@@ -207,7 +207,7 @@ namespace DiReCT
             DictionaryManager.cleanData.Clear();
 
             //Updates the dictionary on the Screen
-            ObservationRecord[] or = DictionaryManager.
+            dynamic[] or = DictionaryManager.
                                                     getAllCleanRecords();
             String post = "";
             for (int i = 0; i < or.Length; i++)
