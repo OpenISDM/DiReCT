@@ -212,8 +212,10 @@ namespace DiReCT.Model.Utilities
 
         public void Complete()
         {
-            System.Diagnostics.Debug.Assert(!isCompleted, "iNuCWorkItem re-complete");
-            System.Diagnostics.Debug.Assert(!isDisposed, "iNuCWorkItem alread disposed");
+            System.Diagnostics.Debug.Assert(!isCompleted, 
+                "WorkItem re-complete");
+            System.Diagnostics.Debug.Assert(!isDisposed, 
+                "WorkItem alread disposed");
             isCompleted = true;
             asyncCompletedEvent.Set();
             if (callBackFunction != null)

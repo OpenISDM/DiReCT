@@ -44,110 +44,48 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using DiReCT.Model.Utilities;
-using DiReCT.Model.Observations;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Threading;
 using System.Threading.Tasks;
+using DiReCT.Model;
 
 namespace DiReCT
 {
     public partial class DiReCTCore
     {
 
-        private void InitCoreDM()
-        {
-            //DM Object initialization
-            recordBuffer = new dynamic[Constant.BUFFER_NUMBER];
-            isBufferFull = false;
-            bufferLock = new object();
-
-            //Subscribe to Main Window Saving Record Event
-            MainWindow.MainWindowSavingRecord +=
-                new MainWindow.CallCoreEventHanlder(Core_SavingRecord);
-        }
-
-        //Utility currently not useful. 
         #region Utility
-
-        //Buffer variables
-        public volatile static dynamic[] recordBuffer;
+        // Buffer variables
+        public volatile static dynamic[] RecordBuffer;
         private static bool isBufferFull;
         private static object bufferLock;
 
+        // Dll file variables
+        public static DllFileLoader DllFileLoader; 
+       
         public static class Constant
         {
-            /*
-             * Define constnat here
-             */
-
-            public const int NUMBER_OF_MAX_THREADS = 10;
-
+            public const int MAX_NUMBER_OF_THREADS = 10;
             public const int ID_LENGTH = 10;
-
             public const int BUFFER_NUMBER = 3;
-
         }
-
-        
-        private struct USER
-        {
-            //
-            //Incomplete...
-            //More to be implemented...
-            //
-
-            public String UserID;
-            public String LastName;
-            public String FirstName;
-
-        }
-
-
-        private enum SCHEDULEEVENT_TYPE
-        {
-            //
-            //Incomplete...
-            //More to be implemented...
-            //
-
-            Appointment,
-            Without_Appointment
-        }
-
-        private struct SCHEDULELOCATION
-        {
-            //
-            //Incomplete...
-            //More to be implemented...
-            //
-
-            public String Location_Name;
-            public Double CoordinateX;
-            public Double CoordinateY;
-            public DateTime Schedule_Arrival_Time;
-        }
-
-        private struct SCHEDULEEVENT
-        {
-            //
-            //Incomplete...
-            //More to be implemented...
-            //
-
-            public String EventID;
-            public SCHEDULEEVENT_TYPE ScheduleEvent_Type;
-            public DateTime EventDateTime;
-            public DateTime StartTime;
-            public DateTime EndTime;
-            public TimeSpan TimeInterval;
-
-            //
-            //TO BE ADDED...location, how many times to record, etc
-            //
-        }
-
         #endregion 
+
+        private void InitCoreDM()
+        {
+            // DM buffer initialization
+            RecordBuffer = new dynamic[Constant.BUFFER_NUMBER];
+            isBufferFull = false;
+            bufferLock = new object();
+
+            // Dll variable initialization
+            DllFileLoader = new DllFileLoader();
+
+            // Subscribe to Main Window Saving Record Event
+            MainWindow.MainWindowSavingRecord +=
+                new MainWindow.CallCoreEventHanlder(PassSaveRecordToCore);
+        }
 
         /// <summary>
         /// Function processor for DM. This function is aimed to be used
@@ -156,39 +94,32 @@ namespace DiReCT
         /// <param name="workItem">WorkItem for DM</param>
         public void CoreDMFunctionProcessor(WorkItem workItem)
         {
-            //Switch based on method 
+            // Switch case based on the method 
             switch (workItem.AsyncCallName)
             {
-                case AsyncCallName.SaveRecord:
-                    //Get the record from workItem
+                case AsyncCallName.SaveRecord:                  
                     try
                     {
+                        // Get the record from workItem
                         dynamic record = workItem.InputParameters;
 
                         int index;
                         lock (bufferLock)
                         {
-                            //save record to buffer
+                            // Save record to buffer
                             index = SaveRecordToBuffer(record);
                         }
-
-                        //Raise DM Event to save record
-                        DMModule.OnSavingRecord(index);
-  
+                        // Raise DM Event to save record
+                        DMModule.OnSavingRecord(index);  
                     }
                     catch (Exception ex)
                     {
                         Debug.WriteLine("DiReCTCoreDM.CoreDMFunctionProcessor");
                         Debug.WriteLine(ex.Message);
                     }
-
                     break;
-
                 case AsyncCallName.GetRecord:
-
-                    //
-                    //To Be Implemented...
-                    //
+                    //To Be Implemented                  
                     break;
             }
         }
@@ -204,9 +135,8 @@ namespace DiReCT
         public static bool GetRecordFromBuffer(int index,
                                                out dynamic record)
         {
-
-            //Check if index is valid
-            if (index >= recordBuffer.Length || index < 0)
+            // Check if index is valid
+            if (index >= RecordBuffer.Length || index < 0)
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -218,12 +148,11 @@ namespace DiReCT
             {
                 lock (bufferLock)
                 {
-                    //Get the record from buffer
-                    record = recordBuffer[index];
+                    // Get the record from buffer
+                    record = RecordBuffer[index];
                 }
-
-                //Free the buffer index
-                FreeBufferIndex(index);
+                // Free the buffer index
+                FreeBufferSpace(index);
 
                 HasSucceeded = true;
             }
@@ -237,29 +166,27 @@ namespace DiReCT
 
 
         /// <summary>
-        /// Free a ObservationRecord from buffer. This function is aimed to be 
-        /// used by GetRecordFromBuffer
+        /// Free a record from buffer. This function is aimed to be 
+        /// used by GetRecordFromBuffer method. 
         /// </summary>
         /// <param name="index">the index in buffer</param>
-        private static void FreeBufferIndex(int index)
+        private static void FreeBufferSpace(int index)
         {
-
-            if (index >= recordBuffer.Length || index < 0)
+            // Check for appropriate index
+            if (index >= RecordBuffer.Length || index < 0)
             {
                 throw new ArgumentOutOfRangeException();
             }
 
             lock (bufferLock)
             {
-                recordBuffer[index] = null;
-
+                RecordBuffer[index] = null;
                 isBufferFull = false;
-
             }
         }
 
         /// <summary>
-        /// save a ObservationRecord to a free buffer index.
+        /// Save a record to a free buffer space.
         /// </summary>
         /// <param name="record">the record to be saved</param>
         /// <returns>the index of buffer that the record is saved to; 
@@ -269,26 +196,27 @@ namespace DiReCT
             int index = -1;
             bool IsFound = false;
 
-            //Wait for free buffer index
+            // Wait for free buffer index
             SpinWait.SpinUntil(() => !isBufferFull);
 
             while (!IsFound)
             {
                 lock (bufferLock)
                 {
-                    //Look for any available index
-                    for (int i = 0; i < recordBuffer.Length; i++)
+                    // Look for any available index 
+                    for (int i = 0; i < RecordBuffer.Length; i++)
                     {
-                        if (recordBuffer[i] == null)
+                        if (RecordBuffer[i] == null)
                         {
                             index = i;
-                            recordBuffer[i] = record; //Save record onto buffer 
+                            // Save record onto buffer 
+                            RecordBuffer[i] = record; 
                             IsFound = true;
 
                             try
                             {
-                                //check if all records are not NULL
-                                isBufferFull = recordBuffer.All(x =>
+                                // Check if all records are not NULL
+                                isBufferFull = RecordBuffer.All(x =>
                                                                 x != null);
                             }
                             catch (Exception ex)
@@ -297,7 +225,6 @@ namespace DiReCT
                                     "DiReCTCoreDM.SaveRecordToBuffer");
                                 Debug.WriteLine(ex.Message);
                             }
-
                             break;
                         }
                     }
@@ -310,9 +237,9 @@ namespace DiReCT
         #region CoreDM functions
 
         /// <summary>
-        /// This function runs on UI Threads.
+        /// This function runs on UI worker Threads.
         /// The aim of this function is to pass workItem to Core and save
-        /// recordData to buffer.
+        /// record to buffer.
         /// </summary>
         /// <param name="recordData">the record to be saved</param>
         /// <param name="callBackFunction">call back function</param>
@@ -325,6 +252,7 @@ namespace DiReCT
 
             try
             {
+                // Initialize workItem
                 WorkItem workItem
                     = new WorkItem(FunctionGroupName.DataManagementFunction,
                                    AsyncCallName.SaveRecord,
@@ -334,8 +262,8 @@ namespace DiReCT
 
                 // Token for work cancelling
                 CancellationToken cancellationToken = new CancellationToken();
-
-                coreWorkQueue.Enqueue(workItem,
+                // Enqueue workItem to core queue
+                CoreWorkQueue.Enqueue(workItem,
                                       (int)WorkPriority.Normal,
                                       cancellationToken);
 
@@ -346,7 +274,6 @@ namespace DiReCT
                 Debug.WriteLine("DiReCTCoreDataManagement.CoreSaveRecord Exception");
                 Debug.WriteLine(ex.Message);
             }
-
             return HasSucceeded;
         }
 
@@ -356,19 +283,15 @@ namespace DiReCT
         #region Events
 
         /// <summary>
-        /// This function is subscribed Main Window Saving Record Event and will
-        /// pass the record to Core when the event raised. It is aimed to handled
-        /// by Main Window worker Thread (BeginInvoke)
+        /// This function is subscribed Main Window Saving Record Event and 
+        /// will pass the record to Core when the event raised. It is aimed 
+        /// to handled by Main Window worker Thread (BeginInvoke)
         /// </summary>
         /// <param name="obj">Object to pass to DM Save Record</param>
-        public static void Core_SavingRecord(object obj)
+        public static void PassSaveRecordToCore(object obj)
         {
-
-            
-
-            //Save Record
+            // Pass record to core
             CoreSaveRecord(obj, null, null);
-
         }
 
         #endregion

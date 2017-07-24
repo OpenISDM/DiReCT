@@ -46,7 +46,6 @@ using System.Text;
 using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using System.Threading;
-using DiReCT.Model.Observations;
 using System.Diagnostics;
 using System.Windows.Threading;
 using System.Windows;
@@ -55,8 +54,8 @@ namespace DiReCT
 {
     public partial class DiReCTCore
     {
-        public static PriorityWorkQueue<WorkItem> coreWorkQueue;
-        public static bool isRunning;
+        public static PriorityWorkQueue<WorkItem> CoreWorkQueue;
+        public static bool IsRunning;
         /// <summary>
         /// Initialize necessary variables and set up event handlers between
         /// Core and individual modules
@@ -64,69 +63,76 @@ namespace DiReCT
         public DiReCTCore()
         {
             // Initialize DiReCTCore
-            coreWorkQueue = new PriorityWorkQueue<WorkItem>(
-                                          (int)WorkPriority.NumberOfPriorities);
-            isRunning = true;
+            CoreWorkQueue = new PriorityWorkQueue<WorkItem>(
+                                         (int)WorkPriority.NumberOfPriorities);
+            IsRunning = true;
 
             //Initialize CoreDM variables
             InitCoreDM();
         }
 
         /// <summary>
-        /// 
+        /// This function is responsible for getting workItem from UI and send 
+        /// the workItem to respective module.
         /// </summary>
         public void Run()
         {
-            while (isRunning)
+            while (IsRunning)
             {
-                WorkItem workItem; //record
-                int priority = coreWorkQueue.Dequeue(out workItem); //wait for work to arrive
+                WorkItem workItem;
+                // Wait for work to arrive
+                int priority = CoreWorkQueue.Dequeue(out workItem); 
 
                 if (priority != -1)
                 {
                     switch (workItem.GroupName)
-                    {
-                        //send the item to each queue
+                    {                      
                         case FunctionGroupName.DataManagementFunction:
-                            //make a method in Core DM to handle different methods
+                            // Pass work Item to DM processor
                             CoreDMFunctionProcessor(workItem);
                             break;
 
                         case FunctionGroupName.AuthenticateAuthoriseFunction:
+                            // Not implemented
                             break;
 
                         case FunctionGroupName.DataSyncFunction:
+                            // Not implemented
                             break;
 
                         case FunctionGroupName.MonitorAlertNotificationFunction:
+                            // Not implemented
                             break;
 
                         case FunctionGroupName.QualityControlFunction:
+                            // Not implemented
                             break;
 
                         case FunctionGroupName.TerminateFunction:
-                            isRunning = false;
+                            IsRunning = false;
                             break;
                     }
                 }
                 else
                 {
-                    //Throws error
+                    throw new Exception();
                 }
             }
 
         }
 
-        //Singleton pattern
+        
         public static DiReCTCore _instance { get; set; }
-
+        /// <summary>
+        /// This function ensures there is only one instance of Core
+        /// </summary>
+        /// <returns></returns>
         public static DiReCTCore getInstance()
         {
             if (_instance == null)
             {
                 _instance = new DiReCTCore();
             }
-
             return _instance;
         }
 
@@ -136,9 +142,12 @@ namespace DiReCT
         /// </summary>
         public void TerminateProgram()
         {
-            WorkItem workItem = new WorkItem(FunctionGroupName.TerminateFunction,
+            // Initialize workItem to terminate the program
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.TerminateFunction,
                 AsyncCallName.TerminateProgram, null, null, null);
-            coreWorkQueue.Enqueue(workItem, (int)WorkPriority.Highest,
+            // Enqueue the workItem
+            CoreWorkQueue.Enqueue(workItem, (int)WorkPriority.Highest,
                 new CancellationToken());
         }
     }

@@ -45,10 +45,8 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
         static WorkerThreadPool<WorkItem> moduleThreadPool;
 
         public static void AAAInit(object objectParameters)

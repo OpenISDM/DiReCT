@@ -1,5 +1,44 @@
-﻿using DiReCT.Model;
-using DiReCT.Model.Observations;
+﻿/*
+ * Copyright (c) 2016 Academia Sinica, Institude of Information Science
+ * 
+ *  This file is part of DiReCT.
+ *
+ *  DiReCT is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Foobar is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Project Name:
+ * 
+ *      DiReCT(Disaster Record Capture Tool)
+ * 
+ * File Description:
+ * File Name:
+ * 
+ *      RecordDictionaryManager.cs
+ * 
+ * Abstract:
+ *      
+ *      This file contains class that manage the record dictionaries, the 
+ *      clean and defected. The class also provides API to access and change 
+ *      the dictionary. 
+ *
+ * Authors:
+ * 
+ *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
+ *      Joe Huang, huangjoe9@gmail.com
+ * 
+ */
+
+using DiReCT.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,20 +48,18 @@ using System.Threading.Tasks;
 
 namespace DiReCT.Model
 {
-    class DictionaryManager
+    class RecordDictionaryManager
     {
-        public static volatile Dictionary<int, dynamic> cleanData;
-        public static volatile Dictionary<int, dynamic> defectedData;
-        static IDMananger IDmanager;
-
+        public static volatile Dictionary<int, dynamic> CleanData;
+        public static volatile Dictionary<int, dynamic> DefectedData;
+       
         /// <summary>
-        /// Initialize a Dictionary object 
+        /// Initialize the Dictionary objects
         /// </summary>
-        public DictionaryManager()
+        public RecordDictionaryManager()
         {
-            cleanData = new Dictionary<int, dynamic>();
-            defectedData = new Dictionary<int, dynamic>();
-            IDmanager = IDMananger.getInstance();
+            CleanData = new Dictionary<int, dynamic>();
+            DefectedData = new Dictionary<int, dynamic>();           
         }
 
         /// <summary>
@@ -38,14 +75,14 @@ namespace DiReCT.Model
 
             try
             {
-                //check record in both dictionary
-                if (cleanData.ContainsKey(recordID))
+                // Check record in both dictionary
+                if (CleanData.ContainsKey(recordID))
                 {
-                    record = cleanData[recordID];
+                    record = CleanData[recordID];
                 }
-                else if (defectedData.ContainsKey(recordID))
+                else if (DefectedData.ContainsKey(recordID))
                 {
-                    record = defectedData[recordID];
+                    record = DefectedData[recordID];
                 }
 
                 HasSucceeded = true;
@@ -62,7 +99,7 @@ namespace DiReCT.Model
         
 
         /// <summary>
-        /// save a specific ObservationRecord item to defect or clean dictionary
+        /// save a specific ObservationRecord item to defect/clean dictionary
         /// </summary>
         /// <param name="isDefected">whether the record is saving to clean or 
         /// defected Dictionary</param>
@@ -75,14 +112,14 @@ namespace DiReCT.Model
             {
                 recordID = record.RecordID;
 
-                //Save record to defect or clean dictioanry
+                // Save record to defect or clean dictioanry
                 if (isDefected)
                 {
-                    defectedData.Add(recordID, record);
+                    DefectedData.Add(recordID, record);
                 }
                 else
                 {
-                    cleanData.Add(recordID, record);
+                    CleanData.Add(recordID, record);
                 }
 
                 HasSucceeded = true;
@@ -111,18 +148,18 @@ namespace DiReCT.Model
             {
                 if (newDictionary != null)
                 {
-                    cleanData.Union(newDictionary);
+                    CleanData.Union(newDictionary);
                 }
 
                 HasSucceeded = true;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("DictionaryHelper.AddRecordsToCleanDictionary" +
+                Debug.WriteLine(
+                    "DictionaryHelper.AddRecordsToCleanDictionary" +
                     "Exception");
                 Debug.WriteLine(ex.Message);
             }
-
             return HasSucceeded;
         }
 
@@ -132,18 +169,14 @@ namespace DiReCT.Model
         internal static dynamic[] getAllCleanRecords()
         {
             dynamic[] records = null;
-
-            records = cleanData.Values.ToArray();
-
+            records = CleanData.Values.ToArray();
             return records;
         }
 
         internal static dynamic[] getAllDefectedRecords()
         {
             dynamic[] records = null;
-
-            records = defectedData.Values.ToArray();
-
+            records = DefectedData.Values.ToArray();
             return records;
         }
 

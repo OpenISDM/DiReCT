@@ -38,9 +38,7 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
 using DiReCT.Model.Utilities;
-using DiReCT.Model.Observations;
 using DiReCT.Model;
 using DiReCT.MAN;
 
@@ -50,12 +48,9 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
         static DiReCTThreadPool moduleThreadPool;
-
         const int MAX_NUMBER_OF_THREADS = 10;
 
         public static void RTQCInit(object objectParameters)
@@ -63,11 +58,9 @@ namespace DiReCT
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
-
             try
             {
-                //Initialize ready/abort event           
+                // Initialize ready/abort event and threadpool        
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
@@ -75,7 +68,7 @@ namespace DiReCT
 
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
 
-                //Wait for Core StartWorkEvent Signal
+                // Wait for Core StartWorkEvent Signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
@@ -84,7 +77,6 @@ namespace DiReCT
                 //
                 // Main Thread of RTQC module (begin)
                 //
-                Debug.WriteLine("RTQC Core: " + Thread.CurrentThread.ManagedThreadId);
                 Debug.WriteLine("RTQC module is working...");
 
                 // Check ModuleAbortEvent periodically
@@ -120,16 +112,15 @@ namespace DiReCT
         /// <summary>
         /// RTQC API to wrap workItem 
         /// </summary>
-        /// <param name="asyncCallName"></param>
-        /// <param name="callBackFunction"></param>
-        /// <param name="inputParameter"></param>
-        /// <param name="state"></param>
+        /// <param name="asyncCallName">the method named</param>
+        /// <param name="callBackFunction">callback function</param>
+        /// <param name="inputParameter">input object</param>
+        /// <param name="state">workItem State</param>
         public static void RTQCWrapWorkItem(AsyncCallName asyncCallName,
                                           AsyncCallback callBackFunction,
                                           Object inputParameter,
                                           Object state)
         {
-
             WorkItem workItem = new WorkItem(
                 FunctionGroupName.QualityControlFunction,
                 asyncCallName,
@@ -150,10 +141,8 @@ namespace DiReCT
             switch (workItem.AsyncCallName)
             {
                 case AsyncCallName.Validate:
-
                     Validate(workItem);
                     break;
-
             }
         }
 
@@ -165,23 +154,23 @@ namespace DiReCT
         /// <param name="workItem"></param>
         private static void Validate(WorkItem workItem)
         {
-            //Get the record from input parameters
+            // Get the record from input parameters
             dynamic flood = workItem.InputParameters;
 
-            //whether waterlevel is negative or positive
+            // Check whether waterlevel is negative or positive
             if(flood.WaterLevel < 0)
             {
-                //Notfiy user that the input might be wrong
-                //Call Notificaiton
+                // Notfiy user that the input might be wrong
                 Notification.Builder mBuilder = new Notification.Builder();
                 mBuilder.SetWhen(DateTime.Now);
-                mBuilder.SetContentText("This record might be wrong. Please check again!");
+                mBuilder.SetContentText("This record might be wrong." + 
+                                        " Please check again!");
                 mBuilder.SetNotificationType(NotificationTypes.Toast);
                 mBuilder.Build(10, null);
-                //
+                
                 /* Push a notification */
                 NotificationManager.Notify(10);
-
+                
                 workItem.OutputParameters = false;
             }
             else
@@ -189,7 +178,7 @@ namespace DiReCT
                 workItem.OutputParameters = true;
             }
 
-            //Signal workItem is finished
+            // Signal that workItem is finished
             workItem.Complete();
         }
     }

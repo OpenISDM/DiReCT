@@ -1,4 +1,41 @@
-﻿using DiReCT.Model.Utilities;
+﻿/*
+ * Copyright (c) 2016 Academia Sinica, Institude of Information Science
+ * 
+ *  This file is part of DiReCT.
+ *
+ *  DiReCT is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Foobar is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Project Name:
+ * 
+ *      DiReCT(Disaster Record Capture Tool)
+ * 
+ * File Description:
+ * File Name:
+ * 
+ *      MainProgram.cs
+ * 
+ * Abstract:
+ *      
+ *      This file contains classes for managing threadpools and worker threads.
+ *
+ * Authors:
+ * 
+ *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
+ *      Joe Huang, huangjoe9@gmail.com
+ * 
+ */
+using DiReCT.Model.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -255,7 +292,8 @@ namespace DiReCT.Model
         /// The number of seconds a thread must be idle before decreasing
         /// threadpool size to SizeMin
         /// </param>
-        public DiReCTThreadPool(int SizeMax, int SizeMin = 5, int IdleTime = 60)
+        public DiReCTThreadPool(int SizeMax, int SizeMin = 5,
+                                int IdleTime = 60)
         {
             //check if variables are proper
             if (SizeMax < SizeMin)
@@ -318,7 +356,8 @@ namespace DiReCT.Model
                     {
                         // Ask for a thread and assign it as a leader
                         lock (threadPoolController.ThreadVariableChangeLock)
-                            leaderThreadItem = threadPoolController.GetThreadItem();
+                            leaderThreadItem = threadPoolController.
+                                               GetThreadItem();
                         if (leaderThreadItem != null)
                         {
                             leaderThreadItem.PromoteNewLeaderEvent.Set();
@@ -338,7 +377,8 @@ namespace DiReCT.Model
                                     break;
 
                                 case FunctionGroupName.QualityControlFunction:
-                                    RTQCModule.RTQCWorkerFunctionProcessor(Work);
+                                    RTQCModule.RTQCWorkerFunctionProcessor(
+                                                                        Work);
 
                                     break;
                             }
@@ -365,12 +405,12 @@ namespace DiReCT.Model
                             leaderThreadItem = myThreadItem;
                             leaderThreadItem.PromoteNewLeaderEvent.Set();
                             Debug.WriteLine("Thread[{0}] become a new leader",
-                                            Thread.CurrentThread.ManagedThreadId);
+                                         Thread.CurrentThread.ManagedThreadId);
                         }
                         else
                         {
                             Debug.WriteLine("Thread[{0}] join idle queue",
-                                            Thread.CurrentThread.ManagedThreadId);
+                                         Thread.CurrentThread.ManagedThreadId);
                             threadPoolController.EnqueueIdleThreadQueue
                                 = myThreadItem;
                         }
@@ -433,7 +473,8 @@ namespace DiReCT.Model
         public PriorityQueue()
         {
             // Build the collection of priority chains.
-            _priorityChains = new SortedList<int, PriorityChain<T>>(); // NOTE: should be Priority
+            _priorityChains = new SortedList<int, PriorityChain<T>>(); 
+            // NOTE: should be Priority
             _cacheReusableChains = new Stack<PriorityChain<T>>(5);
 
             _head = _tail = null;
@@ -455,12 +496,14 @@ namespace DiReCT.Model
                 }
                 else
                 {
-                    return WorkPriority.BelowNormal; // NOTE: should be Priority.Invalid;
+                    return WorkPriority.BelowNormal; 
+                    // NOTE: should be Priority.Invalid;
                 }
             }
         }
 
-        public PriorityItem<T> Enqueue(WorkPriority priority, T data) // NOTE: should be Priority
+        public PriorityItem<T> Enqueue(WorkPriority priority, T data) 
+            // NOTE: should be Priority
         {
             // Find the existing chain for this priority, or create a new one
             // if one does not exist.
@@ -486,10 +529,12 @@ namespace DiReCT.Model
             if (count > 0)
             {
                 PriorityChain<T> chain = _priorityChains.Values[count - 1];
-                Debug.Assert(chain != null, "PriorityQueue.Dequeue: a chain should exist.");
+                Debug.Assert(chain != null, 
+                    "PriorityQueue.Dequeue: a chain should exist.");
 
                 PriorityItem<T> item = chain.Head;
-                Debug.Assert(item != null, "PriorityQueue.Dequeue: a priority item should exist.");
+                Debug.Assert(item != null, 
+                    "PriorityQueue.Dequeue: a priority item should exist.");
 
                 RemoveItem(item);
 
@@ -511,10 +556,12 @@ namespace DiReCT.Model
             if (count > 0)
             {
                 PriorityChain<T> chain = _priorityChains.Values[count - 1];
-                Debug.Assert(chain != null, "PriorityQueue.Peek: a chain should exist.");
+                Debug.Assert(chain != null, 
+                    "PriorityQueue.Peek: a chain should exist.");
 
                 PriorityItem<T> item = chain.Head;
-                Debug.Assert(item != null, "PriorityQueue.Peek: a priority item should exist.");
+                Debug.Assert(item != null, 
+                    "PriorityQueue.Peek: a priority item should exist.");
 
                 data = item.Data;
             }
@@ -524,8 +571,10 @@ namespace DiReCT.Model
 
         public void RemoveItem(PriorityItem<T> item)
         {
-            Debug.Assert(item != null, "PriorityQueue.RemoveItem: invalid item.");
-            Debug.Assert(item.Chain != null, "PriorityQueue.RemoveItem: a chain should exist.");
+            Debug.Assert(item != null, 
+                "PriorityQueue.RemoveItem: invalid item.");
+            Debug.Assert(item.Chain != null, 
+                "PriorityQueue.RemoveItem: a chain should exist.");
 
             PriorityChain<T> chain = item.Chain;
 
@@ -538,7 +587,8 @@ namespace DiReCT.Model
             // Note: we do not clean up empty chains on purpose to reduce churn.
         }
 
-        public void ChangeItemPriority(PriorityItem<T> item, WorkPriority priority) // NOTE: should be Priority
+        public void ChangeItemPriority(PriorityItem<T> item, 
+            WorkPriority priority) // NOTE: should be Priority
         {
             // Remove the item from its current priority and insert it into
             // the new priority chain.  Note that this does not change the
@@ -554,7 +604,8 @@ namespace DiReCT.Model
             InsertItemInPriorityChain(item, chain);
         }
 
-        private PriorityChain<T> GetChain(WorkPriority priority) // NOTE: should be Priority
+        private PriorityChain<T> GetChain(WorkPriority priority) 
+            // NOTE: should be Priority
         {
             PriorityChain<T> chain = null;
 
@@ -565,12 +616,13 @@ namespace DiReCT.Model
                 {
                     chain = _priorityChains.Values[0];
                 }
-                else if (priority == (WorkPriority)_priorityChains.Keys[count - 1])
+                else if (priority == 
+                    (WorkPriority)_priorityChains.Keys[count - 1])
                 {
                     chain = _priorityChains.Values[count - 1];
                 }
                 else if ((priority > (WorkPriority)_priorityChains.Keys[0]) &&
-                        (priority < (WorkPriority)_priorityChains.Keys[count - 1]))
+                    (priority < (WorkPriority)_priorityChains.Keys[count - 1]))
                 {
                     _priorityChains.TryGetValue((int)priority, out chain);
                 }
@@ -594,7 +646,8 @@ namespace DiReCT.Model
             return chain;
         }
 
-        private void InsertItemInPriorityChain(PriorityItem<T> item, PriorityChain<T> chain)
+        private void InsertItemInPriorityChain(PriorityItem<T> item,
+            PriorityChain<T> chain)
         {
             // Scan along the sequential chain, in the previous direction,
             // looking for an item that is already in the new chain.  We will
@@ -602,18 +655,23 @@ namespace DiReCT.Model
             // this search if the new chain is empty.
             if (chain.Head == null)
             {
-                Debug.Assert(chain.Tail == null, "PriorityQueue.InsertItemInPriorityChain: both the head and the tail should be null.");
+                Debug.Assert(chain.Tail == null, 
+                    "PriorityQueue.InsertItemInPriorityChain:" + 
+                    " both the head and the tail should be null.");
                 InsertItemInPriorityChain(item, chain, null);
             }
             else
             {
-                Debug.Assert(chain.Tail != null, "PriorityQueue.InsertItemInPriorityChain: both the head and the tail should not be null.");
+                Debug.Assert(chain.Tail != null, 
+                    "PriorityQueue.InsertItemInPriorityChain:"+
+                    " both the head and the tail should not be null.");
 
                 PriorityItem<T> after = null;
 
                 // Search backwards along the sequential chain looking for an
                 // item already in this list.
-                for (after = item.SequentialPrev; after != null; after = after.SequentialPrev)
+                for (after = item.SequentialPrev; after != null;
+                     after = after.SequentialPrev)
                 {
                     if (after.Chain == chain)
                     {
@@ -625,10 +683,16 @@ namespace DiReCT.Model
             }
         }
 
-        internal void InsertItemInPriorityChain(PriorityItem<T> item, PriorityChain<T> chain, PriorityItem<T> after)
+        internal void InsertItemInPriorityChain(PriorityItem<T> item,
+            PriorityChain<T> chain, PriorityItem<T> after)
         {
-            Debug.Assert(chain != null, "PriorityQueue.InsertItemInPriorityChain: a chain must be provided.");
-            Debug.Assert(item.Chain == null && item.PriorityPrev == null && item.PriorityNext == null, "PriorityQueue.InsertItemInPriorityChain: item must not already be in a priority chain.");
+            Debug.Assert(chain != null, 
+                "PriorityQueue.InsertItemInPriorityChain:"+
+                " a chain must be provided.");
+            Debug.Assert(item.Chain == null && item.PriorityPrev == null &&
+                item.PriorityNext == null,
+                "PriorityQueue.InsertItemInPriorityChain:"+
+                " item must not already be in a priority chain.");
 
             item.Chain = chain;
 
@@ -638,7 +702,9 @@ namespace DiReCT.Model
 
                 if (chain.Head != null)
                 {
-                    Debug.Assert(chain.Tail != null, "PriorityQueue.InsertItemInPriorityChain: both the head and the tail should not be null.");
+                    Debug.Assert(chain.Tail != null, 
+                        "PriorityQueue.InsertItemInPriorityChain:"+
+                        " both the head and the tail should not be null.");
 
                     chain.Head.PriorityPrev = item;
                     item.PriorityNext = chain.Head;
@@ -646,7 +712,9 @@ namespace DiReCT.Model
                 }
                 else
                 {
-                    Debug.Assert(chain.Tail == null, "PriorityQueue.InsertItemInPriorityChain: both the head and the tail should be null.");
+                    Debug.Assert(chain.Tail == null, 
+                        "PriorityQueue.InsertItemInPriorityChain:"+
+                        " both the head and the tail should be null.");
 
                     chain.Head = chain.Tail = item;
                 }
@@ -663,7 +731,10 @@ namespace DiReCT.Model
                 }
                 else
                 {
-                    Debug.Assert(item.Chain.Tail == after, "PriorityQueue.InsertItemInPriorityChain: the chain's tail should be the item we are inserting after.");
+                    Debug.Assert(item.Chain.Tail == after, 
+                        "PriorityQueue.InsertItemInPriorityChain:"+
+                        " the chain's tail should be the item we "+
+                        "are inserting after.");
                     after.PriorityNext = item;
                     chain.Tail = item;
                 }
@@ -674,19 +745,26 @@ namespace DiReCT.Model
 
         private void RemoveItemFromPriorityChain(PriorityItem<T> item)
         {
-            Debug.Assert(item != null, "PriorityQueue.RemoveItemFromPriorityChain: invalid item.");
-            Debug.Assert(item.Chain != null, "PriorityQueue.RemoveItemFromPriorityChain: a chain should exist.");
+            Debug.Assert(item != null, 
+                "PriorityQueue.RemoveItemFromPriorityChain: invalid item.");
+            Debug.Assert(item.Chain != null, 
+                "PriorityQueue.RemoveItemFromPriorityChain:"+
+                " a chain should exist.");
 
             // Step 1: Fix up the previous link
             if (item.PriorityPrev != null)
             {
-                Debug.Assert(item.Chain.Head != item, "PriorityQueue.RemoveItemFromPriorityChain: the head should not point to this item.");
+                Debug.Assert(item.Chain.Head != item, 
+                    "PriorityQueue.RemoveItemFromPriorityChain: "+
+                    "the head should not point to this item.");
 
                 item.PriorityPrev.PriorityNext = item.PriorityNext;
             }
             else
             {
-                Debug.Assert(item.Chain.Head == item, "PriorityQueue.RemoveItemFromPriorityChain: the head should point to this item.");
+                Debug.Assert(item.Chain.Head == item, 
+                    "PriorityQueue.RemoveItemFromPriorityChain: "+
+                    "the head should point to this item.");
 
                 item.Chain.Head = item.PriorityNext;
             }
@@ -694,13 +772,17 @@ namespace DiReCT.Model
             // Step 2: Fix up the next link
             if (item.PriorityNext != null)
             {
-                Debug.Assert(item.Chain.Tail != item, "PriorityQueue.RemoveItemFromPriorityChain: the tail should not point to this item.");
+                Debug.Assert(item.Chain.Tail != item, 
+                    "PriorityQueue.RemoveItemFromPriorityChain: "+
+                    "the tail should not point to this item.");
 
                 item.PriorityNext.PriorityPrev = item.PriorityPrev;
             }
             else
             {
-                Debug.Assert(item.Chain.Tail == item, "PriorityQueue.RemoveItemFromPriorityChain: the tail should point to this item.");
+                Debug.Assert(item.Chain.Tail == item, 
+                    "PriorityQueue.RemoveItemFromPriorityChain: "+
+                    "the tail should point to this item.");
 
                 item.Chain.Tail = item.PriorityPrev;
             }
@@ -710,7 +792,8 @@ namespace DiReCT.Model
             item.Chain.Count--;
             if (item.Chain.Count == 0)
             {
-                if (item.Chain.Priority == (WorkPriority)_priorityChains.Keys[_priorityChains.Count - 1])
+                if (item.Chain.Priority == 
+                    (WorkPriority)_priorityChains.Keys[_priorityChains.Count - 1])
                 {
                     _priorityChains.RemoveAt(_priorityChains.Count - 1);
                 }
@@ -721,7 +804,6 @@ namespace DiReCT.Model
 
                 if (_cacheReusableChains.Count < 10)
                 {
-                    //item.Chain.Priority = WorkPriority.Invalid; // NOTE: should be Priority.Invalid
                     _cacheReusableChains.Push(item.Chain);
                 }
             }
@@ -729,9 +811,13 @@ namespace DiReCT.Model
             item.Chain = null;
         }
 
-        internal void InsertItemInSequentialChain(PriorityItem<T> item, PriorityItem<T> after)
+        internal void InsertItemInSequentialChain(PriorityItem<T> item,
+            PriorityItem<T> after)
         {
-            Debug.Assert(item.SequentialPrev == null && item.SequentialNext == null, "PriorityQueue.InsertItemInSequentialChain: item must not already be in the sequential chain.");
+            Debug.Assert(item.SequentialPrev == null &&
+                item.SequentialNext == null, 
+                "PriorityQueue.InsertItemInSequentialChain: "+
+                "item must not already be in the sequential chain.");
 
             if (after == null)
             {
@@ -739,7 +825,9 @@ namespace DiReCT.Model
 
                 if (_head != null)
                 {
-                    Debug.Assert(_tail != null, "PriorityQueue.InsertItemInSequentialChain: both the head and the tail should not be null.");
+                    Debug.Assert(_tail != null, 
+                        "PriorityQueue.InsertItemInSequentialChain: "+
+                        "both the head and the tail should not be null.");
 
                     _head.SequentialPrev = item;
                     item.SequentialNext = _head;
@@ -747,7 +835,9 @@ namespace DiReCT.Model
                 }
                 else
                 {
-                    Debug.Assert(_tail == null, "PriorityQueue.InsertItemInSequentialChain: both the head and the tail should be null.");
+                    Debug.Assert(_tail == null, 
+                        "PriorityQueue.InsertItemInSequentialChain: "+
+                        "both the head and the tail should be null.");
 
                     _head = _tail = item;
                 }
@@ -764,7 +854,9 @@ namespace DiReCT.Model
                 }
                 else
                 {
-                    Debug.Assert(_tail == after, "PriorityQueue.InsertItemInSequentialChain: the tail should be the item we are inserting after.");
+                    Debug.Assert(_tail == after, 
+                        "PriorityQueue.InsertItemInSequentialChain: "+
+                        "the tail should be the item we are inserting after.");
                     after.SequentialNext = item;
                     _tail = item;
                 }
@@ -775,18 +867,23 @@ namespace DiReCT.Model
 
         private void RemoveItemFromSequentialChain(PriorityItem<T> item)
         {
-            Debug.Assert(item != null, "PriorityQueue.RemoveItemFromSequentialChain: invalid item.");
+            Debug.Assert(item != null, 
+                "PriorityQueue.RemoveItemFromSequentialChain: invalid item.");
 
             // Step 1: Fix up the previous link
             if (item.SequentialPrev != null)
             {
-                Debug.Assert(_head != item, "PriorityQueue.RemoveItemFromSequentialChain: the head should not point to this item.");
+                Debug.Assert(_head != item, 
+                    "PriorityQueue.RemoveItemFromSequentialChain: "+
+                    "the head should not point to this item.");
 
                 item.SequentialPrev.SequentialNext = item.SequentialNext;
             }
             else
             {
-                Debug.Assert(_head == item, "PriorityQueue.RemoveItemFromSequentialChain: the head should point to this item.");
+                Debug.Assert(_head == item, 
+                    "PriorityQueue.RemoveItemFromSequentialChain: "+
+                    "the head should point to this item.");
 
                 _head = item.SequentialNext;
             }
@@ -794,13 +891,17 @@ namespace DiReCT.Model
             // Step 2: Fix up the next link
             if (item.SequentialNext != null)
             {
-                Debug.Assert(_tail != item, "PriorityQueue.RemoveItemFromSequentialChain: the tail should not point to this item.");
+                Debug.Assert(_tail != item, 
+                    "PriorityQueue.RemoveItemFromSequentialChain: "+
+                    "the tail should not point to this item.");
 
                 item.SequentialNext.SequentialPrev = item.SequentialPrev;
             }
             else
             {
-                Debug.Assert(_tail == item, "PriorityQueue.RemoveItemFromSequentialChain: the tail should point to this item.");
+                Debug.Assert(_tail == item, 
+                    "PriorityQueue.RemoveItemFromSequentialChain: "+
+                    "the tail should point to this item.");
 
                 _tail = item.SequentialPrev;
             }
@@ -813,7 +914,8 @@ namespace DiReCT.Model
         public int Count { get { return _priorityChains.Count; } }
 
         // Priority chains...
-        private SortedList<int, PriorityChain<T>> _priorityChains; // NOTE: should be Priority
+        private SortedList<int, PriorityChain<T>> _priorityChains; 
+        // NOTE: should be Priority
         private Stack<PriorityChain<T>> _cacheReusableChains;
 
         // Sequential chain...
@@ -829,10 +931,19 @@ namespace DiReCT.Model
             _priority = priority;
         }
 
-        public WorkPriority Priority { get { return _priority; } set { _priority = value; } } // NOTE: should be Priority
+        public WorkPriority Priority
+        {
+            get { return _priority; } set { _priority = value; }
+        } // NOTE: should be Priority
         public int Count { get { return _count; } set { _count = value; } }
-        public PriorityItem<T> Head { get { return _head; } set { _head = value; } }
-        public PriorityItem<T> Tail { get { return _tail; } set { _tail = value; } }
+        public PriorityItem<T> Head
+        {
+            get { return _head; } set { _head = value; }
+        }
+        public PriorityItem<T> Tail
+        {
+            get { return _tail; } set { _tail = value; }
+        }
 
         private PriorityItem<T> _head;
         private PriorityItem<T> _tail;
@@ -851,14 +962,30 @@ namespace DiReCT.Model
         public bool IsQueued { get { return _chain != null; } }
 
         // Note: not used
-        // public WorkPriority Priority { get { return _chain.Priority; } } // NOTE: should be Priority
+        // public WorkPriority Priority { get { return _chain.Priority; } } 
+        // NOTE: should be Priority
 
-        internal PriorityItem<T> SequentialPrev { get { return _sequentialPrev; } set { _sequentialPrev = value; } }
-        internal PriorityItem<T> SequentialNext { get { return _sequentialNext; } set { _sequentialNext = value; } }
+        internal PriorityItem<T> SequentialPrev
+        {
+            get { return _sequentialPrev; } set { _sequentialPrev = value; }
+        }
+        internal PriorityItem<T> SequentialNext
+        {
+            get { return _sequentialNext; } set { _sequentialNext = value; }
+        }
 
-        internal PriorityChain<T> Chain { get { return _chain; } set { _chain = value; } }
-        internal PriorityItem<T> PriorityPrev { get { return _priorityPrev; } set { _priorityPrev = value; } }
-        internal PriorityItem<T> PriorityNext { get { return _priorityNext; } set { _priorityNext = value; } }
+        internal PriorityChain<T> Chain
+        {
+            get { return _chain; } set { _chain = value; }
+        }
+        internal PriorityItem<T> PriorityPrev
+        {
+            get { return _priorityPrev; } set { _priorityPrev = value; }
+        }
+        internal PriorityItem<T> PriorityNext
+        {
+            get { return _priorityNext; } set { _priorityNext = value; }
+        }
 
         private T _data;
 

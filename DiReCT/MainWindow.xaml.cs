@@ -1,6 +1,5 @@
 ﻿using DiReCT.MAN;
 using DiReCT.Model;
-using DiReCT.Model.Observations;
 using DiReCT.Model.Utilities;
 using Microsoft.Win32;
 using System;
@@ -33,16 +32,14 @@ namespace DiReCT
 
     {
         DiReCTCore coreControl;
-        Type CurrentType; //current type of Record
+        public Type CurrentType; // Current type of Record
 
         public MainWindow()
         {
             InitializeComponent();
             coreControl = DiReCTCore.getInstance();
-            CurrentType = (new Flood()).GetType();
-            Debug.WriteLine("MainWindow : " + Thread.CurrentThread.ManagedThreadId);
+            CurrentType = DllFileLoader.CreateAnInstance().GetType();
         }
-
 
         /// <summary>
         /// Demo function that saves the current waterlevel value
@@ -51,29 +48,31 @@ namespace DiReCT
         /// <param name="e"></param>
         private void btnSaveRecord_Click(object sender, RoutedEventArgs e)
         {
-            //Sample records
+            // Sample records, load from dll
             dynamic testing = DllFileLoader.CreateAnInstance();
+
             int temp = -1;
-            //Check if the input is appropriate, if not change the input to -1
-            if (WaterLevelBox.Text == null ||
-                string.IsNullOrWhiteSpace(WaterLevelBox.Text) ||
+            // Check if the input is appropriate, if not change the input to -1
+            if (string.IsNullOrWhiteSpace(WaterLevelBox.Text) ||
                 !Int32.TryParse(this.WaterLevelBox.Text, out temp))
             {
                 WaterLevelBox.Text = "-1";
             }
             testing.WaterLevel = (double)temp;
 
-            //Signal Core event
+            // Signal Core event
             WindowOnSavingRecord(testing);
 
-            //Wait 0.5 second before updating dictionary
-            //This will not be the desired method to update dictionary
+            // Wait 0.5 second before updating dictionary
+            /* This will not be the desired method to update dictionary */
             Thread.Sleep(500);
             UpdateDictionary();
 
+            //....
             //To be implemented
             //Implement callback function that automatically updates the UI 
             //once the Record is processed.
+            //....
             
         }
 
@@ -82,7 +81,7 @@ namespace DiReCT
         /// </summary>
         public void UpdateDictionary()
         {
-            dynamic[] or = DictionaryManager.getAllCleanRecords();
+            dynamic[] or = RecordDictionaryManager.getAllCleanRecords();
             String post = "";
             for (int i = 0; i < or.Length; i++)
             {
@@ -92,7 +91,7 @@ namespace DiReCT
             showMessageBlock.Text = post;
 
 
-            dynamic[] Dor = DictionaryManager.getAllDefectedRecords();
+            dynamic[] Dor = RecordDictionaryManager.getAllDefectedRecords();
             post = "";
             for (int i = 0; i < Dor.Length; i++)
             {
@@ -108,11 +107,9 @@ namespace DiReCT
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            
+        {           
             this.Close();
-            coreControl.TerminateProgram();
-            
+            coreControl.TerminateProgram();           
         }
 
         /// <summary>
@@ -124,21 +121,20 @@ namespace DiReCT
         {
             Stream myStream;
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            //Set up save file dialog
+            // Set up save file dialog
             saveFileDialog1.Filter = "xml files (*.xml)|*.xml";
             saveFileDialog1.FilterIndex = 2;
             saveFileDialog1.RestoreDirectory = true;
             
             if (saveFileDialog1.ShowDialog() == true)
             {
-                //if a file is selected
-                
+                // if a file is selected              
                 if ((myStream = saveFileDialog1.OpenFile()) != null)
-                {
-                    
+                {                 
+                        // Saving all clean record
                         SerializeHelper.SerializeDictionary(
-                                                myStream, 
-                                                DictionaryManager.cleanData);
+                                            myStream, 
+                                            RecordDictionaryManager.CleanData);
                         myStream.Close();
                 }
             }  
@@ -154,42 +150,41 @@ namespace DiReCT
             Stream stream = null;
             Dictionary<int, dynamic> dic = null;
 
-            //Set up open file dialog
+            // Set up open file dialog
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "xml files (*.xml)|*.xml";
             ofd.FilterIndex = 2;
             ofd.RestoreDirectory = true;
 
-            //Check if user opens a file
+            // Check if user opens a file
             if (ofd.ShowDialog() == true)
             {
-
-                //if opened file is correct
+                // If opened file is correct
                 if ((stream = ofd.OpenFile()) != null)
                 {
                     using (stream)
                     {
+                        // Deserialize the dictionary
                         SerializeHelper.DeserializeDictionary(
                                                         stream, 
                                                         out dic, 
                                                         CurrentType);
                     }
 
-                    //Load saved dictionary to Clean Dictioanry
+                    // Load saved dictionary to Clean Dictioanry
                     foreach (KeyValuePair<int, dynamic> x in dic)
                     {
                         Console.WriteLine(x.Key);
-                        DictionaryManager.cleanData.Add(x.Key, x.Value);
+                        RecordDictionaryManager.CleanData.Add(x.Key, x.Value);
                     }
 
-                    //Reflect new records on screen
-                    dynamic[] or = DictionaryManager.
-                                                    getAllCleanRecords();
+                    // Reflect new records on screen
+                    dynamic[] or = RecordDictionaryManager.getAllCleanRecords();
                     String post = "";
                     for (int i = 0; i < or.Length; i++)
                     {
                         post += or[i].RecordID + "          " + 
-                                ((Flood)or[i]).WaterLevel + "\n";
+                                (or[i]).WaterLevel + "\n";
                     }
                     this.showMessageBlock.Text = post;
                 }
@@ -203,17 +198,16 @@ namespace DiReCT
         /// <param name="e"></param>
         private void btnResetRecord_Click(object sender, RoutedEventArgs e)
         {
-            
-            DictionaryManager.cleanData.Clear();
+            // Clean the entire clean dictionary
+            RecordDictionaryManager.CleanData.Clear();
 
-            //Updates the dictionary on the Screen
-            dynamic[] or = DictionaryManager.
-                                                    getAllCleanRecords();
+            // Updates the dictionary on the Screen
+            dynamic[] or = RecordDictionaryManager.getAllCleanRecords();
             String post = "";
             for (int i = 0; i < or.Length; i++)
             {
                 post += or[i].RecordID + "          " +
-                        ((Flood)or[i]).WaterLevel + "\n";
+                        (or[i]).WaterLevel + "\n";
             }
             this.showMessageBlock.Text = post;
         }
@@ -228,13 +222,11 @@ namespace DiReCT
             this.WindowState = WindowState.Minimized;
         }
 
-
-
         #region Event Handlers
 
-        //Event Handler for Saving Record
+        // Event Handler for Saving Record
         public delegate void CallCoreEventHanlder(object obj);
-        //Event handler
+        // Event handler
         public static event CallCoreEventHanlder MainWindowSavingRecord;
 
         /// <summary>
@@ -244,11 +236,8 @@ namespace DiReCT
         /// <param name="obj"></param>
         public static void WindowOnSavingRecord(object obj)
         {           
-            MainWindowSavingRecord?.BeginInvoke(obj, null, null);
-            
+            MainWindowSavingRecord?.BeginInvoke(obj, null, null);      
         }
-
-        
         #endregion
 
     }

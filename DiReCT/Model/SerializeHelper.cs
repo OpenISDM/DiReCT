@@ -1,4 +1,41 @@
-﻿using DiReCT.Model.Observations;
+﻿/*
+ * Copyright (c) 2016 Academia Sinica, Institude of Information Science
+ * 
+ *  This file is part of DiReCT.
+ *
+ *  DiReCT is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Foobar is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Project Name:
+ * 
+ *      DiReCT(Disaster Record Capture Tool)
+ * 
+ * File Description:
+ * File Name:
+ * 
+ *      MainProgram.cs
+ * 
+ * Abstract:
+ *      
+ *      This file contains class that serialize and deserialize the record 
+ *      dictionaries. 
+ *
+ * Authors:
+ * 
+ *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
+ *      Joe Huang, huangjoe9@gmail.com
+ * 
+ */
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,14 +68,14 @@ namespace DiReCT.Model
 
             try
             {
-                //Set up deserializer based on the input Type
+                // Set up deserializer based on the input Type
                 var deserializer = new XmlSerializer(typeof(ArrayList),
                                              new Type[] { type });
 
-                //Deserialize the file to arraylist
+                // Deserialize the file to arraylist
                 list = (ArrayList)deserializer.Deserialize(stream);
 
-                //Add each record in list to dictionary based on ID
+                // Add each record in list to dictionary based on ID
                 foreach (dynamic record in list)
                 {
                     dictionary.Add(record.RecordID, record);
@@ -73,19 +110,19 @@ namespace DiReCT.Model
 
             try
             {
-                //Set up the serializer and assume all Types inside the dictionary
-                //are the same.
+                // Set up the serializer and assume all Types inside the 
+                // dictionary are the same.
                 var serializer = new XmlSerializer(
                     typeof(ArrayList),
                     new Type[] { dictionary.First().Value.GetType() });
 
-                //Add all records in dictionary to arraylist
+                // Add all records in dictionary to arraylist
                 foreach (KeyValuePair<int, dynamic> x in dictionary)
                 {
                     list.Add(x.Value);
                 }
 
-                //Serialize the arraylist
+                // Serialize the arraylist
                 serializer.Serialize(stream, list);
                 HasSucceeded = true;
             }

@@ -73,11 +73,8 @@
     <Compile Include="Core\DiReCTCore.cs" />
     <Compile Include="Core\DiRecTCoreDataManagement.cs" />
     <Compile Include="Core\MainProgram.cs" />
-    <Compile Include="Model\DictionaryManager.cs" />
+    <Compile Include="Model\RecordDictionaryManager.cs" />
     <Compile Include="Model\DllFileLoader.cs" />
-    <Compile Include="Model\FloodRecord.cs" />
-    <Compile Include="Model\IDMananger.cs" />
-    <Compile Include="Model\ObservationRecord.cs" />
     <Compile Include="Model\SerializeHelper.cs" />
     <Compile Include="Model\ThreadPool.cs" />
     <Compile Include="Model\Utilities.cs" />
@@ -85,7 +82,6 @@
     <Compile Include="DSModule.cs" />
     <Compile Include="MANModule.cs" />
     <Compile Include="RTQCModule.cs" />
-    <Compile Include="Version3.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

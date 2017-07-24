@@ -1,4 +1,42 @@
-﻿using System;
+﻿/*
+ * Copyright (c) 2016 Academia Sinica, Institude of Information Science
+ * 
+ *  This file is part of DiReCT.
+ *
+ *  DiReCT is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Foobar is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Project Name:
+ * 
+ *      DiReCT(Disaster Record Capture Tool)
+ * 
+ * File Description:
+ * File Name:
+ * 
+ *      DllFileLoader.cs
+ * 
+ * Abstract:
+ *      
+ *      This class contains class that load Dll files at runtime. This 
+ *      will allow external record type class to be added. 
+ *
+ * Authors:
+ * 
+ *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
+ *      Joe Huang, huangjoe9@gmail.com
+ * 
+ */
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,12 +61,11 @@ namespace DiReCT.Model
         public DllFileLoader()
         {
             Debug.WriteLine("DllFileLoad Initialize");
-            //Print all dll class and method
+            // Print all dll class and method
             SOPClasses = LoadLibrary();
-            //Initialize SOP to designate class
-            targetClassName = "SOPFlood"; //Decide which class to load
+            // Initialize SOP to designate class
+            targetClassName = "SOPFlood"; // Decide which class to load
             SOP = FindClass(targetClassName);
-            
         }
 
         public static dynamic CreateAnInstance()
@@ -37,6 +74,11 @@ namespace DiReCT.Model
             return type;
         }
 
+        /// <summary>
+        /// This function loads all the dll files in DEBUG folder and print 
+        /// the class and type name to the Console.
+        /// </summary>
+        /// <returns></returns>
         public ArrayList[] LoadLibrary()
         {
             string filepath = Environment.CurrentDirectory;
@@ -52,7 +94,7 @@ namespace DiReCT.Model
             {
                 string dllName = file.ToString().Split('.').First();
 
-                //Writing all the Class + Method name
+                // Writing all the Class + Method name
                 Console.WriteLine(file.ToString());
                 if (dllName.Contains("SOP"))
                 {
@@ -60,12 +102,13 @@ namespace DiReCT.Model
 
                     foreach (var ii in Classes[i])
                     {
-                        Methods[i] = GetAllTypesFromClass(dllName, ii.ToString());
-                        //PRINT--------------------------------------
+                        Methods[i] = GetAllTypesFromClass(dllName, 
+                                                          ii.ToString());
+                        // PRINT--------------------------------------
                         Console.WriteLine("----Classes: " + ii.ToString());
                         foreach (var jj in Methods[i])
                             Console.WriteLine("----Methods: " + jj.ToString());
-                        //-------------------------------------------
+                        // -------------------------------------------
                     }
                 }
                 i++;
@@ -80,8 +123,12 @@ namespace DiReCT.Model
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\n\nError - couldn't obtain assemblies from " + dllName);
-                Console.WriteLine("EXCEPTION OUTPUT\n" + ex.Message + "\n" + ex.InnerException);
+                Console.WriteLine(
+                    "\n\nError - couldn't obtain assemblies from " +
+                    dllName);
+                Console.WriteLine("EXCEPTION OUTPUT\n" +
+                    ex.Message + "\n" +
+                    ex.InnerException);
                 ArrayList _Quit = new ArrayList(1);
                 _Quit.Add("QUIT");
                 return _Quit;
@@ -117,8 +164,10 @@ namespace DiReCT.Model
             }
             catch (Exception ex)
             {
-                Console.WriteLine("\n\nError - couldn't obtain methods from " + dllName);
-                Console.WriteLine("EXCEPTION:\n" + ex.Message + "\n" + ex.InnerException);
+                Console.WriteLine("\n\nError - couldn't obtain methods from " +
+                                  dllName);
+                Console.WriteLine("EXCEPTION:\n" + ex.Message + "\n" + 
+                                  ex.InnerException);
                 _Temp.Clear();
                 _Temp.Capacity = 1;
                 _Temp.Add("QUIT");
@@ -131,7 +180,8 @@ namespace DiReCT.Model
             try
             {
                 Assemblies = Assembly.LoadFrom(targetClassName + ".dll");
-                return Assemblies.CreateInstance(targetClassName + "." + targetClassName);
+                return Assemblies.CreateInstance(targetClassName +
+                                                "." + targetClassName);
             }
             catch(Exception ex)
             {

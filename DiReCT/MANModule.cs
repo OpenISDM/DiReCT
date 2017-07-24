@@ -50,30 +50,27 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
-        
+        static WorkerThreadPool<WorkItem> moduleThreadPool;     
         static Notification.Builder builder = new Notification.Builder();
+
         public static void MANInit(object objectParameters)
         {
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
-
+           
             try
             {
-                //Initialize ready/abort event 
+                // Initialize ready/abort event 
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("MANInit complete Phase 1 Initialization");
 
-                //Wait for starwork signal
+                // Wait for starwork signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
@@ -90,11 +87,6 @@ namespace DiReCT
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
 
-                    //
-                    // Wait for work event
-                    // Wrap work into workitem
-                    // Enqueue the workitem to its threadpool
-                    //
                 }
 
                 Debug.WriteLine("MAN module is aborting.");

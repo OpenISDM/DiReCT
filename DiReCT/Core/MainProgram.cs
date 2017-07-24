@@ -143,13 +143,7 @@ namespace DiReCT
 
         private static bool InitHasFailed = false; // Whether initialization 
                                                    // processes were completed
-                                                   // in time
-        
-
-        //public static PriorityWorkQueue<WorkItem>[] ModuleWorkQueue;
-
-        public static DllFileLoader dllFileLoader; //Dll file initializer
-
+                                                   // in time    
         [MTAThread]
         public static void Main()
         {
@@ -183,9 +177,7 @@ namespace DiReCT
                 ModuleReadyEvents = new AutoResetEvent[
                     (int)ModuleThread.NumberOfModules];
                 ModuleInitFailedEvents = new AutoResetEvent[
-                    (int)ModuleThread.NumberOfModules];
-                //ModuleWorkQueue = new PriorityWorkQueue<WorkItem>[
-                //    (int)ModuleThread.NumberOfModules];
+                    (int)ModuleThread.NumberOfModules];              
             }
             catch (Exception ex)
             {
@@ -308,7 +300,6 @@ namespace DiReCT
                 ModuleInitFailedEvents[i]
                     = ModuleControlDataBlocks[i].ThreadParameters
                                                 .ModuleInitFailedEvent;
-
             }
 
             while (!InitHasFailed)
@@ -325,8 +316,8 @@ namespace DiReCT
                 {
                     int WaitReturnValue
                        = WaitHandle.WaitAny(ModuleInitFailedEvents,
-                                            (int)TimeInterval.VeryVeryShortTime,
-                                            true);
+                                           (int)TimeInterval.VeryVeryShortTime,
+                                           true);
                     if (WaitReturnValue != WaitHandle.WaitTimeout)
                     {
                         InitHasFailed = true;
@@ -335,10 +326,10 @@ namespace DiReCT
                 }
             }
             Debug.WriteLine("Core Thread ID: " + Thread.CurrentThread.ManagedThreadId);
-            //Signal modules to start working
+            // Signal modules to start working
             ModuleStartWorkEvent.Set();
             
-            //Start to execute UI
+            // Start to execute UI
             try
             {
                 UIThreadHandle.Start();
@@ -349,10 +340,6 @@ namespace DiReCT
                 Debug.WriteLine("UI thread can not start!");
                 CleanupExit();
             }
-
-            //Load dll files
-            dllFileLoader = new DllFileLoader();
-
 
             coreControl.Run();
             UIThreadHandle.Join();
@@ -408,7 +395,6 @@ namespace DiReCT
             // Signal all created threads to prepare to terminate
             ModuleAbortEvent.Set();
 
-            //System.Windows.Threading.Dispatcher.FromThread(UIThreadHandle).InvokeShutdown();
             Debug.WriteLine("Cleanup join!!");
             // Wait for all created threads to terminate
             foreach (Thread moduleThreadHandle in ModuleThreadHandles)
