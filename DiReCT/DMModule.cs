@@ -36,7 +36,6 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
 using DiReCT.Model.Utilities;
 using DiReCT;
 using System.Collections;
@@ -131,7 +130,6 @@ namespace DiReCT
                 case AsyncCallName.SaveRecord:
                     SendRecordToRTQC(workItem);
                     break;
-                //More cases
             }
         }
    
@@ -156,10 +154,8 @@ namespace DiReCT
                 if (DiReCTCore.GetRecordFromBuffer(index, out record))
                 {
                     // Call RTQC API
-                    RTQCModule.RTQCWrapWorkItem(AsyncCallName.Validate,
-                        new AsyncCallback(SaveRecordtoDictionary),
-                        record,
-                        null);
+                    RTQCModule.OnValidate(record, 
+                                    new AsyncCallback(SaveRecordtoDictionary));
 
                     workItem.Complete();
                 }

@@ -79,6 +79,11 @@ namespace DiReCT
                 //
                 Debug.WriteLine("RTQC module is working...");
 
+                // Whenever ValidateEvent is raised, RTQCValidateWrapper will
+                // be called.
+                ValidateEventTriggerd += new ValidateEventHanlder(
+                                                    RTQCValidateWrapper);
+
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
@@ -107,28 +112,6 @@ namespace DiReCT
             ModuleStartWorkEvent.Close(); 
             Debug.WriteLine("RTQC module stopped successfully.");
             return;
-        }
-
-        /// <summary>
-        /// RTQC API to wrap workItem 
-        /// </summary>
-        /// <param name="asyncCallName">the method named</param>
-        /// <param name="callBackFunction">callback function</param>
-        /// <param name="inputParameter">input object</param>
-        /// <param name="state">workItem State</param>
-        public static void RTQCWrapWorkItem(AsyncCallName asyncCallName,
-                                          AsyncCallback callBackFunction,
-                                          Object inputParameter,
-                                          Object state)
-        {
-            WorkItem workItem = new WorkItem(
-                FunctionGroupName.QualityControlFunction,
-                asyncCallName,
-                inputParameter,
-                callBackFunction,
-                state);
-
-            moduleThreadPool.AddThreadWork(workItem);
         }
 
         /// <summary>
@@ -180,6 +163,41 @@ namespace DiReCT
 
             // Signal that workItem is finished
             workItem.Complete();
+        }
+
+        // Delegate that specify the parameter of event handler
+        public delegate void ValidateEventHanlder(object obj, 
+                                               AsyncCallback callBackFunction);
+        // Event Handler for Validate
+        public static event ValidateEventHanlder ValidateEventTriggerd;
+
+        /// <summary>
+        /// Function to initiate the Validate event
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void OnValidate(object obj, 
+                                      AsyncCallback callBackFunction)
+        {
+            ValidateEventTriggerd?.BeginInvoke(obj, callBackFunction, null, null);
+        }
+
+        /// <summary>
+        /// This function is subscribed to ValidateEventTriggered event and 
+        /// will be called when the event is raised
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="callBackFunction"></param>
+        public static void RTQCValidateWrapper(object obj,
+                                               AsyncCallback callBackFunction)
+        {
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.QualityControlFunction,
+                AsyncCallName.Validate,
+                obj,
+                callBackFunction,
+                null);
+     
+            moduleThreadPool.AddThreadWork(workItem);
         }
     }
 }

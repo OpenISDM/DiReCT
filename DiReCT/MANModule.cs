@@ -52,8 +52,8 @@ namespace DiReCT
         static ThreadParameters threadParameters;
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-        static WorkerThreadPool<WorkItem> moduleThreadPool;     
-        static Notification.Builder builder = new Notification.Builder();
+        static WorkerThreadPool<WorkItem> moduleThreadPool;
+        static Notification.Builder builder;
 
         public static void MANInit(object objectParameters)
         {
@@ -66,6 +66,7 @@ namespace DiReCT
                 // Initialize ready/abort event 
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                builder = new Notification.Builder();
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("MANInit complete Phase 1 Initialization");
@@ -79,7 +80,7 @@ namespace DiReCT
                 //
                 // Main Thread of MAN module (begin)
                 //
-                Debug.WriteLine("Man Core: " + Thread.CurrentThread.ManagedThreadId);
+                
                 Debug.WriteLine("MAN module is working...");
 
                 // Check ModuleAbortEvent periodically
