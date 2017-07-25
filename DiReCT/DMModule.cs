@@ -53,6 +53,7 @@ namespace DiReCT
         static DiReCTThreadPool moduleThreadPool;
         static RecordDictionaryManager recordDictionaryManager;
         const int THREADPOOL_SIZE = 10;
+        static dynamic SOP;
 
         public static void DMInit(object objectParameters)
         {
@@ -86,7 +87,11 @@ namespace DiReCT
                 // will be called
                 RecordSavingTriggerd += new SaveRecordEventHanlder(
                                                        DMSavingRecordWrapper);
-                              
+
+                // Loading SOP
+                SOP = DllFileLoader.GetSOP();
+                bool check = SOP.SOPDMCheckWithRTQC;
+
                 Debug.WriteLine("DM module is working...");
                 
                 // Check ModuleAbortEvent periodically
@@ -147,25 +152,28 @@ namespace DiReCT
             // To Be Implemented...
             // SOP should decide the action, eg. save record, pass to rtqc
             //
-
-            try
+            if (SOP.SOPDMCheckWithRTQC)
             {
-                // Get the record from buffer 
-                if (DiReCTCore.GetRecordFromBuffer(index, out record))
+                try
                 {
-                    // Call RTQC API
-                    RTQCModule.OnValidate(record, 
-                                    new AsyncCallback(SaveRecordtoDictionary));
+                    // Get the record from buffer 
+                    if (DiReCTCore.GetRecordFromBuffer(index, out record))
+                    {
+                        // Call RTQC API
+                        RTQCModule.OnValidate(record,
+                                        new AsyncCallback(SaveRecordtoDictionary));
 
-                    workItem.Complete();
+                        workItem.Complete();
+                    }
+                    else
+                    {
+                        // Exception, index not valid
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Exception, index not valid
+                    Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
                 }
-            }catch(Exception ex)
-            {
-                Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
             }
         }
 

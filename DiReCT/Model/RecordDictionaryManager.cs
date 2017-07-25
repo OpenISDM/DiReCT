@@ -99,7 +99,7 @@ namespace DiReCT.Model
         
 
         /// <summary>
-        /// save a specific ObservationRecord item to defect/clean dictionary
+        /// Save a specific Record item to defect/clean dictionary
         /// </summary>
         /// <param name="isDefected">whether the record is saving to clean or 
         /// defected Dictionary</param>
@@ -108,6 +108,7 @@ namespace DiReCT.Model
         {
             int recordID;
             bool HasSucceeded = false;
+
             try
             {
                 recordID = record.RecordID;

@@ -51,7 +51,7 @@ namespace DiReCT.Model
     class SerializeHelper
     {
         /// <summary>
-        /// Deserialize XML file to Dicionary
+        /// Deserialize XML file to Dicionary with integer as key
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="dictionary"></param>

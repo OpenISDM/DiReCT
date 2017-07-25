@@ -55,22 +55,35 @@ namespace DiReCT.Model
     {
         static Assembly Assemblies;
         public ArrayList[] SOPClasses;
+
         public static dynamic SOP;
-        public static string targetClassName;
+        public static string SOPTargetClassName;
+
+        public static dynamic SOPRecord;
+        public static string RecordTargetClassName;
 
         public DllFileLoader()
         {
             Debug.WriteLine("DllFileLoad Initialize");
             // Print all dll class and method
             SOPClasses = LoadLibrary();
-            // Initialize SOP to designate class
-            targetClassName = "SOPFlood"; // Decide which class to load
-            SOP = FindClass(targetClassName);
+            // Initialize SOP Record to designate class
+            RecordTargetClassName = "SOPFlood"; // Decide which class to load
+            SOPRecord = FindClass(RecordTargetClassName);
+
+            // Initialzie SOP to designated class
+            SOPTargetClassName = "SOP";
+            SOP = FindClass(SOPTargetClassName);
+        }
+
+        public static dynamic GetSOP()
+        {
+            return SOP;
         }
 
         public static dynamic CreateAnInstance()
         {
-            dynamic type = FindClass(targetClassName);
+            dynamic type = FindClass(RecordTargetClassName);
             return type;
         }
 
@@ -174,9 +187,9 @@ namespace DiReCT.Model
             }
             return _Temp;
         }
+
         public static object FindClass(string targetClassName)
-        {
-            
+        {            
             try
             {
                 Assemblies = Assembly.LoadFrom(targetClassName + ".dll");
