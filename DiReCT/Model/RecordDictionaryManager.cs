@@ -27,9 +27,10 @@
  * 
  * Abstract:
  *      
- *      This file contains class that manage the record dictionaries, the 
- *      clean and defected. The class also provides API to access and change 
- *      the dictionary. 
+ *      This file contains the class that manages the record dictionaries of 
+ *      clean and defective records, the clean and defected. The class also 
+ *      provides API to access and change the dictionary. 
+ *      
  *
  * Authors:
  * 
@@ -51,7 +52,7 @@ namespace DiReCT.Model
     class RecordDictionaryManager
     {
         public static volatile Dictionary<int, dynamic> CleanData;
-        public static volatile Dictionary<int, dynamic> DefectedData;
+        public static volatile Dictionary<int, dynamic> DefectiveData;
        
         /// <summary>
         /// Initialize the Dictionary objects
@@ -59,7 +60,7 @@ namespace DiReCT.Model
         public RecordDictionaryManager()
         {
             CleanData = new Dictionary<int, dynamic>();
-            DefectedData = new Dictionary<int, dynamic>();           
+            DefectiveData = new Dictionary<int, dynamic>();           
         }
 
         /// <summary>
@@ -80,9 +81,9 @@ namespace DiReCT.Model
                 {
                     record = CleanData[recordID];
                 }
-                else if (DefectedData.ContainsKey(recordID))
+                else if (DefectiveData.ContainsKey(recordID))
                 {
-                    record = DefectedData[recordID];
+                    record = DefectiveData[recordID];
                 }
 
                 HasSucceeded = true;
@@ -99,12 +100,12 @@ namespace DiReCT.Model
         
 
         /// <summary>
-        /// Save a specific Record item to defect/clean dictionary
+        /// Save a specific Record item to defective/clean dictionary
         /// </summary>
         /// <param name="isDefected">whether the record is saving to clean or 
         /// defected Dictionary</param>
         /// <param name="record">the record being saved</param>
-        public bool SaveRecord(bool isDefected, dynamic record)
+        public bool SaveRecord(bool isDefective, dynamic record)
         {
             int recordID;
             bool HasSucceeded = false;
@@ -113,10 +114,10 @@ namespace DiReCT.Model
             {
                 recordID = record.RecordID;
 
-                // Save record to defect or clean dictioanry
-                if (isDefected)
+                // Save record to defective or clean dictioanry
+                if (isDefective)
                 {
-                    DefectedData.Add(recordID, record);
+                    DefectiveData.Add(recordID, record);
                 }
                 else
                 {
@@ -177,7 +178,7 @@ namespace DiReCT.Model
         internal static dynamic[] getAllDefectedRecords()
         {
             dynamic[] records = null;
-            records = DefectedData.Values.ToArray();
+            records = DefectiveData.Values.ToArray();
             return records;
         }
 

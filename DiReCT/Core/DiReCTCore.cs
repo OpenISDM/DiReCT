@@ -111,6 +111,9 @@ namespace DiReCT
                         case FunctionGroupName.TerminateFunction:
                             IsRunning = false;
                             break;
+                        default:
+                            // Exception
+                            break;
                     }
                 }
                 else

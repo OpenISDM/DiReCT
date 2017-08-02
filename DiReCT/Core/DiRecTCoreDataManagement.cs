@@ -35,6 +35,7 @@
  * 
  *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
  *      Jeff Chen, jeff@iis.sinica.edu.tw
+ *      Joe Huang, huangjoe9@gmail.com
  * 
  */
 
@@ -49,6 +50,7 @@ using System.Windows;
 using System.Windows.Threading;
 using System.Threading.Tasks;
 using DiReCT.Model;
+using System.Collections;
 
 namespace DiReCT
 {
@@ -58,17 +60,17 @@ namespace DiReCT
         #region Utility
         // Buffer variables
         public volatile static dynamic[] RecordBuffer;
-        private static bool isBufferFull;
-        private static object bufferLock;
-
+        private static object[] bufferLock;
+        private static BitArray bufferSpaceAvailable;
+ 
         // Dll file variables
         public static DllFileLoader DllFileLoader; 
-       
+        
         public static class Constant
         {
             public const int MAX_NUMBER_OF_THREADS = 10;
             public const int ID_LENGTH = 10;
-            public const int BUFFER_NUMBER = 3;
+            public const int BUFFER_NUMBER = 140;
         }
         #endregion 
 
@@ -76,8 +78,13 @@ namespace DiReCT
         {
             // DM buffer initialization
             RecordBuffer = new dynamic[Constant.BUFFER_NUMBER];
-            isBufferFull = false;
-            bufferLock = new object();
+            bufferLock = new object[Constant.BUFFER_NUMBER];
+            bufferSpaceAvailable = new BitArray(Constant.BUFFER_NUMBER);
+            for(int i = 0; i < Constant.BUFFER_NUMBER; i++)
+            {
+                bufferLock[i] = new object();   
+                bufferSpaceAvailable[i] = true; // Set every space to available
+            }
 
             // Dll variable initialization
             DllFileLoader = new DllFileLoader();
@@ -125,7 +132,6 @@ namespace DiReCT
         }
 
         #region Buffer Methods
-
         /// <summary>
         /// Get record from buffer based on index
         /// </summary>
@@ -142,26 +148,22 @@ namespace DiReCT
             }
 
             record = null;
-            bool HasSucceeded = false;
+            bool GotRecord = false;
 
             try
             {
-                lock (bufferLock)
-                {
-                    // Get the record from buffer
-                    record = RecordBuffer[index];
-                }
+                record = RecordBuffer[index];
                 // Free the buffer index
                 FreeBufferSpace(index);
 
-                HasSucceeded = true;
+                GotRecord = true;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
             }
 
-            return HasSucceeded;
+            return GotRecord;
         }
 
 
@@ -178,15 +180,18 @@ namespace DiReCT
                 throw new ArgumentOutOfRangeException();
             }
 
-            lock (bufferLock)
+            // Free the buffer space
+            RecordBuffer[index] = null;
+            // Change buffer space availability to true
+            lock (bufferLock[index])
             {
-                RecordBuffer[index] = null;
-                isBufferFull = false;
+                bufferSpaceAvailable[index] = true;
             }
         }
 
         /// <summary>
-        /// Save a record to a free buffer space.
+        /// Save a record to a free buffer space. The thread will loop until 
+        /// there is a free space
         /// </summary>
         /// <param name="record">the record to be saved</param>
         /// <returns>the index of buffer that the record is saved to; 
@@ -194,42 +199,35 @@ namespace DiReCT
         public int SaveRecordToBuffer(dynamic record)
         {
             int index = -1;
-            bool IsFound = false;
-
+            bool isFound = false;
             // Wait for free buffer index
-            SpinWait.SpinUntil(() => !isBufferFull);
+            SpinWait.SpinUntil(() => bufferSpaceAvailable.
+                                     Cast<bool>().Contains(true));
 
-            while (!IsFound)
+            // Look for any available index 
+            // The while loop is to prevent two or multiple possible writer 
+            // Waiting at the same time and race for the same space.
+            while (isFound == false)
             {
-                lock (bufferLock)
-                {
-                    // Look for any available index 
-                    for (int i = 0; i < RecordBuffer.Length; i++)
-                    {
-                        if (RecordBuffer[i] == null)
+                for (int i = 0; i < Constant.BUFFER_NUMBER; i++)
+                {   
+                    // Lock the buffer index            
+                    lock (bufferLock[i])
+                    {                        
+                        if (bufferSpaceAvailable[i])
                         {
                             index = i;
                             // Save record onto buffer 
-                            RecordBuffer[i] = record; 
-                            IsFound = true;
-
-                            try
-                            {
-                                // Check if all records are not NULL
-                                isBufferFull = RecordBuffer.All(x =>
-                                                                x != null);
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine(
-                                    "DiReCTCoreDM.SaveRecordToBuffer");
-                                Debug.WriteLine(ex.Message);
-                            }
+                            RecordBuffer[i] = record;
+                            // Mark buffer space as unavailable
+                            bufferSpaceAvailable[i] = false;
+                            isFound = true;
                             break;
                         }
-                    }
+                    }                    
                 }
             }
+   
             return index;
         }
         #endregion
@@ -238,8 +236,8 @@ namespace DiReCT
 
         /// <summary>
         /// This function runs on UI worker Threads.
-        /// The aim of this function is to pass workItem to Core and save
-        /// record to buffer.
+        /// The aim of this function is to queue workItems to be executed 
+        /// by worker threads and save record to buffer.
         /// </summary>
         /// <param name="recordData">the record to be saved</param>
         /// <param name="callBackFunction">call back function</param>
@@ -248,7 +246,7 @@ namespace DiReCT
                                AsyncCallback callBackFunction,
                                Object asyncState)
         {
-            bool HasSucceeded = false;
+            bool HasEnqueued = false;
 
             try
             {
@@ -266,15 +264,15 @@ namespace DiReCT
                 CoreWorkQueue.Enqueue(workItem,
                                       (int)WorkPriority.Normal,
                                       cancellationToken);
-
-                HasSucceeded = true;
+                // Set return to true
+                HasEnqueued = true;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("DiReCTCoreDataManagement.CoreSaveRecord Exception");
                 Debug.WriteLine(ex.Message);
             }
-            return HasSucceeded;
+            return HasEnqueued;
         }
 
 
@@ -285,7 +283,7 @@ namespace DiReCT
         /// <summary>
         /// This function is subscribed Main Window Saving Record Event and 
         /// will pass the record to Core when the event raised. It is aimed 
-        /// to handled by Main Window worker Thread (BeginInvoke)
+        /// to be executed by Main Window worker Thread (BeginInvoke)
         /// </summary>
         /// <param name="obj">Object to pass to DM Save Record</param>
         public static void PassSaveRecordToCore(object obj)

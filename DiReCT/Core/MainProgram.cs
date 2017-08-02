@@ -98,7 +98,7 @@ namespace DiReCT
         public ManualResetEvent ModuleStartWorkEvent;
 
         // Event raised when module needs to abort
-        // It is set by MainProgram when terminating the program needed
+        // It is set by MainProgram when the program needs to be terminated
         public ManualResetEvent ModuleAbortEvent;
 
         // Priority Queue for passing work to each module
@@ -302,7 +302,7 @@ namespace DiReCT
                                                 .ModuleInitFailedEvent;
             }
 
-            while (!InitHasFailed)
+            while (InitHasFailed == false)
             {
                 if (WaitHandle.WaitAll(ModuleReadyEvents,
                                        (int)TimeInterval.LongTime,
@@ -316,7 +316,7 @@ namespace DiReCT
                 {
                     int WaitReturnValue
                        = WaitHandle.WaitAny(ModuleInitFailedEvents,
-                                           (int)TimeInterval.VeryVeryShortTime,
+                                           (int)TimeInterval.VeryVeryShortTime,  
                                            true);
                     if (WaitReturnValue != WaitHandle.WaitTimeout)
                     {
@@ -352,13 +352,13 @@ namespace DiReCT
         /// </summary>
         private static void UIMainFunction()
         {
-            //App app2 = new App();
-            //app2.InitializeComponent();
-            //app2.Run();
-            Application App = new Application();
-            App.StartupUri = new Uri("MainWindow.xaml",
-                                 UriKind.Relative);
-            App.Run();
+            App app2 = new App();
+            app2.InitializeComponent();
+            app2.Run();
+            //Application App = new Application();
+            //App.StartupUri = new Uri("MainWindow.xaml",
+            //                     UriKind.Relative);
+            //App.Run();
             Debug.WriteLine("UI Module is working...");
         }
 

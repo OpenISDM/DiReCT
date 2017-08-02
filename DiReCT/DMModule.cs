@@ -90,7 +90,6 @@ namespace DiReCT
 
                 // Loading SOP
                 SOP = DllFileLoader.GetSOP();
-                bool check = SOP.SOPDMCheckWithRTQC;
 
                 Debug.WriteLine("DM module is working...");
                 
@@ -152,28 +151,25 @@ namespace DiReCT
             // To Be Implemented...
             // SOP should decide the action, eg. save record, pass to rtqc
             //
-            if (SOP.SOPDMCheckWithRTQC)
+            
+            try
             {
-                try
+                // Get the record from buffer 
+                if (DiReCTCore.GetRecordFromBuffer(index, out record))
                 {
-                    // Get the record from buffer 
-                    if (DiReCTCore.GetRecordFromBuffer(index, out record))
-                    {
-                        // Call RTQC API
-                        RTQCModule.OnValidate(record,
-                                        new AsyncCallback(SaveRecordtoDictionary));
+                    // Call RTQC API
+                    RTQCModule.OnValidate(record, 
+                                    new AsyncCallback(SaveRecordtoDictionary));
 
-                        workItem.Complete();
-                    }
-                    else
-                    {
-                        // Exception, index not valid
-                    }
+                    workItem.Complete();
                 }
-                catch (Exception ex)
+                else
                 {
-                    Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
+                    // Exception, index not valid
                 }
+            }catch(Exception ex)
+            {
+                Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
             }
         }
 
