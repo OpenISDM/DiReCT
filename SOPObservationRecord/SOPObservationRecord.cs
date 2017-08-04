@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace SOPObservationRecord
 {
+    /// <summary>
+    /// This class contains the abstract record. This record should be inherited
+    /// by other specific record type, such as Flood or Landslides, and should
+    /// not be used alone.
+    /// </summary>
     abstract public class SOPObservationRecord
     {
         public int RecordID

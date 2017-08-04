@@ -155,14 +155,14 @@ namespace DiReCT_wpf.ViewModel
             MenuViewBase recordView =HomeScreenViewModel.GetInstance().ShowRecordView();
             //recordView.RaiseUserInputReadyEvent(new SaveButtonClickedEventArgs(record));
 
+            // Initialize the record object
             dynamic record = DllFileLoader.CreateAnInstance();
-
             record.waterLevel = waterLevel;
             record.PossibleCauseOfDisaster = causes;
             record.currentLongitude = currentLongitude;
             record.currentLatitude = currentLatitude;
             record.currentTimeStamp = currentTimeStamp;
-
+            // Signal Core for record
             recordView.OnSavingFloodRecord(record);
         }
     }
