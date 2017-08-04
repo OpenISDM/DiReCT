@@ -40,6 +40,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -47,13 +48,10 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
-
+        static DiReCTThreadPool moduleThreadPool;
+               
         public static void DSInit(object objectParameters)
         {
             moduleControlDataBlock
@@ -66,6 +64,7 @@ namespace DiReCT
                 //Initialize ready/abort event         
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DSInit complete Phase 1 Initialization");
@@ -80,17 +79,13 @@ namespace DiReCT
                 // Main Thread of DS module (begin)
                 //
                 Debug.WriteLine("DS module is working...");
-
+                Debug.WriteLine("DS Core: " + Thread.CurrentThread.ManagedThreadId);
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
-
-                    //
-                    // Wait for work event
-                    // Wrap work into workitem
-                    // Enqueue the workitem to its threadpool
-                    //
+                    //Does nothing
+                   
                 }
 
                 Debug.WriteLine("DS module is aborting.");

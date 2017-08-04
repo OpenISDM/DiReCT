@@ -38,6 +38,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -45,25 +46,22 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
+        static DiReCTThreadPool moduleThreadPool;
 
         public static void AAAInit(object objectParameters)
         {
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
-
+            
             try
             {
                 //Initialze ready/abort event                           
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("AAAInit complete Phase 1 Initialization");
@@ -85,11 +83,6 @@ namespace DiReCT
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
 
-                    //
-                    // Wait for work event
-                    // Wrap work into workitem
-                    // Enqueue the workitem to its threadpool
-                    //
                 }
 
                 Debug.WriteLine("AAA module is aborting.");

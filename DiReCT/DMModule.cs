@@ -36,10 +36,11 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
 using DiReCT.Model.Utilities;
 using DiReCT;
 using System.Collections;
+using DiReCT.Model;
+using System.Windows.Threading;
 
 namespace DiReCT
 {
@@ -47,32 +48,28 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
-        static PriorityWorkQueue<WorkItem> priorityworkQueue;
-        //static IDictionary dictionary;
-
+        static DiReCTThreadPool moduleThreadPool;
+        static RecordDictionaryManager recordDictionaryManager;
+           
         public static void DMInit(object objectParameters)
         {
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
-
+            
             try
             {
-                //Initialize Ready/Abort Event      
+                // Initialize Ready/Abort Event and threadpool    
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
-                ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                ModuleAbortEvent = threadParameters.ModuleAbortEvent;           
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DMInit complete Phase 1 Initialization");
 
-                //Wait for core StartWork Signal
+                // Wait for core StartWork Signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
@@ -81,20 +78,22 @@ namespace DiReCT
                 //
                 // Main Thread of DM module (begin)
                 //               
+                // Initialize dictionary manager
+                recordDictionaryManager = new RecordDictionaryManager();
 
-                priorityworkQueue = new PriorityWorkQueue<WorkItem>(5);
+                // Whenever the SaveRecord Event is called, DMSavingRecordWrapper 
+                // will be called
+                RecordSavingTriggerd += new SaveRecordEventHanlder(
+                                                       DMSavingRecordWrapper);
+
+                
                 Debug.WriteLine("DM module is working...");
-
+                
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
-                    // Wait for work event
-                    priorityworkQueue.WakesWorkerEvent.WaitOne();
-                    // Wrap work into workitem
-                    
-                    // Enqueue the workitem to its threadpool
-                    
+                    // Does nothing and wait for abort event
                 }
 
                 Debug.WriteLine("DM module is aborting.");
@@ -115,10 +114,117 @@ namespace DiReCT
             //
             // Cleanup code
             //
-            priorityworkQueue.WakesWorkerEvent.Close();
             Debug.WriteLine("DM module stopped successfully.");
             return;
         }
+
+        /// <summary>
+        /// determines which methods to call. This function is aimed to be called
+        /// by Threadpool worker thread.
+        /// </summary>
+        /// <param name="workItem"></param>
+        internal static void DMWorkerFunctionProcessor(WorkItem workItem)
+        {
+            switch (workItem.AsyncCallName)
+            {
+                case AsyncCallName.SaveRecord:
+                    SendRecordToRTQC(workItem);
+                    break;
+            }
+        }
+   
+        /// <summary>
+        /// Pass record to RTQC for validate
+        /// </summary>
+        /// <param name="workItem"></param>
+        internal static void SendRecordToRTQC(WorkItem workItem)
+        {
+            // Get the index of record in buffer from workItem
+            int index = (int)workItem.InputParameters;
+            dynamic record;
+
+            //
+            // To Be Implemented...
+            // SOP should decide the action, eg. save record, pass to rtqc
+            //
+            
+            try
+            {
+                // Get the record from buffer 
+                if (DiReCTCore.GetRecordFromBuffer(index, out record))
+                {
+                    // Call RTQC API
+                    RTQCModule.OnValidate(record, 
+                                    new AsyncCallback(SaveRecordtoDictionary));
+
+                    workItem.Complete();
+                }
+                else
+                {
+                    // Exception, index not valid
+                }
+            }catch(Exception ex)
+            {
+                Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Save the record into Dictionary
+        /// </summary>
+        /// <param name="result"></param>
+        static void SaveRecordtoDictionary(IAsyncResult result)
+        {
+            WorkItem workItem = (WorkItem)result;
+
+            if ((bool)workItem.OutputParameters)
+            {
+                recordDictionaryManager.SaveRecord(false,
+                                workItem.InputParameters);               
+            }
+            else
+            {
+                recordDictionaryManager.SaveRecord(true,
+                                workItem.InputParameters);
+            }
+
+            
+            DiReCTCore.PrintDictionary(null);
+            
+            
+        }
+
+        // Delegate that specify the parameter of event handler
+        public delegate void SaveRecordEventHanlder(int index);
+        // Event Handler for Saving Record
+        public static event SaveRecordEventHanlder RecordSavingTriggerd;
+
+        /// <summary>
+        /// Function to initiate the Saving Record event
+        /// </summary>
+        /// <param name="index"></param>
+        public static void OnSavingRecord(int index)
+        {
+            RecordSavingTriggerd?.BeginInvoke(index,null,null);
+        }
+
+        /// <summary>
+        /// This method will be called when SavingRecord Event is raised
+        /// </summary>
+        /// <param name="index">the index of the record in the buffer</param>
+        public static void DMSavingRecordWrapper(int index)
+        {
+            
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.DataManagementFunction,
+                AsyncCallName.SaveRecord,
+                index,
+                null,
+                null);
+
+            moduleThreadPool.AddThreadWork(workItem);
+        }
+
     }
 }
 

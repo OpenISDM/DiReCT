@@ -1,0 +1,103 @@
+﻿<src:MenuViewBase x:Class="DiReCT_wpf.View.DebrisFlowHistoryView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:DiReCT_wpf.View"
+      mc:Ignorable="d" 
+      xmlns:src="clr-namespace:DiReCT_wpf.ScreenInterface"
+      d:DesignHeight="313" d:DesignWidth="382">
+
+    <Grid Background="SteelBlue" >
+        <Border CornerRadius="20" Background="White">
+            <ListView Margin="10" Name="lvDataBinding">
+                <ListViewItem>
+                    <Border CornerRadius="10" Background="LightBlue" Width="785">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Image Width = "70" Source = "C:\Users\Ashley\Desktop\DiReCT\DiReCT_wpf\Resource\DebrisFlow.gif" Margin = "0" Height="72" Grid.Column="0" HorizontalAlignment="Center"/>
+                            <StackPanel Orientation="Vertical" Grid.Column="1" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Latitude:22.345123     Longitude:122.45532</TextBlock>
+                                <TextBlock Margin="5">Record Time: 2017/7/23 13:45</TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Landslide Condition: House was buried, River siltation</TextBlock>
+                                <TextBlock Margin="5">River Siltation: Severe</TextBlock>
+                                <TextBlock Margin="5">Building Damamge: 1~4 houses were buried</TextBlock>
+                                <TextBlock Margin="5">Injury Troll:15</TextBlock>
+                                <TextBlock Margin="5">Death Troll:1</TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </ListViewItem>
+                <ListViewItem>
+                    <Border CornerRadius="10" Background="LightBlue" Width="785">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Image Width = "50" Source = "C:\Users\Ashley\Desktop\DiReCT\DiReCT_wpf\Resource\Flood.png" HorizontalAlignment="Center" Height="72" Grid.Column="0"/>
+                            <StackPanel Orientation="Vertical" Grid.Column="1" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Latitude:21.23443     Longitude:121.44532</TextBlock>
+                                <TextBlock Margin="5">Record Time: 2017/7/24 11:35</TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Water Level: 83</TextBlock>
+                                <TextBlock Margin="5">Cause of the flood: Land subsidence</TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </ListViewItem>
+                <ListViewItem>
+                    <Border CornerRadius="10" Background="LightBlue" Width="785">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Image Width = "50" Source = "C:\Users\Ashley\Desktop\DiReCT\DiReCT_wpf\Resource\Flood.png" HorizontalAlignment="Center"  Height="72" Grid.Column="0"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Grid.Column="1">
+                                <TextBlock Margin="5">Latitude:21.345123     Longitude:120.23432</TextBlock>
+                                <TextBlock Margin="5">Record Time: 2017/7/24 15:45</TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Water Level: 24</TextBlock>
+                                <TextBlock Margin="5">Cause of the flood: River overflowing</TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </ListViewItem>
+                <ListViewItem>
+                    <Border CornerRadius="10" Background="LightBlue" Width="785">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                                <ColumnDefinition Width="5*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Image Width = "50" Source = "C:\Users\Ashley\Desktop\DiReCT\DiReCT_wpf\Resource\DebrisFlow.gif" HorizontalAlignment="Center" Height="72" Grid.Column="0"/>
+                            <StackPanel Orientation="Vertical" Grid.Column="1" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Latitude:22.315423     Longitude:121.44533</TextBlock>
+                                <TextBlock Margin="5">Record Time: 2017/7/25 10:53</TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Left">
+                                <TextBlock Margin="5">Landslide Condition: Road was buried</TextBlock>
+                                <TextBlock Margin="5">River Siltation: Light</TextBlock>
+                                <TextBlock Margin="5">Building Damamge: No house was buried</TextBlock>
+                                <TextBlock Margin="5">Injury Troll:5</TextBlock>
+                                <TextBlock Margin="5">Death Troll:0</TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </ListViewItem>
+            </ListView>
+        </Border>
+    </Grid>
+</src:MenuViewBase>

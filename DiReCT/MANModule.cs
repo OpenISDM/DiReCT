@@ -42,6 +42,8 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
+using DiReCT.MAN;
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -49,30 +51,29 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
+        static DiReCTThreadPool moduleThreadPool;
+        static Notification.Builder builder;
 
         public static void MANInit(object objectParameters)
         {
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
-
+           
             try
             {
-                //Initialize ready/abort event 
+                // Initialize ready/abort event 
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                moduleThreadPool = threadParameters.moduleThreadPool;
+                builder = new Notification.Builder();
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("MANInit complete Phase 1 Initialization");
 
-                //Wait for starwork signal
+                // Wait for starwork signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
@@ -81,7 +82,7 @@ namespace DiReCT
                 //
                 // Main Thread of MAN module (begin)
                 //
-
+                
                 Debug.WriteLine("MAN module is working...");
 
                 // Check ModuleAbortEvent periodically
@@ -89,11 +90,6 @@ namespace DiReCT
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
 
-                    //
-                    // Wait for work event
-                    // Wrap work into workitem
-                    // Enqueue the workitem to its threadpool
-                    //
                 }
 
                 Debug.WriteLine("MAN module is aborting.");

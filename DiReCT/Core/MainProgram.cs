@@ -43,8 +43,9 @@ using System.Threading;
 using System.Windows;
 using System.Diagnostics;
 using Microsoft.Win32;
-
+using AppHost;
 using DiReCT.Model.Utilities;
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -97,8 +98,14 @@ namespace DiReCT
         public ManualResetEvent ModuleStartWorkEvent;
 
         // Event raised when module needs to abort
-        // It is set by MainProgram when terminating the program needed
+        // It is set by MainProgram when the program needs to be terminated
         public ManualResetEvent ModuleAbortEvent;
+
+
+        public DiReCTThreadPool moduleThreadPool;
+
+
+        const int THREADPOOL_SIZE = 10;
 
         public ThreadParameters()
         {
@@ -106,6 +113,7 @@ namespace DiReCT
             ModuleReadyEvent = new AutoResetEvent(false);
             ModuleStartWorkEvent = DiReCTMainProgram.ModuleStartWorkEvent;
             ModuleAbortEvent = DiReCTMainProgram.ModuleAbortEvent;
+            moduleThreadPool = new DiReCTThreadPool(THREADPOOL_SIZE);   
         }
     }
 
@@ -121,7 +129,7 @@ namespace DiReCT
     #endregion
 
     // The main entry point of DiReCT application
-    class DiReCTMainProgram
+    public class DiReCTMainProgram
     {
         private static DiReCTCore coreControl;
         private static Thread[] ModuleThreadHandles;
@@ -136,11 +144,11 @@ namespace DiReCT
 
         private static bool InitHasFailed = false; // Whether initialization 
                                                    // processes were completed
-                                                   // in time
-
+                                                   // in time    
         [MTAThread]
-        static void Main()
+        public static void Main()
         {
+
             // Subscribe system log off/shutdown or application close events
             SystemEvents.SessionEnding
                 += new SessionEndingEventHandler(ShutdownEventHandler);
@@ -170,7 +178,7 @@ namespace DiReCT
                 ModuleReadyEvents = new AutoResetEvent[
                     (int)ModuleThread.NumberOfModules];
                 ModuleInitFailedEvents = new AutoResetEvent[
-                    (int)ModuleThread.NumberOfModules];
+                    (int)ModuleThread.NumberOfModules];              
             }
             catch (Exception ex)
             {
@@ -293,10 +301,9 @@ namespace DiReCT
                 ModuleInitFailedEvents[i]
                     = ModuleControlDataBlocks[i].ThreadParameters
                                                 .ModuleInitFailedEvent;
-
             }
 
-            while (!InitHasFailed)
+            while (InitHasFailed == false)
             {
                 if (WaitHandle.WaitAll(ModuleReadyEvents,
                                        (int)TimeInterval.LongTime,
@@ -310,8 +317,8 @@ namespace DiReCT
                 {
                     int WaitReturnValue
                        = WaitHandle.WaitAny(ModuleInitFailedEvents,
-                                            (int)TimeInterval.VeryVeryShortTime,
-                                            true);
+                                           (int)TimeInterval.VeryVeryShortTime,  
+                                           true);
                     if (WaitReturnValue != WaitHandle.WaitTimeout)
                     {
                         InitHasFailed = true;
@@ -319,11 +326,11 @@ namespace DiReCT
                     }
                 }
             }
-
-            //Signal modules to start working
+            Debug.WriteLine("Core Thread ID: " + Thread.CurrentThread.ManagedThreadId);
+            // Signal modules to start working
             ModuleStartWorkEvent.Set();
-
-            //Start to execute UI
+            
+            // Start to execute UI
             try
             {
                 UIThreadHandle.Start();
@@ -341,12 +348,18 @@ namespace DiReCT
             //return;
         }
 
+        /// <summary>
+        /// Initialize UI
+        /// </summary>
         private static void UIMainFunction()
         {
-            Application App = new Application();
-            App.StartupUri = new Uri("MainWindow.xaml",
-                                 UriKind.Relative);
-            App.Run();
+            App app2 = new App();
+            app2.InitializeComponent();
+            app2.Run();
+            //Application App = new Application();
+            //App.StartupUri = new Uri("MainWindow.xaml",
+            //                     UriKind.Relative);
+            //App.Run();
             Debug.WriteLine("UI Module is working...");
         }
 
@@ -383,7 +396,6 @@ namespace DiReCT
             // Signal all created threads to prepare to terminate
             ModuleAbortEvent.Set();
 
-            //System.Windows.Threading.Dispatcher.FromThread(UIThreadHandle).InvokeShutdown();
             Debug.WriteLine("Cleanup join!!");
             // Wait for all created threads to terminate
             foreach (Thread moduleThreadHandle in ModuleThreadHandles)

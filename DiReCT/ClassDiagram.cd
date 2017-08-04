@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="DiReCT.AAAModule">
+    <Position X="13.75" Y="10.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAGAAAAAQAAAAAAgAAAAAAAAAAAAAARA=</HashCode>
+      <FileName>AAAModule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.DiReCTCore">
+    <Position X="0.75" Y="4.5" Width="2.25" />
+    <NestedTypes>
+      <Class Name="DiReCT.DiReCTCore.Constant" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Core\DiRecTCoreDataManagement.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AQAEgAAAAAAAAAAAAIAAQCAAAEAAAgQCAAAABBABAAM=</HashCode>
+      <FileName>Core\DiReCTCore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Constants">
+    <Position X="0.75" Y="9.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAIACAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAQAAAAIA=</HashCode>
+      <FileName>Core\MainProgram.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.ThreadParameters">
+    <Position X="6.75" Y="8" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAACAAAAAAAAAAAAAACAAAAAAAACAAABA=</HashCode>
+      <FileName>Core\MainProgram.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.ModuleControlDataBlock">
+    <Position X="25" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Core\MainProgram.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.DiReCTMainProgram">
+    <Position X="0.75" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>CACAgEEAAAEAAKgAAAAYAAAAAAAAAAAIAAAABAAAAAE=</HashCode>
+      <FileName>Core\MainProgram.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.DMModule">
+    <Position X="3.5" Y="0.5" Width="2.5" />
+    <NestedTypes>
+      <Delegate Name="DiReCT.DMModule.SaveRecordEventHanlder" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>DMModule.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>CAAAgEAAIAACAGAAAAAQAACAAAgAGAAAAAAAIAAAARA=</HashCode>
+      <FileName>DMModule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.DSModule">
+    <Position X="29.75" Y="10.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAGAACAAQAAAAQAgAAAAAAAAAAAAAARA=</HashCode>
+      <FileName>DSModule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.MainWindow" BaseTypeListCollapsed="true">
+    <Position X="3.75" Y="8.5" Width="2.25" />
+    <NestedTypes>
+      <Delegate Name="DiReCT.MainWindow.CallCoreEventHanlder" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MainWindow.xaml.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AACAgAAEAAAAAAAAAAAAAAABQAAAAAAAAAAAFwAQAAI=</HashCode>
+      <FileName>MainWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DiReCT.MANModule">
+    <Position X="10.5" Y="2.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAGACAAAQAAAAAAgIAAAAAAAAAAAAARA=</HashCode>
+      <FileName>MANModule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.RTQCModule">
+    <Position X="16" Y="3" Width="2.5" />
+    <NestedTypes>
+      <Delegate Name="DiReCT.RTQCModule.ValidateEventHanlder" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RTQCModule.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>EAAAAEAAAACAAGAAKAEQAAAAAAgAAAAAAEAAAgAAARA=</HashCode>
+      <FileName>RTQCModule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.MAN.VibratePatterns">
+    <Position X="25.25" Y="4.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAACAAAAAAAAAAAAqAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MAN\NotificationClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.MAN.Notification">
+    <Position X="13.5" Y="0.5" Width="1.75" />
+    <NestedTypes>
+      <Class Name="DiReCT.MAN.Notification.Builder" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MAN\NotificationClass.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AQAYgAAAKKAAEiAgqBIQAagAgAEAAIAAAAAAAAEAAAA=</HashCode>
+      <FileName>MAN\NotificationClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.MAN.NotificationManager">
+    <Position X="16.5" Y="10.25" Width="2.25" />
+    <NestedTypes>
+      <Struct Name="DiReCT.MAN.NotificationManager.NotificationHandle" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MAN\NotificationClass.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Delegate Name="DiReCT.MAN.NotificationManager.UINotificationDelegate" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MAN\NotificationClass.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AEBACAAAQAQAAAAAAAAAAAAEAAAAAABBAgGAQAAAAAA=</HashCode>
+      <FileName>MAN\NotificationClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.DllFileLoader">
+    <Position X="10.5" Y="9.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQABAAAAQAAAABQAAAAAAAAAQgAABEA=</HashCode>
+      <FileName>Model\DllFileLoader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.RecordDictionaryManager">
+    <Position X="10.5" Y="6" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAJAAgAAAAAAAAAAAAAAAAAAAAAIAgAAAAAAACA=</HashCode>
+      <FileName>Model\RecordDictionaryManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.SerializeHelper">
+    <Position X="26" Y="7.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAIAAAAAAAA=</HashCode>
+      <FileName>Model\SerializeHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.ThreadItem">
+    <Position X="25" Y="2.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAQAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Model\ThreadPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.ThreadpoolController" BaseTypeListCollapsed="true">
+    <Position X="22.25" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAQAADCJAAQAEEACIQAgAAAAEAgAAAAACAARBAAM=</HashCode>
+      <FileName>Model\ThreadPool.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DiReCT.Model.DiReCTThreadPool" BaseTypeListCollapsed="true">
+    <Position X="6.75" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAEAACAEAAAAABAAAAAAAQAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Model\ThreadPool.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DiReCT.Model.PriorityQueue&lt;T&gt;">
+    <Position X="22.5" Y="7.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>CABQAEABAAgUCAAAAAAAAAQAAAAABAAEABiAAAABAAQ=</HashCode>
+      <FileName>Model\ThreadPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.PriorityChain&lt;T&gt;">
+    <Position X="6.75" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAQAIAEAAAAAAQAAAAAAAAAAACCAAABAAA=</HashCode>
+      <FileName>Model\ThreadPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.PriorityItem&lt;T&gt;">
+    <Position X="6.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BIAQAAAABAAAAACEAACAAAABAAAAABICAAABAAAAAAA=</HashCode>
+      <FileName>Model\ThreadPool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.Utilities.WorkerThreadHandle">
+    <Position X="10.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAQAAAAAAAAEAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.Utilities.WorkerThreadPool&lt;T&gt;">
+    <Position X="16" Y="7.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAIAAAAAAwAEBAAAAAAAAAAAAAAggAAAAAAAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.Utilities.WorkItem" BaseTypeListCollapsed="true">
+    <Position X="29.75" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AgAAAUoJBCAIECYREAAAEAAIEgAAQFAQAABQAAAAIAE=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DiReCT.Model.Utilities.PriorityWorkQueue&lt;T&gt;">
+    <Position X="3.75" Y="5.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAAAAACAABAAAAIAAAABAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Model.Utilities.GeneralPriorityQueue&lt;T&gt;">
+    <Position X="13.5" Y="7.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAEAAABAAAAAAQAAAAABAAAAAAAgAAAIAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Properties.Resources">
+    <Position X="16.25" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABEAAAAQAAAAAAAAAAAAAAAIA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DiReCT.Properties.Settings">
+    <Position X="0.75" Y="12" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="DiReCT.ModuleThread">
+    <Position X="20.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABIBAAAAAIAAAAIAAAAAAAAAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>Core\MainProgram.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.TimeInterval">
+    <Position X="20.25" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAQAAgAAAAAAAAEgAAAAAQAAAAAAAA=</HashCode>
+      <FileName>Core\MainProgram.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.MAN.NotificationTypes">
+    <Position X="20.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAEAAAAEBAAA=</HashCode>
+      <FileName>MAN\NotificationClass.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.MAN.NotificationPriority">
+    <Position X="29.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAgAAAAAAAAgIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MAN\NotificationClass.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.Model.Utilities.ThreadState">
+    <Position X="20.25" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAEAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.Model.Utilities.WorkPriority">
+    <Position X="20.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAEAAAAAAAAAAAAAAAAIAAgAAACAIAQAAAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.Model.Utilities.FunctionGroupName">
+    <Position X="26" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAEAAAAAAAAAAAAAAQAAAAAAAAAAAEAAAAAAAACAAAE=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.Model.Utilities.AsyncCallName">
+    <Position X="20.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAABAAgCAAAAEAAAAAAAAAAAAAAAAAAAAAAABAAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="DiReCT.Model.Utilities.ErrorAndExceptionCode">
+    <Position X="26" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAIAAAAAEBBAIAgEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Model\Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Microsoft JhengHei UI" Size="9" />
+</ClassDiagram>

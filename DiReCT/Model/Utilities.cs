@@ -70,7 +70,8 @@ namespace DiReCT.Model.Utilities
         DataManagementFunction,
         DataSyncFunction,
         MonitorAlertNotificationFunction,
-        QualityControlFunction
+        QualityControlFunction,
+        TerminateFunction
     };
 
     public enum AsyncCallName
@@ -81,13 +82,15 @@ namespace DiReCT.Model.Utilities
         
         // DM module function
         SaveRecord,
-
+        GetRecord,
         // DS module function
 
         // MAN module function
-        
+
         // RTQC module function
-        Validate
+        Validate,
+        //Others
+        TerminateProgram
     };
 
     public enum ErrorAndExceptionCode
@@ -209,8 +212,10 @@ namespace DiReCT.Model.Utilities
 
         public void Complete()
         {
-            System.Diagnostics.Debug.Assert(!isCompleted, "iNuCWorkItem re-complete");
-            System.Diagnostics.Debug.Assert(!isDisposed, "iNuCWorkItem alread disposed");
+            System.Diagnostics.Debug.Assert(!isCompleted, 
+                "WorkItem re-complete");
+            System.Diagnostics.Debug.Assert(!isDisposed, 
+                "WorkItem alread disposed");
             isCompleted = true;
             asyncCompletedEvent.Set();
             if (callBackFunction != null)
@@ -453,6 +458,9 @@ namespace DiReCT.Model.Utilities
         /// cancelled or an item could not be removed.</returns>
         public int Dequeue(out T workItem)
         {
+            wakesWorkerEvent.WaitOne();
+            wakesWorkerEvent.Reset();
+
             int priority = -1;
 
             lock (bitmap)

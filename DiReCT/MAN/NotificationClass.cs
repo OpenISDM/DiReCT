@@ -165,21 +165,23 @@ namespace DiReCT.MAN
             }
 
             #region Set methods...
-            public void SetNotificationType(NotificationTypes notificationType)     //通知種類，設定通知的類別 EX彈出視窗，推播，通知欄等等
+            //通知種類，設定通知的類別 EX彈出視窗，推播，通知欄等等
+            public void SetNotificationType(NotificationTypes notificationType)     
             {
                 n.notificationType = notificationType;
             }
-            public void SetContentTitle(string notificationTitle)//通知顯示的標題
+            //通知顯示的標題
+            public void SetContentTitle(string notificationTitle)
             {
                 n.contentTitle = notificationTitle;
             }
-
-            public void SetContentText(string notificationContent)//通知內容，該通知主要的通知文字內容
+            //通知內容，該通知主要的通知文字內容
+            public void SetContentText(string notificationContent)
             {
                 n.contentText = notificationContent;
             }
-
-            public void SetTemplateContent(string xamlFilePath)//自定義通知視窗的樣式
+            //自定義通知視窗的樣式
+            public void SetTemplateContent(string xamlFilePath)
             {
                 try
                 {
@@ -195,26 +197,26 @@ namespace DiReCT.MAN
                     Debug.WriteLine("Notification template failed to load.");
                 }
             }
-
-            public void SetAudioPath(string audioPath, int times) //設定音訊位置，撥放音訊
+            //設定音訊位置，撥放音訊
+            public void SetAudioPath(string audioPath, int times) 
             {
                 n.audioPath = audioPath;
             }
-
-            public void SetImagePath(string imagePath)//設定圖片位置，已顯示圖片
+            //設定圖片位置，已顯示圖片
+            public void SetImagePath(string imagePath)
             {
                 n.imagePath = imagePath;
             }
-
-            public void SetLights(Color color, int onMs, int offMs) //設置LED開啟
+            //設置LED開啟
+            public void SetLights(Color color, int onMs, int offMs)
             {
                 //
                 // To do...
                 //
                 throw new NotImplementedException();
             }
-
-            public void SetVibrate(long[] pattern, int times) //設置震動是否開啟
+            //設置震動是否開啟
+            public void SetVibrate(long[] pattern, int times) 
             {
                 //
                 // To do...
@@ -241,7 +243,8 @@ namespace DiReCT.MAN
                 //
                 throw new NotImplementedException();
             }
-            public void SetWhen(DateTime when)//設置該則通知需要在何時發送的時間
+            //設置該則通知需要在何時發送的時間
+            public void SetWhen(DateTime when)
             {
                 n.when = when;
             }
@@ -417,6 +420,7 @@ namespace DiReCT.MAN
             else
                 nH.NotificationTimer
                     = new Timer(notify, nH, delayTime, n.RepeatInterval);
+  
         }
 
         public delegate void UINotificationDelegate(string contentText);
@@ -532,14 +536,19 @@ namespace DiReCT.MAN
         }
         private static void CreateToast(string contentText)
         {
-            Popup codePopup = new Popup();
-            TextBlock popupText = new TextBlock();
-            popupText.Text = contentText;
-            popupText.Background = Brushes.LightBlue;
-            popupText.Foreground = Brushes.Blue;
-            codePopup.Child = popupText;
-            codePopup.Placement = PlacementMode.Center;
-            codePopup.IsOpen = true;
+            
+            MessageBox.Show(contentText,"HI", MessageBoxButton.OK);
+            //Popup codepopup = new Popup();
+            //TextBlock popuptext = new TextBlock();
+
+            //popuptext.Text = contentText;
+            //popuptext.Background = Brushes.LightBlue;
+            //popuptext.Foreground = Brushes.Blue;
+
+            //codepopup.Child = popuptext;
+            //codepopup.Placement = PlacementMode.Right;
+            //codepopup.IsOpen = true;
+
         }
     }
 }

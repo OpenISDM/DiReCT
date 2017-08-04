@@ -13,8 +13,9 @@ namespace DiReCT
     /// The main entry point for the application
     /// </summary>
 
-    public partial class DiReCTMainProgram// : Application
+    public partial class DiReCTMainProgram: Application
     {
+       
         private static Thread[] moduleThreadHandles = new Thread[(int)ThreadRequiredModule.NumberOfModules];
         //private static Thread UIThreadHandle;
         private static ModuleControlData[] modulesControlData = new ModuleControlData[(int)ThreadRequiredModule.NumberOfModules];
@@ -22,6 +23,7 @@ namespace DiReCT
         private static bool notInitializationTimeout = true; // Whether initialization processes were completed in time
         private void DiReCTStarup (object sender, StartupEventArgs startupEventArgs)
         {
+            Debug.WriteLine("HI");
             // Initialize thread objects of modules
             moduleThreadHandles[(int)ThreadRequiredModule.AAA] = new Thread(AAAModule.AAAInit);
             moduleThreadHandles[(int)ThreadRequiredModule.DM] = new Thread(DMModule.DMInit);

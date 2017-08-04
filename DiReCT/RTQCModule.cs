@@ -38,8 +38,9 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
 using DiReCT.Model.Utilities;
+using DiReCT.Model;
+using DiReCT.MAN;
 
 namespace DiReCT
 {
@@ -47,30 +48,27 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
-        static WorkItem workItem;
-
+        static DiReCTThreadPool moduleThreadPool;
+        
         public static void RTQCInit(object objectParameters)
         {
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
-            //moduleWorkQueue = moduleControlDataBlock.ModuleWorkQueue;
 
             try
             {
-                //Initialize ready/abort event           
+                // Initialize ready/abort event and threadpool        
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
 
-                //Wait for Core StartWorkEvent Signal
+                // Wait for Core StartWorkEvent Signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
@@ -79,19 +77,18 @@ namespace DiReCT
                 //
                 // Main Thread of RTQC module (begin)
                 //
-
                 Debug.WriteLine("RTQC module is working...");
+
+                // Whenever ValidateEvent is raised, RTQCValidateWrapper will
+                // be called.
+                ValidateEventTriggerd += new ValidateEventHanlder(
+                                                    RTQCValidateWrapper);
 
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
                 {
 
-                    //
-                    // Wait for work event
-                    // Wrap work into workitem
-                    // Enqueue the workitem to its threadpool
-                    //
                 }
 
                 Debug.WriteLine("RTQC module is aborting.");
@@ -115,6 +112,92 @@ namespace DiReCT
             ModuleStartWorkEvent.Close(); 
             Debug.WriteLine("RTQC module stopped successfully.");
             return;
+        }
+
+        /// <summary>
+        /// determines which methods to process. The function is aimed to be 
+        /// used by RTQC Worker threads.
+        /// </summary>
+        /// <param name="workItem"></param>
+        internal static void RTQCWorkerFunctionProcessor(WorkItem workItem)
+        {
+            switch (workItem.AsyncCallName)
+            {
+                case AsyncCallName.Validate:
+                    Validate(workItem);
+                    break;
+            }
+        }
+
+
+        /// <summary>
+        /// Demo function to determine whether Flood Waterlevel is position or 
+        /// negative
+        /// </summary>
+        /// <param name="workItem"></param>
+        private static void Validate(WorkItem workItem)
+        {
+            // Get the record from input parameters
+            //dynamic flood = workItem.InputParameters;
+
+            //// Check whether waterlevel is negative or positive
+            //if(flood.waterLevel < 0)
+            //{
+            //    // Notfiy user that the input might be wrong
+            //    Notification.Builder mBuilder = new Notification.Builder();
+            //    mBuilder.SetWhen(DateTime.Now);
+            //    mBuilder.SetContentText("This record might be wrong." + 
+            //                            " Please check again!");
+            //    mBuilder.SetNotificationType(NotificationTypes.Toast);
+            //    mBuilder.Build(10, null);
+
+            //    /* Push a notification */
+            //    NotificationManager.Notify(10);
+
+            //    workItem.OutputParameters = false;
+            //}
+            //else
+            //{
+            //    workItem.OutputParameters = true;
+            //}
+            workItem.OutputParameters = true;
+            // Signal that workItem is finished
+            workItem.Complete();
+        }
+
+        // Delegate that specify the parameter of event handler
+        public delegate void ValidateEventHanlder(object obj, 
+                                               AsyncCallback callBackFunction);
+        // Event Handler for Validate
+        public static event ValidateEventHanlder ValidateEventTriggerd;
+
+        /// <summary>
+        /// Function to initiate the Validate event
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void OnValidate(object obj, 
+                                      AsyncCallback callBackFunction)
+        {
+            ValidateEventTriggerd?.BeginInvoke(obj, callBackFunction, null, null);
+        }
+
+        /// <summary>
+        /// This function is subscribed to ValidateEventTriggered event and 
+        /// will be called when the event is raised
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="callBackFunction"></param>
+        public static void RTQCValidateWrapper(object obj,
+                                               AsyncCallback callBackFunction)
+        {
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.QualityControlFunction,
+                AsyncCallName.Validate,
+                obj,
+                callBackFunction,
+                null);
+     
+            moduleThreadPool.AddThreadWork(workItem);
         }
     }
 }

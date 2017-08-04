@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<ArrayOfAnyType xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <anyType xsi:type="SOPFlood">
+    <RecordID>0</RecordID>
+    <EstimatedOccurrenceTime>0</EstimatedOccurrenceTime>
+    <ObservationRecordCapturedTime>0</ObservationRecordCapturedTime>
+    <ObservationRecordSavedTime>0</ObservationRecordSavedTime>
+    <RecorderRecordLocation>
+      <Latitude>NaN</Latitude>
+      <Longitude>NaN</Longitude>
+      <Altitude>NaN</Altitude>
+      <HorizontalAccuracy>NaN</HorizontalAccuracy>
+      <VerticalAccuracy>NaN</VerticalAccuracy>
+      <Speed>NaN</Speed>
+      <Course>NaN</Course>
+    </RecorderRecordLocation>
+    <EstimatedOccurrenceLocation>
+      <Latitude>NaN</Latitude>
+      <Longitude>NaN</Longitude>
+      <Altitude>NaN</Altitude>
+      <HorizontalAccuracy>NaN</HorizontalAccuracy>
+      <VerticalAccuracy>NaN</VerticalAccuracy>
+      <Speed>NaN</Speed>
+      <Course>NaN</Course>
+    </EstimatedOccurrenceLocation>
+    <MultiMediaFilePaths />
+    <WaterTurbidity>0</WaterTurbidity>
+    <IsPowerFailure>0</IsPowerFailure>
+    <FloodingReason>0</FloodingReason>
+    <WaterLevel>123</WaterLevel>
+  </anyType>
+</ArrayOfAnyType>

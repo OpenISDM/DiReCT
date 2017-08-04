@@ -36,7 +36,7 @@
  * 
  *      Hunter Hsieh, hunter205@iis.sinica.edu.tw  
  *      Jeff Chen, jeff@iis.sinica.edu.tw
- * 
+ *      Joe Huang, huangjoe9@gmail.com
  */
 
 using System;
@@ -46,59 +46,114 @@ using System.Text;
 using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using System.Threading;
+using System.Diagnostics;
+using System.Windows.Threading;
+using System.Windows;
 
 namespace DiReCT
 {
     public partial class DiReCTCore
     {
-        PriorityWorkQueue<WorkItem> coreWorkQueue;
-        private AutoResetEvent workArriveEvent;
-        public AutoResetEvent WorkArriveEvent
-        {
-            get
-            {
-                return workArriveEvent;
-            }
-            set
-            {
-                workArriveEvent = value;
-            }
-        }
-
+        public static PriorityWorkQueue<WorkItem> CoreWorkQueue;
+        public static bool IsRunning;
+        /// <summary>
+        /// Initialize necessary variables and set up event handlers between
+        /// Core and individual modules
+        /// </summary>
         public DiReCTCore()
         {
             // Initialize DiReCTCore
-            coreWorkQueue = new PriorityWorkQueue<WorkItem>(
-                                          (int)WorkPriority.NumberOfPriorities);
-            WorkArriveEvent = new AutoResetEvent(false);
+            CoreWorkQueue = new PriorityWorkQueue<WorkItem>(
+                                         (int)WorkPriority.NumberOfPriorities);
+            IsRunning = true;
+
+            //Initialize CoreDM variables
+            InitCoreDM();
         }
 
+        /// <summary>
+        /// This function is responsible for getting workItem from UI and send 
+        /// the workItem to respective module. The main thread will mostly be 
+        /// run inside this method waiting for workItem to arrive and distributing
+        /// them to modules.
+        /// </summary>
         public void Run()
-        {           
-            //
-            // Wait for work arrive events
-            // Dequeue and unwrap Workitems
-            // A switch case for each events, e.g. WorkArriveEvent
-            // {
-            //      A switch case for each FunctionGroupName
-            //      {
-            //          Execute each function processor
-            //      }
-            // }
-            //
-           
+        {
+            while (IsRunning)
+            {
+                WorkItem workItem;
+                // Wait for work to arrive
+                int priority = CoreWorkQueue.Dequeue(out workItem); 
+
+                if (priority != -1)
+                {
+                    switch (workItem.GroupName)
+                    {                      
+                        case FunctionGroupName.DataManagementFunction:
+                            // Pass work Item to DM processor
+                            CoreDMFunctionProcessor(workItem);
+                            break;
+
+                        case FunctionGroupName.AuthenticateAuthoriseFunction:
+                            // Not implemented
+                            break;
+
+                        case FunctionGroupName.DataSyncFunction:
+                            // Not implemented
+                            break;
+
+                        case FunctionGroupName.MonitorAlertNotificationFunction:
+                            // Not implemented
+                            break;
+
+                        case FunctionGroupName.QualityControlFunction:
+                            // Not implemented
+                            break;
+
+                        case FunctionGroupName.TerminateFunction:
+                            IsRunning = false;
+                            break;
+                        default:
+                            // Exception
+                            break;
+                    }
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+
         }
 
+        
         public static DiReCTCore _instance { get; set; }
-
+        /// <summary>
+        /// This function ensures there is only one instance of Core
+        /// </summary>
+        /// <returns></returns>
         public static DiReCTCore getInstance()
         {
-            if(_instance == null)
+            if (_instance == null)
             {
                 _instance = new DiReCTCore();
             }
-
             return _instance;
+        }
+
+
+        /// <summary>
+        /// Function to escape from the Run function and close the program
+        /// </summary>
+        public void TerminateProgram()
+        {
+            // Initialize workItem to terminate the program
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.TerminateFunction,
+                AsyncCallName.TerminateProgram, null, null, null);
+            // Enqueue the workItem
+            CoreWorkQueue.Enqueue(workItem, (int)WorkPriority.Highest,
+                new CancellationToken());
         }
     }
 }
