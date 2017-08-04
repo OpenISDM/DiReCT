@@ -1,0 +1,208 @@
+﻿<src:MenuViewBase x:Class="DiReCT_wpf.View.RecordView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DiReCT_wpf.View"
+             xmlns:src="clr-namespace:DiReCT_wpf.ScreenInterface"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:vm="clr-namespace:DiReCT_wpf.ViewModel"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" 
+             xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
+             d:DesignHeight="313" d:DesignWidth="382">
+    <src:MenuViewBase.Resources>
+        <Style x:Key="SliderRepeatButton" TargetType="RepeatButton">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border  BorderThickness="1" BorderBrush="Gray" Background="Gray" Width="3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--Bottom SliderRepeatButton style-->
+        <Style x:Key="SliderRepeatButton1" TargetType="RepeatButton">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border SnapsToDevicePixels="True" Background="#FF0074FF"  BorderThickness="1" BorderBrush="#FF4B96F0" Width="3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--SliderThumb style-->
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Ellipse Height="10" Width="10" Fill="#FF0074FF">
+                        </Ellipse>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver"  Value="True">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Thumb">
+                                <Ellipse Height="10" Width="10" Fill="#FF0074FF" StrokeThickness="1" Stroke="#FF58CAFF"></Ellipse>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="IsMouseCaptured"  Value="True">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Thumb">
+                                <Ellipse Height="10" Width="10" Fill="#FF58CAFF"></Ellipse>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--Slider control template-->
+        <ControlTemplate x:Key="Slider"  TargetType="Slider">
+            <Grid HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="{TemplateBinding MinWidth}" />
+                </Grid.ColumnDefinitions>
+                <Track x:Name="PART_Track"   >
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource SliderRepeatButton1}"  Command="Slider.DecreaseLarge" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource SliderThumb}"  />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource SliderRepeatButton}" Command="Slider.IncreaseLarge" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+        </ControlTemplate>
+
+        <!--Slider style-->
+        <Style x:Key="Vertical_Slider" TargetType="Slider">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="MinHeight" Value="104" />
+                    <Setter Property="MinWidth" Value="21" />
+                    <Setter Property="Template" Value="{StaticResource Slider}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </src:MenuViewBase.Resources>
+    <Grid Background="SteelBlue">
+        <Border CornerRadius="20" Background="White">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="3*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.Resources>
+                        <vm:RecordViewModel x:Key="MapVM"/>
+                    </Grid.Resources>
+                    <m:Map x:Name="mapView" CredentialsProvider="KEEEDTBMuatP82T0lBaz~LyodepcBdLJbXPBIPbavGQ~An_AVM9YZUJmROHUkFUGL2ujCmxsUDNCpps94i5ACIJYMuB9I-Ex3jihxTYdpj1x"
+                           Height="300" Center="{Binding CurrentLocation, Mode=TwoWay}" ZoomLevel="17">
+                        <m:Pushpin x:Name="pushpin" Location="{Binding Source={StaticResource MapVM}, Path=CurrentLocation, Mode=TwoWay}"></m:Pushpin>
+                    </m:Map>
+                    <Border Margin="5" CornerRadius="10" Background="White"   BorderBrush="SteelBlue" BorderThickness="3"
+                            Width="280" Height="55" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock TextWrapping="Wrap" Text="Current TimeStamp: " Margin="5" FontWeight="Bold"></TextBlock>
+                                <TextBlock Text="{Binding currentTimeStamp}" Margin="5"></TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock TextWrapping="Wrap" Text="Current Coordinate: " Margin="5" FontWeight="Bold"></TextBlock>
+                                <TextBlock Text="{Binding currentLatitude}" Margin="5"></TextBlock>
+                                <TextBlock Text="," Margin="5"></TextBlock>
+                                <TextBlock Text="{Binding currentLongitude}" Margin="5"></TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+                <TabControl Grid.Row="1">
+                    <TabItem Header="Background Info">
+                        <StackPanel>
+                            <StackPanel.Resources>
+                                <Style TargetType="TextBlock" >
+                                    <Setter Property="Margin" Value="7" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                    <Setter Property="FontSize" Value="20" />
+                                </Style>
+                            </StackPanel.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="DarkBlue" FontWeight="Bold">Address:</TextBlock>
+                                <TextBlock>Sec. 7, Zhongxiao E. Rd., Nangang Dist., Taipei City 115, Taiwan (R.O.C.)</TextBlock>
+                            </StackPanel>
+                            <StackPanel  Orientation="Horizontal">
+                                <TextBlock Foreground="DarkBlue" FontWeight="Bold">Latitude:</TextBlock>
+                                <TextBlock>25.051319</TextBlock>
+                            </StackPanel>
+                            <StackPanel  Orientation="Horizontal">
+                                <TextBlock Foreground="DarkBlue" FontWeight="Bold">Longitude:</TextBlock>
+                                <TextBlock>121.606114</TextBlock>
+                            </StackPanel>
+                            <StackPanel  Orientation="Horizontal">
+                                <TextBlock Foreground="DarkBlue" FontWeight="Bold">Number of floods that happened at this location in 5 years:</TextBlock>
+                                <TextBlock>3 times</TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Record">
+                        <ScrollViewer
+                VerticalScrollBarVisibility="Visible"
+                CanContentScroll="False"
+                Grid.Row="1">
+                            <StackPanel>
+                                <StackPanel x:Name="waterlevel" Orientation="Horizontal" HorizontalAlignment="Left" Width="500">
+                                    <TextBlock x:Name="WaterLevelTextBlock" HorizontalAlignment="Left" Margin="10,10,10,10" TextWrapping="Wrap" Text="WaterLevel: " VerticalAlignment="Top" Grid.Column="0" FontWeight="Bold"/>
+                                    <Grid>
+                                        <Image Source="C:\Users\Ashley\Desktop\DiReCT\DiReCT_wpf\Resource\body.jpg" Width="150" Height="230"></Image>
+                                        <Rectangle
+                                        VerticalAlignment="Bottom"    
+                                        Width="100"
+                                        Height="{Binding waterLevel, Mode=TwoWay}"
+                                        Fill="Blue"
+                                        Opacity="0.3"/>
+                                    </Grid>
+                                    <Slider x:Name="WaterLevelSlider" Style="{StaticResource Vertical_Slider}" VerticalAlignment="Center" Minimum="0" Maximum="230" Value="{Binding waterLevel, Mode=TwoWay}" Height="230" Orientation="Vertical"></Slider>
+                                </StackPanel>
+                                <TextBlock Text="Causes of the flood" FontWeight="Bold"></TextBlock>
+                                <ListBox x:Name="listbox" ItemsSource="{Binding Path=AvailablePresentationObjects, Mode=TwoWay}" SelectionMode="Multiple" Height="180">
+                                    <ListBox.ItemTemplate>
+                                        <HierarchicalDataTemplate>
+                                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked, Mode=TwoWay}"></CheckBox>
+                                        </HierarchicalDataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox Margin="2" IsChecked="{Binding othersIsChecked}">Others:   </CheckBox>
+                                    <TextBox Width="50" Text="{Binding others}"></TextBox>
+                                </StackPanel>
+                                <Button x:Name="Save_Button" Command="{Binding SaveCommand}" Content="Save" HorizontalAlignment="Left"  Margin="10,10,10,10" VerticalAlignment="Top" Width="75"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
+    </Grid>
+</src:MenuViewBase>

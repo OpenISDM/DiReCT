@@ -1,0 +1,49 @@
+﻿<src:ScreenBase x:Class="DiReCT_wpf.View.HomeScreen"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DiReCT_wpf.View"
+             mc:Ignorable="d" 
+             xmlns:src="clr-namespace:DiReCT_wpf.ScreenInterface"
+             d:DesignHeight="350" d:DesignWidth="525">
+    <Grid Background="SteelBlue">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="85*"/>
+            <ColumnDefinition Width="96*"/>
+            <ColumnDefinition Width="298*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="1" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition Width="60px"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Button Command="{Binding LogoutCommand}" Width="50px" Height="20px" Margin="5,5,5,0" HorizontalAlignment="Right" Grid.Column="1">Logout</Button>
+            </Grid>
+            <Border MouseEnter="CurrentMenuView_MouseEnter"  MouseLeave="CurrentMenuView_MouseLeave" Grid.Row="1"  Margin="10"  CornerRadius="28,28,28,28"
+                     BorderThickness="5">
+                <ContentControl  x:Uid="ContentControl_2" Content="{Binding CurrentMenuView}" />
+            </Border>
+        </Grid>
+
+        <ListBox x:Name="ListBoxMenu"
+                 SelectionChanged="ListBoxMenu_SelectionChanged"
+                 
+                 Grid.Column="0" Margin="10"
+                 ItemsSource="{Binding MyMenu.MenuItemList}"
+                 SelectedIndex="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Lable}" Padding="10"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</src:ScreenBase>

@@ -101,9 +101,11 @@ namespace DiReCT
         // It is set by MainProgram when the program needs to be terminated
         public ManualResetEvent ModuleAbortEvent;
 
-        // Priority Queue for passing work to each module
-        // Each module should provide API to enqueue
-        public PriorityWorkQueue<WorkItem> ModuleWorkQueue;
+
+        public DiReCTThreadPool moduleThreadPool;
+
+
+        const int THREADPOOL_SIZE = 10;
 
         public ThreadParameters()
         {
@@ -111,8 +113,7 @@ namespace DiReCT
             ModuleReadyEvent = new AutoResetEvent(false);
             ModuleStartWorkEvent = DiReCTMainProgram.ModuleStartWorkEvent;
             ModuleAbortEvent = DiReCTMainProgram.ModuleAbortEvent;
-            ModuleWorkQueue = new PriorityWorkQueue<WorkItem>(
-               (int)WorkPriority.NumberOfPriorities);
+            moduleThreadPool = new DiReCTThreadPool(THREADPOOL_SIZE);   
         }
     }
 

@@ -40,17 +40,15 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using DiReCT.Model.Utilities;
 using System.Diagnostics;
-using System.Windows;
-using System.Windows.Threading;
-using System.Threading.Tasks;
 using DiReCT.Model;
 using System.Collections;
+using DiReCT_wpf.ScreenInterface;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace DiReCT
 {
@@ -64,8 +62,8 @@ namespace DiReCT
         private static BitArray bufferSpaceAvailable;
  
         // Dll file variables
-        public static DllFileLoader DllFileLoader; 
-        
+        public static DllFileLoader DllFileLoader;
+
         public static class Constant
         {
             public const int MAX_NUMBER_OF_THREADS = 10;
@@ -89,9 +87,9 @@ namespace DiReCT
             // Dll variable initialization
             DllFileLoader = new DllFileLoader();
 
-            // Subscribe to Main Window Saving Record Event
-            MainWindow.MainWindowSavingRecord +=
-                new MainWindow.CallCoreEventHanlder(PassSaveRecordToCore);
+            // Subscribe to UI Saving Record Event           
+            MenuViewBase.UIRecordSavingTriggerd +=
+                new MenuViewBase.SaveRecordEventHanlder(PassSaveRecordToCore);          
         }
 
         /// <summary>
@@ -245,9 +243,10 @@ namespace DiReCT
         public static bool CoreSaveRecord(dynamic recordData,
                                AsyncCallback callBackFunction,
                                Object asyncState)
+
         {
             bool HasEnqueued = false;
-
+           
             try
             {
                 // Initialize workItem
@@ -285,13 +284,61 @@ namespace DiReCT
         /// will pass the record to Core when the event raised. It is aimed 
         /// to be executed by Main Window worker Thread (BeginInvoke)
         /// </summary>
-        /// <param name="obj">Object to pass to DM Save Record</param>
-        public static void PassSaveRecordToCore(object obj)
-        {
+        /// <param name="record">record to be passed to DM Save Record</param>
+        public static void PassSaveRecordToCore(dynamic record)
+        {         
             // Pass record to core
-            CoreSaveRecord(obj, null, null);
+            CoreSaveRecord(record, null, null);
         }
 
+        public static void PrintDictionary(object obj)
+        {              
+            dynamic[] or = RecordDictionaryManager.getAllCleanRecords();
+            Debug.WriteLine("____________________________________________________________________");
+            Debug.WriteLine("Current Count is " + or.Count());
+            for (int i = 0; i < or.Length; i++)
+            {
+                if (or[i].GetType().ToString().Contains("Flood"))
+                {
+
+                    int id = or[i].RecordID;
+                    int wl = (or[i]).waterLevel;
+                    string cl = or[i].currentLongitude;
+                    string clt = or[i].currentLatitude;
+                    string ct = or[i].currentTimeStamp;
+
+                    Debug.WriteLine("Flood Record:\n" +
+                        "ID :" + id +
+                        "\nWaterLevel: " + wl +
+                        "\nCurrent Latitude: " + cl +
+                        "\nCurrent Longitude: " + clt +
+                        "\nCurrent TimeStamp: " + ct +
+                        "\nPossible Cause:");
+
+                    for (int j = 0; j < or[i].PossibleCauseOfDisaster.Count; j++)
+                    {
+                        string tempCause = or[i].PossibleCauseOfDisaster[j];
+                        Debug.WriteLine(tempCause);
+                    }
+                    Debug.WriteLine("");
+                }
+                else
+                {
+                    int id = or[i].RecordID;
+                    
+                    int dead = or[i].deathTroll;
+                    int injury = or[i].injuryTroll;
+
+                    Debug.WriteLine("LandSlides Record:\n" +
+                        "ID :" + id +
+                        "\ndeathTroll: " + dead +
+                        "\ninjuryTroll: " + injury                      
+                        );                 
+                }
+            }
+            Debug.WriteLine("____________________________________________________________________");
+        }
+       
         #endregion
 
     }

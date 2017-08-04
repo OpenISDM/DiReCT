@@ -43,6 +43,7 @@ using System.Threading.Tasks;
 
 using DiReCT.Model.Utilities;
 using DiReCT.MAN;
+using DiReCT.Model;
 
 namespace DiReCT
 {
@@ -52,7 +53,7 @@ namespace DiReCT
         static ThreadParameters threadParameters;
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-        static WorkerThreadPool<WorkItem> moduleThreadPool;
+        static DiReCTThreadPool moduleThreadPool;
         static Notification.Builder builder;
 
         public static void MANInit(object objectParameters)
@@ -66,6 +67,7 @@ namespace DiReCT
                 // Initialize ready/abort event 
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 builder = new Notification.Builder();
                 ModuleReadyEvent.Set();
 

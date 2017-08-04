@@ -48,14 +48,10 @@ namespace DiReCT
     {
         static ModuleControlDataBlock moduleControlDataBlock;
         static ThreadParameters threadParameters;
-
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-
         static DiReCTThreadPool moduleThreadPool;
-        
-        const int MAX_NUMBER_OF_THREADS = 10;
-
+               
         public static void DSInit(object objectParameters)
         {
             moduleControlDataBlock
@@ -68,7 +64,7 @@ namespace DiReCT
                 //Initialize ready/abort event         
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
-                moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DSInit complete Phase 1 Initialization");

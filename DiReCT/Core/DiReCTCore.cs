@@ -73,7 +73,9 @@ namespace DiReCT
 
         /// <summary>
         /// This function is responsible for getting workItem from UI and send 
-        /// the workItem to respective module.
+        /// the workItem to respective module. The main thread will mostly be 
+        /// run inside this method waiting for workItem to arrive and distributing
+        /// them to modules.
         /// </summary>
         public void Run()
         {

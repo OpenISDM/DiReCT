@@ -51,19 +51,19 @@ namespace DiReCT
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
         static DiReCTThreadPool moduleThreadPool;
-        const int MAX_NUMBER_OF_THREADS = 10;
-
+        
         public static void RTQCInit(object objectParameters)
         {
             moduleControlDataBlock
                 = (ModuleControlDataBlock)objectParameters;
             threadParameters = moduleControlDataBlock.ThreadParameters;
+
             try
             {
                 // Initialize ready/abort event and threadpool        
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
-                moduleThreadPool = new DiReCTThreadPool(MAX_NUMBER_OF_THREADS);
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
@@ -138,29 +138,29 @@ namespace DiReCT
         private static void Validate(WorkItem workItem)
         {
             // Get the record from input parameters
-            dynamic flood = workItem.InputParameters;
+            //dynamic flood = workItem.InputParameters;
 
-            // Check whether waterlevel is negative or positive
-            if(flood.WaterLevel < 0)
-            {
-                // Notfiy user that the input might be wrong
-                Notification.Builder mBuilder = new Notification.Builder();
-                mBuilder.SetWhen(DateTime.Now);
-                mBuilder.SetContentText("This record might be wrong." + 
-                                        " Please check again!");
-                mBuilder.SetNotificationType(NotificationTypes.Toast);
-                mBuilder.Build(10, null);
-                
-                /* Push a notification */
-                NotificationManager.Notify(10);
-                
-                workItem.OutputParameters = false;
-            }
-            else
-            {
-                workItem.OutputParameters = true;
-            }
+            //// Check whether waterlevel is negative or positive
+            //if(flood.waterLevel < 0)
+            //{
+            //    // Notfiy user that the input might be wrong
+            //    Notification.Builder mBuilder = new Notification.Builder();
+            //    mBuilder.SetWhen(DateTime.Now);
+            //    mBuilder.SetContentText("This record might be wrong." + 
+            //                            " Please check again!");
+            //    mBuilder.SetNotificationType(NotificationTypes.Toast);
+            //    mBuilder.Build(10, null);
 
+            //    /* Push a notification */
+            //    NotificationManager.Notify(10);
+
+            //    workItem.OutputParameters = false;
+            //}
+            //else
+            //{
+            //    workItem.OutputParameters = true;
+            //}
+            workItem.OutputParameters = true;
             // Signal that workItem is finished
             workItem.Complete();
         }

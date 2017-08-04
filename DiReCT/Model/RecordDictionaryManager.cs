@@ -109,11 +109,11 @@ namespace DiReCT.Model
         {
             int recordID;
             bool HasSucceeded = false;
-
+           
             try
             {
                 recordID = record.RecordID;
-
+                Debug.WriteLine(recordID);
                 // Save record to defective or clean dictioanry
                 if (isDefective)
                 {

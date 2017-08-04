@@ -52,9 +52,7 @@ namespace DiReCT
         static AutoResetEvent ModuleReadyEvent;
         static DiReCTThreadPool moduleThreadPool;
         static RecordDictionaryManager recordDictionaryManager;
-        const int THREADPOOL_SIZE = 10;
-        static dynamic SOP;
-
+           
         public static void DMInit(object objectParameters)
         {
             moduleControlDataBlock
@@ -66,7 +64,7 @@ namespace DiReCT
                 // Initialize Ready/Abort Event and threadpool    
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;           
-                moduleThreadPool = new DiReCTThreadPool(THREADPOOL_SIZE);
+                moduleThreadPool = threadParameters.moduleThreadPool;
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DMInit complete Phase 1 Initialization");
@@ -88,9 +86,7 @@ namespace DiReCT
                 RecordSavingTriggerd += new SaveRecordEventHanlder(
                                                        DMSavingRecordWrapper);
 
-                // Loading SOP
-                SOP = DllFileLoader.GetSOP();
-
+                
                 Debug.WriteLine("DM module is working...");
                 
                 // Check ModuleAbortEvent periodically
@@ -184,13 +180,18 @@ namespace DiReCT
             if ((bool)workItem.OutputParameters)
             {
                 recordDictionaryManager.SaveRecord(false,
-                                workItem.InputParameters);
+                                workItem.InputParameters);               
             }
             else
             {
                 recordDictionaryManager.SaveRecord(true,
                                 workItem.InputParameters);
             }
+
+            
+            DiReCTCore.PrintDictionary(null);
+            
+            
         }
 
         // Delegate that specify the parameter of event handler

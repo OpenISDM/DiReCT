@@ -55,10 +55,10 @@ namespace DiReCT.Model
     {
         static Assembly Assemblies;
         public ArrayList[] SOPClasses;
-
+        // copy of SOP object and its name
         public static dynamic SOP;
         public static string SOPTargetClassName;
-
+        // copy of record object and its name
         public static dynamic SOPRecord;
         public static string RecordTargetClassName;
 
@@ -66,7 +66,7 @@ namespace DiReCT.Model
         {
             Debug.WriteLine("DllFileLoad Initialize");
             // Print all dll class and method
-            SOPClasses = LoadLibrary();
+            // SOPClasses = LoadLibrary();
             // Initialize SOP Record to designate class
             RecordTargetClassName = "SOPFlood"; // Decide which class to load
             SOPRecord = FindClass(RecordTargetClassName);
@@ -85,6 +85,22 @@ namespace DiReCT.Model
         {
             dynamic type = FindClass(RecordTargetClassName);
             return type;
+        }
+
+        public static object FindClass(string targetClassName)
+        {
+            try
+            {
+                Assemblies = Assembly.LoadFrom(targetClassName + ".dll");
+                return Assemblies.CreateInstance(targetClassName +
+                                                "." + targetClassName);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+            }
+
         }
 
         /// <summary>
@@ -188,20 +204,6 @@ namespace DiReCT.Model
             return _Temp;
         }
 
-        public static object FindClass(string targetClassName)
-        {            
-            try
-            {
-                Assemblies = Assembly.LoadFrom(targetClassName + ".dll");
-                return Assemblies.CreateInstance(targetClassName +
-                                                "." + targetClassName);
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-                return null;
-            }
-            
-        }
+        
     }
 }
