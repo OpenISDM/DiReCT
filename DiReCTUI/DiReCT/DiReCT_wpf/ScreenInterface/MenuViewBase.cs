@@ -17,7 +17,6 @@ namespace DiReCT_wpf.ScreenInterface
         {
         }
 
-
         public void RaiseUserInputReadyEvent(EventArgs e)
         {
             EventHandler handler = UserEnteredInput;
@@ -30,7 +29,7 @@ namespace DiReCT_wpf.ScreenInterface
         {
             return "";
         }
-
+        // Delegate that specify the parameter
         public delegate void SaveRecordEventHanlder(dynamic record);
         // Event Handler for Saving Record
         public static event SaveRecordEventHanlder UIRecordSavingTriggerd;
@@ -39,7 +38,7 @@ namespace DiReCT_wpf.ScreenInterface
         /// Function to initiate the Saving Record event
         /// </summary>
         /// <param name="index"></param>
-        public void OnSavingFloodRecord(dynamic record)
+        public void OnSavingRecord(dynamic record)
         {
             UIRecordSavingTriggerd?.BeginInvoke(record, null, null);
         }

@@ -332,7 +332,7 @@ namespace DiReCT
                     Debug.WriteLine("LandSlides Record:\n" +
                         "ID :" + id +
                         "\ndeathTroll: " + dead +
-                        "\ninjuryTroll: " + injury                      
+                        "\ninjuryTroll: " + injury                    
                         );                 
                 }
             }

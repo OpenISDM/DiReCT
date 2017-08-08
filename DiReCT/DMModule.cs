@@ -65,28 +65,21 @@ namespace DiReCT
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;           
                 moduleThreadPool = threadParameters.moduleThreadPool;
+                // Initialize dictionary manager
+                recordDictionaryManager = new RecordDictionaryManager();        
+                //Event Handlers Initialization                           
+                RecordSavingTriggerd += new SaveRecordEventHanlder(
+                                        DMSavingRecordWrapper);
+
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DMInit complete Phase 1 Initialization");
-
+                                       
                 // Wait for core StartWork Signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
-                Debug.WriteLine("DMInit complete Phase 2 Initialization");
-
-                //
-                // Main Thread of DM module (begin)
-                //               
-                // Initialize dictionary manager
-                recordDictionaryManager = new RecordDictionaryManager();
-
-                // Whenever the SaveRecord Event is called, DMSavingRecordWrapper 
-                // will be called
-                RecordSavingTriggerd += new SaveRecordEventHanlder(
-                                                       DMSavingRecordWrapper);
-
-                
+                Debug.WriteLine("DMInit complete Phase 2 Initialization");           
                 Debug.WriteLine("DM module is working...");
                 
                 // Check ModuleAbortEvent periodically
@@ -117,6 +110,8 @@ namespace DiReCT
             Debug.WriteLine("DM module stopped successfully.");
             return;
         }
+
+        #region DM functions
 
         /// <summary>
         /// determines which methods to call. This function is aimed to be called
@@ -194,6 +189,11 @@ namespace DiReCT
             
         }
 
+
+        #endregion
+
+        #region DM Event Handlers and subscribed event
+
         // Delegate that specify the parameter of event handler
         public delegate void SaveRecordEventHanlder(int index);
         // Event Handler for Saving Record
@@ -209,7 +209,7 @@ namespace DiReCT
         }
 
         /// <summary>
-        /// This method will be called when SavingRecord Event is raised
+        /// This method will be called when SavingRecord Event is raised.
         /// </summary>
         /// <param name="index">the index of the record in the buffer</param>
         public static void DMSavingRecordWrapper(int index)
@@ -224,6 +224,8 @@ namespace DiReCT
 
             moduleThreadPool.AddThreadWork(workItem);
         }
+
+        #endregion 
 
     }
 }

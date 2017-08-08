@@ -68,21 +68,18 @@ namespace DiReCT
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 moduleThreadPool = threadParameters.moduleThreadPool;
+                // Initialize Notification builder
                 builder = new Notification.Builder();
+
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("MANInit complete Phase 1 Initialization");
-
+              
                 // Wait for starwork signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
-                Debug.WriteLine("MANInit complete Phase 2 Initialization");
-
-                //
-                // Main Thread of MAN module (begin)
-                //
-                
+                Debug.WriteLine("MANInit complete Phase 2 Initialization");              
                 Debug.WriteLine("MAN module is working...");
 
                 // Check ModuleAbortEvent periodically

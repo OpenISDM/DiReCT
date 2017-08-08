@@ -59,16 +59,15 @@ namespace DiReCT.Model
         public static dynamic SOP;
         public static string SOPTargetClassName;
         // copy of record object and its name
-        public static dynamic SOPRecord;
-        public static string RecordTargetClassName;
+        public static dynamic SOPRecord;      
+        const string RecordTargetClassName = "SOPFlood"; 
 
         public DllFileLoader()
         {
             Debug.WriteLine("DllFileLoad Initialize");
             // Print all dll class and method
             // SOPClasses = LoadLibrary();
-            // Initialize SOP Record to designate class
-            RecordTargetClassName = "SOPFlood"; // Decide which class to load
+            // Initialize SOP Record to designate class           
             SOPRecord = FindClass(RecordTargetClassName);
 
             // Initialzie SOP to designated class
@@ -76,17 +75,30 @@ namespace DiReCT.Model
             SOP = FindClass(SOPTargetClassName);
         }
 
+        /// <summary>
+        /// API for other class to obtain the current SOP class
+        /// </summary>
+        /// <returns></returns>
         public static dynamic GetSOP()
         {
             return SOP;
         }
 
+        /// <summary>
+        /// API for other class to obtain the current record class instance
+        /// </summary>
+        /// <returns></returns>
         public static dynamic CreateAnInstance()
         {
             dynamic type = FindClass(RecordTargetClassName);
             return type;
         }
-
+        /// <summary>
+        /// This function returns an Instance of the object contained in dll 
+        /// file
+        /// </summary>
+        /// <param name="targetClassName">the name of the class</param>
+        /// <returns></returns>
         public static object FindClass(string targetClassName)
         {
             try

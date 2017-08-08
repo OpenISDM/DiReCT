@@ -65,6 +65,7 @@ namespace DiReCT
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 moduleThreadPool = threadParameters.moduleThreadPool;
+
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("DSInit complete Phase 1 Initialization");

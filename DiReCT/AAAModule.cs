@@ -71,11 +71,6 @@ namespace DiReCT
                 ModuleStartWorkEvent.WaitOne();
 
                 Debug.WriteLine("AAAInit complete Phase 2 Initialization");
-
-                //
-                // Main Thread of AAA module (begin)
-                //
-
                 Debug.WriteLine("AAA module is working...");
 
                 // Check ModuleAbortEvent periodically

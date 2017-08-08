@@ -51,7 +51,7 @@ namespace DiReCT.Model
     class SerializeHelper
     {
         /// <summary>
-        /// Deserialize XML file to Dicionary with integer as key
+        /// Deserialize XML file to Dicionary with integer as key.
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="dictionary"></param>
@@ -71,10 +71,8 @@ namespace DiReCT.Model
                 // Set up deserializer based on the input Type
                 var deserializer = new XmlSerializer(typeof(ArrayList),
                                              new Type[] { type });
-
                 // Deserialize the file to arraylist
                 list = (ArrayList)deserializer.Deserialize(stream);
-
                 // Add each record in list to dictionary based on ID
                 foreach (dynamic record in list)
                 {
@@ -102,9 +100,7 @@ namespace DiReCT.Model
         public static bool SerializeDictionary(
                             Stream stream,
                             Dictionary<int, dynamic> dictionary)
-        {
-
-            
+        {           
             bool HasSucceeded = false;
             ArrayList list = new ArrayList();
 
@@ -131,9 +127,7 @@ namespace DiReCT.Model
                 Debug.WriteLine("SerializeHelper.Serialize Exception");
                 Debug.WriteLine(ex.Message);
             }
-
             return HasSucceeded;
-
         }
 
     }

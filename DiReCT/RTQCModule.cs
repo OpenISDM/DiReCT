@@ -64,6 +64,10 @@ namespace DiReCT
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 moduleThreadPool = threadParameters.moduleThreadPool;
+                // Event Handlers Initialization               
+                ValidateEventTriggerd += new ValidateEventHanlder(
+                                                    RTQCValidateWrapper);
+
                 ModuleReadyEvent.Set();
 
                 Debug.WriteLine("RTQCInit complete Phase 1 Initialization");
@@ -73,16 +77,7 @@ namespace DiReCT
                 ModuleStartWorkEvent.WaitOne();
 
                 Debug.WriteLine("RTQCInit complete Phase 2 Initialization");
-
-                //
-                // Main Thread of RTQC module (begin)
-                //
                 Debug.WriteLine("RTQC module is working...");
-
-                // Whenever ValidateEvent is raised, RTQCValidateWrapper will
-                // be called.
-                ValidateEventTriggerd += new ValidateEventHanlder(
-                                                    RTQCValidateWrapper);
 
                 // Check ModuleAbortEvent periodically
                 while (!ModuleAbortEvent

@@ -96,6 +96,25 @@ namespace DiReCT_wpf.ViewModel
         }
         private void DoSaveRecord(object obj)
         {
+            dynamic records = RecordGenerator.CreateLandslideRecord(
+                deathToll,
+                injuryToll,
+                checkedLandslideCondition,
+                houseDamage,
+                houseSelected,
+                farmDamage,
+                farmSelected,
+                riverDamage,
+                riverSelected,
+                groundDamage,
+                groundSelected,
+                roadDamage,
+                roadSelected
+                );
+
+            MenuViewBase recordView = HomeScreenViewModel.GetInstance().ShowOtherView();
+            recordView.OnSavingRecord(records);
+
             LandslideRecord record = new LandslideRecord();
             record.Time = currentDateTime.ToString();
             record.Latitude = currentLatitude.ToString();
@@ -141,7 +160,7 @@ namespace DiReCT_wpf.ViewModel
             RaisePropertyChanged("farmSelected");
             RaisePropertyChanged("roadSelected");
             RaisePropertyChanged("groundSelected");
-            MenuViewBase recordView = HomeScreenViewModel.GetInstance().ShowOtherView();
+            
             recordView.RaiseUserInputReadyEvent(new SaveButtonClickedEventArgs(record));
 
         }
