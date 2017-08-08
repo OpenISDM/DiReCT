@@ -1,11 +1,6 @@
 ﻿using DiReCT_wpf.Helpers;
 using DiReCT_wpf.ScreenInterface;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DiReCT_wpf.ViewModel
 {

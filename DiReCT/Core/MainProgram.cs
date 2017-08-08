@@ -40,11 +40,9 @@
 
 using System;
 using System.Threading;
-using System.Windows;
 using System.Diagnostics;
 using Microsoft.Win32;
 using AppHost;
-using DiReCT.Model.Utilities;
 using DiReCT.Model;
 
 namespace DiReCT

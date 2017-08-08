@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiReCT_wpf.Model;
 using DiReCT_wpf.ScreenInterface;
 namespace DiReCT_wpf.Autheticator
 {
-   public class SavedRecordAuthenticator
+    public class SavedRecordAuthenticator
     {
         private RecordBase record;
 

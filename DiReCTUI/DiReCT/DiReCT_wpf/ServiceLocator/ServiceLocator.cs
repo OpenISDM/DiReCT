@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiReCT_wpf.ScreenInterface;
 using System.Activities;
 using DiReCT_wpf.RepresentaionLayer;
 
 namespace DiReCT_wpf.ServiceLocator
 {
-   
-        public class ServiceLocator
+
+    public class ServiceLocator
         {
             private static volatile ServiceLocator instance;
             private static object syncRoot = new Object();

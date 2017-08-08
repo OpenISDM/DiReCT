@@ -47,8 +47,6 @@ using System.Diagnostics;
 using DiReCT.Model;
 using System.Collections;
 using DiReCT_wpf.ScreenInterface;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace DiReCT
 {

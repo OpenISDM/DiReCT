@@ -7,10 +7,6 @@ using System.Collections.ObjectModel;
 using System.Device.Location;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Threading;
 
 namespace DiReCT_wpf.ViewModel
