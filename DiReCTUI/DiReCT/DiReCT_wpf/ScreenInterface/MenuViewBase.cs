@@ -39,7 +39,7 @@ namespace DiReCT_wpf.ScreenInterface
         /// Function to initiate the Saving Record event
         /// </summary>
         /// <param name="index"></param>
-        public void OnSavingFloodRecord(dynamic record)
+        public void OnSavingRecord(dynamic record)
         {
             UIRecordSavingTriggerd?.BeginInvoke(record, null, null);
         }

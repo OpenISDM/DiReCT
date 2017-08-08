@@ -89,6 +89,7 @@
   <ItemGroup>
     <Compile Include="Autheticator\SavedRecordAuthenticator.cs" />
     <Compile Include="Helpers\DllFileLoader.cs" />
+    <Compile Include="Helpers\RecordGenerator.cs" />
     <Compile Include="Helpers\RelayCommand.cs" />
     <Compile Include="Model\CauseOfDisaster.cs" />
     <Compile Include="Model\DataFromServer.cs" />

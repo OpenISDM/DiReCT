@@ -156,14 +156,10 @@ namespace DiReCT_wpf.ViewModel
             //recordView.RaiseUserInputReadyEvent(new SaveButtonClickedEventArgs(record));
 
             // Initialize the record object
-            dynamic record = DllFileLoader.CreateAnInstance();
-            record.waterLevel = waterLevel;
-            record.PossibleCauseOfDisaster = causes;
-            record.currentLongitude = currentLongitude;
-            record.currentLatitude = currentLatitude;
-            record.currentTimeStamp = currentTimeStamp;
+            dynamic record = RecordGenerator.CreateFloodRecord(waterLevel, causes, 
+                currentLatitude, currentLongitude, currentTimeStamp);
             // Signal Core for record
-            recordView.OnSavingFloodRecord(record);
-        }
+            recordView.OnSavingRecord(record);
+        }       
     }
 }

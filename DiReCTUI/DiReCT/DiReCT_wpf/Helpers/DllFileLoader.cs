@@ -13,12 +13,17 @@ namespace DiReCT_wpf.Helpers
         static Assembly Assemblies;
 
         // copy of record object and its name
-        public static dynamic SOPRecord;
-        public static string RecordTargetClassName = "SOPFlood";
+        public static dynamic SOPRecord;        
 
-        public static dynamic CreateAnInstance()
+        public static dynamic CreateAnFloodInstance()
         {
-            dynamic type = FindClass(RecordTargetClassName);
+            dynamic type = FindClass("SOPFlood");
+            return type;
+        }
+
+        public static dynamic CreateALandslideInstance()
+        {          
+            dynamic type = FindClass("SOPLandslides");
             return type;
         }
 
