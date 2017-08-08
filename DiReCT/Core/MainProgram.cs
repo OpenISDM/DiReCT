@@ -99,10 +99,10 @@ namespace DiReCT
         // It is set by MainProgram when the program needs to be terminated
         public ManualResetEvent ModuleAbortEvent;
 
-
+        // Thread pool that module uses
         public DiReCTThreadPool moduleThreadPool;
 
-
+        // Maximum number of threads in thread pool
         const int THREADPOOL_SIZE = 10;
 
         public ThreadParameters()
