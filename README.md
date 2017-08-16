@@ -7,7 +7,4 @@ Mobile Disaster Record Capture Tool (DiReCT) is used by trained professionals to
 ### 1. Build DiReCT UI
 Since the GUI is a separated solution from the Core, the program will need to make sure GUI is built before loading the entire program. To do so, simply open the DiReCT solution inside /DiReCTUI/DiReCT/ in Visual Studio and build all projects under "Build". However, you will need to make sure all references exist in the solution. Currently only the Bing Map has to be manually download and reference by DiReCT_wpf. You can find it in the link here: https://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=27165 . 
 
-### 2. Build the Record Class
-Because all the record classes will be loaded from dll files, those files must be saved inside the DiReCT/bin/Debug folder. To do so, open the solution "DiReCT" in the main folder. By right clicking the record class project (for example, SOPFlood) and clicking build, VS will automatically create dll file(s) inside the project's bin/Debug folder (ex: SOPFlood/bin/Debug). Now, you will have to move the dll file to DiReCT/bin/Debug so that the main program can load it.
-
 After the set up, the program should be able to start correctly.
