@@ -35,6 +35,8 @@ using System.Threading;
 using System.Diagnostics;
 using DiReCT.Model.Utilities;
 using DiReCT.Model;
+using Amib.Threading;
+using System.Collections.Generic;
 
 namespace DiReCT
 {
@@ -44,7 +46,7 @@ namespace DiReCT
         static ThreadParameters threadParameters;
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-        static DiReCTThreadPool moduleThreadPool;
+        static SmartThreadPool moduleThreadPool;
         
         public static void RTQCInit(object objectParameters)
         {
@@ -58,6 +60,7 @@ namespace DiReCT
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
                 moduleThreadPool = threadParameters.moduleThreadPool;
+                
                 // Event Handlers Initialization               
                 ValidateEventTriggerd += new ValidateEventHanlder(
                                                     RTQCValidateWrapper);
@@ -124,7 +127,7 @@ namespace DiReCT
         /// negative
         /// </summary>
         /// <param name="workItem"></param>
-        private static void Validate(WorkItem workItem)
+        private static object Validate(dynamic record)
         {
             // Get the record from input parameters
             //dynamic flood = workItem.InputParameters;
@@ -149,14 +152,17 @@ namespace DiReCT
             //{
             //    workItem.OutputParameters = true;
             //}
-            workItem.OutputParameters = true;
+            // workItem.OutputParameters = true;
             // Signal that workItem is finished
-            workItem.Complete();
+            // workItem.Complete();
+            KeyValuePair<dynamic,bool> pair = 
+                new KeyValuePair<dynamic,bool>(record,true);
+            
+            return pair;
         }
 
         // Delegate that specify the parameter of event handler
-        public delegate void ValidateEventHanlder(object obj, 
-                                               AsyncCallback callBackFunction);
+        public delegate void ValidateEventHanlder(dynamic record);
         // Event Handler for Validate
         public static event ValidateEventHanlder ValidateEventTriggerd;
 
@@ -164,10 +170,9 @@ namespace DiReCT
         /// Function to initiate the Validate event
         /// </summary>
         /// <param name="obj"></param>
-        public static void OnValidate(object obj, 
-                                      AsyncCallback callBackFunction)
+        public static void OnValidate(dynamic record)
         {
-            ValidateEventTriggerd?.BeginInvoke(obj, callBackFunction, null, null);
+            ValidateEventTriggerd?.BeginInvoke(record, null, null);
         }
 
         /// <summary>
@@ -176,17 +181,11 @@ namespace DiReCT
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="callBackFunction"></param>
-        public static void RTQCValidateWrapper(object obj,
-                                               AsyncCallback callBackFunction)
+        public static void RTQCValidateWrapper(dynamic record)
         {
-            WorkItem workItem = new WorkItem(
-                FunctionGroupName.QualityControlFunction,
-                AsyncCallName.Validate,
-                obj,
-                callBackFunction,
-                null);
-     
-            moduleThreadPool.AddThreadWork(workItem);
+            moduleThreadPool.QueueWorkItem(
+                new WorkItemCallback(Validate), record,
+                new PostExecuteWorkItemCallback(DMModule.SaveRecordtoDictionary));
         }
     }
 }

@@ -37,6 +37,7 @@ using System.Threading;
 using System.Diagnostics;
 using DiReCT.MAN;
 using DiReCT.Model;
+using Amib.Threading;
 
 namespace DiReCT
 {
@@ -46,7 +47,7 @@ namespace DiReCT
         static ThreadParameters threadParameters;
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-        static DiReCTThreadPool moduleThreadPool;
+        static SmartThreadPool moduleThreadPool;
         static Notification.Builder builder;
 
         public static void MANInit(object objectParameters)

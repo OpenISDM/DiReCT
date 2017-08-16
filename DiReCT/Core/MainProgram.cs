@@ -44,6 +44,7 @@ using System.Diagnostics;
 using Microsoft.Win32;
 using AppHost;
 using DiReCT.Model;
+using Amib.Threading;
 
 namespace DiReCT
 {
@@ -100,7 +101,7 @@ namespace DiReCT
         public ManualResetEvent ModuleAbortEvent;
 
         // Thread pool that module uses
-        public DiReCTThreadPool moduleThreadPool;
+        public SmartThreadPool moduleThreadPool;
 
         // Maximum number of threads in thread pool
         const int THREADPOOL_SIZE = 10;
@@ -111,7 +112,7 @@ namespace DiReCT
             ModuleReadyEvent = new AutoResetEvent(false);
             ModuleStartWorkEvent = DiReCTMainProgram.ModuleStartWorkEvent;
             ModuleAbortEvent = DiReCTMainProgram.ModuleAbortEvent;
-            moduleThreadPool = new DiReCTThreadPool(THREADPOOL_SIZE);   
+            moduleThreadPool = new SmartThreadPool();   
         }
     }
 

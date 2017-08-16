@@ -34,6 +34,7 @@ using System;
 using System.Threading;
 using System.Diagnostics;
 using DiReCT.Model;
+using Amib.Threading;
 
 namespace DiReCT
 {
@@ -43,7 +44,7 @@ namespace DiReCT
         static ThreadParameters threadParameters;
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-        static DiReCTThreadPool moduleThreadPool;
+        static SmartThreadPool moduleThreadPool;
                
         public static void DSInit(object objectParameters)
         {

@@ -20,7 +20,7 @@ namespace DiReCT_wpf.Helpers
             dynamic type = FindClass("SOPFlood");
             return type;
         }
-
+        
         /// <summary>
         /// Create a landslide record object
         /// </summary>
