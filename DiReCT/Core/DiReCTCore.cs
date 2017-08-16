@@ -40,15 +40,8 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiReCT.Model.Utilities;
 using System.Threading;
-using System.Diagnostics;
-using System.Windows.Threading;
-using System.Windows;
 
 namespace DiReCT
 {

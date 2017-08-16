@@ -94,8 +94,6 @@ namespace DiReCT.Model
             return HasSucceeded;
         }
 
-        
-
         /// <summary>
         /// Save a specific Record item to defective/clean dictionary
         /// </summary>
@@ -161,8 +159,6 @@ namespace DiReCT.Model
             }
             return HasSucceeded;
         }
-
-
 
         //To be deleted
         internal static dynamic[] getAllCleanRecords()

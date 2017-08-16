@@ -33,6 +33,8 @@ using System.Threading;
 using System.Diagnostics;
 using DiReCT.Model.Utilities;
 using DiReCT.Model;
+using Amib.Threading;
+using System.Collections.Generic;
 
 namespace DiReCT
 {
@@ -42,9 +44,8 @@ namespace DiReCT
         static ThreadParameters threadParameters;
         static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
         static AutoResetEvent ModuleReadyEvent;
-        static DiReCTThreadPool moduleThreadPool;
         static RecordDictionaryManager recordDictionaryManager;
-           
+        static SmartThreadPool moduleThreadPool;
         public static void DMInit(object objectParameters)
         {
             moduleControlDataBlock
@@ -55,7 +56,7 @@ namespace DiReCT
             {
                 // Initialize Ready/Abort Event and threadpool    
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
-                ModuleAbortEvent = threadParameters.ModuleAbortEvent;           
+                ModuleAbortEvent = threadParameters.ModuleAbortEvent;                          
                 moduleThreadPool = threadParameters.moduleThreadPool;
                 // Initialize dictionary manager
                 recordDictionaryManager = new RecordDictionaryManager();        
@@ -106,28 +107,11 @@ namespace DiReCT
         #region DM functions
 
         /// <summary>
-        /// determines which methods to call. This function is aimed to be called
-        /// by Threadpool worker thread.
-        /// </summary>
-        /// <param name="workItem"></param>
-        internal static void DMWorkerFunctionProcessor(WorkItem workItem)
-        {
-            switch (workItem.AsyncCallName)
-            {
-                case AsyncCallName.SaveRecord:
-                    SendRecordToRTQC(workItem);
-                    break;
-            }
-        }
-   
-        /// <summary>
         /// Pass record to RTQC for validate
         /// </summary>
         /// <param name="workItem"></param>
-        internal static void SendRecordToRTQC(WorkItem workItem)
-        {
-            // Get the index of record in buffer from workItem
-            int index = (int)workItem.InputParameters;
+        private static void SendRecordToRTQC(int index)
+        {           
             dynamic record;
 
             //
@@ -141,10 +125,7 @@ namespace DiReCT
                 if (DiReCTCore.GetRecordFromBuffer(index, out record))
                 {
                     // Call RTQC API
-                    RTQCModule.OnValidate(record, 
-                                    new AsyncCallback(SaveRecordtoDictionary));
-
-                    workItem.Complete();
+                    RTQCModule.OnValidate(record);          
                 }
                 else
                 {
@@ -153,35 +134,39 @@ namespace DiReCT
             }catch(Exception ex)
             {
                 Debug.WriteLine("DMModule.SendRecordToRTQC: " + ex.Message);
-            }
+            }          
         }
 
         /// <summary>
         /// Save the record into Dictionary
         /// </summary>
         /// <param name="result"></param>
-        static void SaveRecordtoDictionary(IAsyncResult result)
+        public static void SaveRecordtoDictionary(IWorkItemResult wir)
         {
-            WorkItem workItem = (WorkItem)result;
-
-            if ((bool)workItem.OutputParameters)
+            // Check RTQC return value
+            // Since the return value can only be one, the current solution is
+            // to use KEYVALUEPAIR to store the return value plus the records
+            if(((KeyValuePair<dynamic,bool>)wir.Result).Value)
             {
                 recordDictionaryManager.SaveRecord(false,
-                                workItem.InputParameters);               
+                    ((KeyValuePair<dynamic, bool>)wir.Result).Key);
             }
-            else
-            {
-                recordDictionaryManager.SaveRecord(true,
-                                workItem.InputParameters);
-            }
+            //WorkItem workItem = (WorkItem)result;
 
-            
-            DiReCTCore.PrintDictionary(null);
-            
-            
+            //if ((bool)workItem.OutputParameters)
+            //{
+            //    recordDictionaryManager.SaveRecord(false,
+            //                    workItem.InputParameters);               
+            //}
+            //else
+            //{
+            //    recordDictionaryManager.SaveRecord(true,
+            //                    workItem.InputParameters);
+            //}
+
+            // Debugging function
+            DiReCTCore.PrintDictionary(null);                 
         }
-
-
         #endregion
 
         #region DM Event Handlers and subscribed event
@@ -206,15 +191,8 @@ namespace DiReCT
         /// <param name="index">the index of the record in the buffer</param>
         public static void DMSavingRecordWrapper(int index)
         {
-            
-            WorkItem workItem = new WorkItem(
-                FunctionGroupName.DataManagementFunction,
-                AsyncCallName.SaveRecord,
-                index,
-                null,
-                null);
-
-            moduleThreadPool.AddThreadWork(workItem);
+            moduleThreadPool.QueueWorkItem(SendRecordToRTQC,
+                index);
         }
 
         #endregion 

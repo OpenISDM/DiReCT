@@ -196,27 +196,29 @@ namespace DiReCT
         {
             int index = -1;
             bool isFound = false;
-            // Wait for free buffer index
-            SpinWait.SpinUntil(() => bufferSpaceAvailable.
-                                     Cast<bool>().Contains(true));
+            
 
             // Look for any available index 
             // The while loop is to prevent two or multiple possible writer 
             // Waiting at the same time and race for the same space.
             while (isFound == false)
             {
-                for (int i = 0; i < Constant.BUFFER_NUMBER; i++)
+                // Wait for free buffer index
+                SpinWait.SpinUntil(() => bufferSpaceAvailable.
+                                         Cast<bool>().Contains(true));
+
+                for (int bufferIndex = 0; bufferIndex < Constant.BUFFER_NUMBER; bufferIndex++)
                 {   
                     // Lock the buffer index            
-                    lock (bufferLock[i])
+                    lock (bufferLock[bufferIndex])
                     {                        
-                        if (bufferSpaceAvailable[i])
+                        if (bufferSpaceAvailable[bufferIndex])
                         {
-                            index = i;
+                            index = bufferIndex;
                             // Save record onto buffer 
-                            RecordBuffer[i] = record;
+                            RecordBuffer[bufferIndex] = record;
                             // Mark buffer space as unavailable
-                            bufferSpaceAvailable[i] = false;
+                            bufferSpaceAvailable[bufferIndex] = false;
                             isFound = true;
                             break;
                         }

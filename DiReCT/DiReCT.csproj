@@ -100,7 +100,6 @@
     <Compile Include="Model\RecordDictionaryManager.cs" />
     <Compile Include="Model\DllFileLoader.cs" />
     <Compile Include="Model\SerializeHelper.cs" />
-    <Compile Include="Model\ThreadPool.cs" />
     <Compile Include="Model\Utilities.cs" />
     <Compile Include="DMModule.cs" />
     <Compile Include="DSModule.cs" />
@@ -171,6 +170,10 @@
     <ProjectReference Include="..\DiReCTUI\DiReCT\DiReCT_wpf\DiReCT_wpf.csproj">
       <Project>{461c695e-6a5b-4724-b59d-5fe7e6d142bd}</Project>
       <Name>DiReCT_wpf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SmartThreadPool-master\SmartThreadPool\SmartThreadPool45.csproj">
+      <Project>{9901CC77-B854-4EEA-B913-7BE2566005C3}</Project>
+      <Name>SmartThreadPool45</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
