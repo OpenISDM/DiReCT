@@ -8,3 +8,7 @@ Mobile Disaster Record Capture Tool (DiReCT) is used by trained professionals to
 Since the GUI is a separated solution from the Core, the program will need to make sure GUI is built before loading the entire program. To do so, simply open the DiReCT solution inside /DiReCTUI/DiReCT/ in Visual Studio and build all projects under "Build". However, you will need to make sure all references exist in the solution. Currently only the Bing Map has to be manually download and reference by DiReCT_wpf. You can find it in the link here: https://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=27165 . 
 
 After the set up, the program should be able to start correctly.
+
+## Categories
+We classify  many kinds of  disaster which ofent happened in Taiwan such as landslide, earthquake, flood and so on. We hope that our capture tool could avoid hurt who are in disaster as soon as possible.
+We hope the capture tool can let back-end staffs get disaster help in real-time. 
