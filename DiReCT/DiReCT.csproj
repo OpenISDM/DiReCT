@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DiReCT</RootNamespace>
     <AssemblyName>DiReCT</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -29,6 +29,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -97,6 +98,7 @@
     <Compile Include="Core\DiReCTCore.cs" />
     <Compile Include="Core\DiRecTCoreDataManagement.cs" />
     <Compile Include="Core\MainProgram.cs" />
+    <Compile Include="Model\LocalStorageManager.cs" />
     <Compile Include="Model\RecordDictionaryManager.cs" />
     <Compile Include="Model\DllFileLoader.cs" />
     <Compile Include="Model\SerializeHelper.cs" />
@@ -105,6 +107,28 @@
     <Compile Include="DSModule.cs" />
     <Compile Include="MANModule.cs" />
     <Compile Include="RTQCModule.cs" />
+    <Compile Include="SmartThreadPool\CallerThreadContext.cs" />
+    <Compile Include="SmartThreadPool\CanceledWorkItemsGroup.cs" />
+    <Compile Include="SmartThreadPool\EventWaitHandleFactory.cs" />
+    <Compile Include="SmartThreadPool\Exceptions.cs" />
+    <Compile Include="SmartThreadPool\Interfaces.cs" />
+    <Compile Include="SmartThreadPool\InternalInterfaces.cs" />
+    <Compile Include="SmartThreadPool\PriorityQueue.cs" />
+    <Compile Include="SmartThreadPool\SmartThreadPool.cs" />
+    <Compile Include="SmartThreadPool\SmartThreadPool.ThreadEntry.cs" />
+    <Compile Include="SmartThreadPool\STPEventWaitHandle.cs" />
+    <Compile Include="SmartThreadPool\STPPerformanceCounter.cs" />
+    <Compile Include="SmartThreadPool\STPStartInfo.cs" />
+    <Compile Include="SmartThreadPool\SynchronizedDictionary.cs" />
+    <Compile Include="SmartThreadPool\WIGStartInfo.cs" />
+    <Compile Include="SmartThreadPool\WorkItem.cs" />
+    <Compile Include="SmartThreadPool\WorkItem.WorkItemResult.cs" />
+    <Compile Include="SmartThreadPool\WorkItemFactory.cs" />
+    <Compile Include="SmartThreadPool\WorkItemInfo.cs" />
+    <Compile Include="SmartThreadPool\WorkItemResultTWrapper.cs" />
+    <Compile Include="SmartThreadPool\WorkItemsGroup.cs" />
+    <Compile Include="SmartThreadPool\WorkItemsGroupBase.cs" />
+    <Compile Include="SmartThreadPool\WorkItemsQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -124,6 +148,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="ClassDiagram.cd" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -170,10 +195,6 @@
     <ProjectReference Include="..\DiReCTUI\DiReCT\DiReCT_wpf\DiReCT_wpf.csproj">
       <Project>{461c695e-6a5b-4724-b59d-5fe7e6d142bd}</Project>
       <Name>DiReCT_wpf</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SmartThreadPool-master\SmartThreadPool\SmartThreadPool45.csproj">
-      <Project>{9901CC77-B854-4EEA-B913-7BE2566005C3}</Project>
-      <Name>SmartThreadPool45</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
