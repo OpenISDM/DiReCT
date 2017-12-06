@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AppHost"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="1050">
+        Title="MainWindow" Height="700" Width="1050"
+        Closing="Window_Closing">
     <Grid>
         <ContentControl  x:Uid="ContentControl_1" d:DesignHeight="350" d:DesignWidth="525"  Content="{Binding Path=CurrentScreen}" Margin="0,0,0,0" />
     </Grid>

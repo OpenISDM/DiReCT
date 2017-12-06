@@ -16,11 +16,15 @@ namespace AppHost
     {
         private string NextWorkFlow = "LoginWorkFlow";
         private object locker = new object();
+        private MainWindow window;
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             Thread.CurrentThread.Name = "Main thread";
-            MainWindow window = new MainWindow();
-            window.DataContext = ServiceLocator.Instance.RepresentationLayerMain;
+            window = new MainWindow
+            {
+                DataContext = ServiceLocator.Instance.RepresentationLayerMain
+            };
             window.Show();
 
             StartWorkFlow();
@@ -29,6 +33,7 @@ namespace AppHost
         private void StartWorkFlow()
         {
             WorkflowApplication wfApp = InitiateWorkFlow();
+            window.WorkflowApp = wfApp;
             ServiceLocator.Instance.CurrentWorkFlow = wfApp;
             Action action = () => StartWorkFlow();
 

@@ -45,6 +45,7 @@ using Microsoft.Win32;
 using AppHost;
 using DiReCT.Model;
 using Amib.Threading;
+using DiReCT.Model.Utilities;
 
 namespace DiReCT
 {
@@ -343,7 +344,6 @@ namespace DiReCT
 
             coreControl.Run();
             UIThreadHandle.Join();
-            CleanupExit();
             //return;
         }
 
@@ -359,7 +359,8 @@ namespace DiReCT
             //App.StartupUri = new Uri("MainWindow.xaml",
             //                     UriKind.Relative);
             //App.Run();
-            Debug.WriteLine("UI Module is working...");
+            Debug.WriteLine("UI Module is Closed...");
+            CleanupExit();
         }
 
         private static void AbortTimeOutEventHandler(object state)
@@ -405,6 +406,15 @@ namespace DiReCT
                     moduleThreadHandle.Join((int)TimeInterval.LongTime);
                 }
             }
+
+            WorkItem workItem = new WorkItem(
+                FunctionGroupName.TerminateFunction,
+                AsyncCallName.TerminateProgram, null, null, null);
+
+            DiReCTCore.CoreWorkQueue.Enqueue(workItem,
+                (int)WorkPriority.Highest,
+                new CancellationToken());
+
             Debug.WriteLine("Cleanup complete!!");
         }
     }    
