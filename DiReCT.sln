@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiReCT_wf", "DiReCTUI\DiReC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkTransmissionLibrary", "NetworkTransmissionLibrary\NetworkTransmissionLibrary.csproj", "{55DDC6D9-2082-4013-81F7-5A93DB374306}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{52B1D836-EAC5-43E2-B62B-AD21E04096F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,6 +84,12 @@ Global
 		{55DDC6D9-2082-4013-81F7-5A93DB374306}.Publish|Any CPU.Build.0 = Release|Any CPU
 		{55DDC6D9-2082-4013-81F7-5A93DB374306}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55DDC6D9-2082-4013-81F7-5A93DB374306}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52B1D836-EAC5-43E2-B62B-AD21E04096F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52B1D836-EAC5-43E2-B62B-AD21E04096F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52B1D836-EAC5-43E2-B62B-AD21E04096F0}.Publish|Any CPU.ActiveCfg = Release|Any CPU
+		{52B1D836-EAC5-43E2-B62B-AD21E04096F0}.Publish|Any CPU.Build.0 = Release|Any CPU
+		{52B1D836-EAC5-43E2-B62B-AD21E04096F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52B1D836-EAC5-43E2-B62B-AD21E04096F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
