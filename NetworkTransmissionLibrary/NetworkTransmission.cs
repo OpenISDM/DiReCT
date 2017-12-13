@@ -12,8 +12,16 @@ using System.Security.Cryptography;
 
 namespace NetworkTransmissionLibrary
 {
+    public enum ReceiveDataType
+    {
+        Record,
+        File,
+        Error
+    }
+
     public class ControlSignalTransmission
     {
+
         public class NetworkServer :IDisposable
         {
             private Thread ListenServiceThread;
@@ -29,19 +37,13 @@ namespace NetworkTransmissionLibrary
             private object ClientsLock = new object();
             private string FilePath;
 
-            private enum ReceiveDataType
-            {
-                Record,
-                File,
-                Error
-            }
-
             public NetworkServer(int Port)
             {
                 Listener = new Socket(AddressFamily.InterNetwork, 
                     SocketType.Stream, ProtocolType.Tcp);
                 Listener.Bind(new IPEndPoint(IPAddress.Any, Port));
-                ListenServiceThread = new Thread(ListenWork);
+                ListenServiceThread = new Thread(ListenWork) {
+                    IsBackground = true };
                 ListenServiceThread.Start();
                 FilePath = AppDomain.CurrentDomain.BaseDirectory + "\\Media\\";
             }
@@ -82,7 +84,8 @@ namespace NetworkTransmissionLibrary
                     Clients.Add(Client);
                     CommunicationDictionary.Add(Client, 
                         new CommunicationBase(Client));
-                    Thread ClientThread = new Thread(ListenClientRequest);
+                    Thread ClientThread = new Thread(ListenClientRequest) {
+                        IsBackground = true };
                     ClientThread.Start(Client);
                     ClientThreadList.Add(ClientThread);
                 }
@@ -105,7 +108,7 @@ namespace NetworkTransmissionLibrary
                         Json = CB.Receive().DecodingString();
                         if (Json != string.Empty)
                         {
-                            Request = DecodingRequest(Json);
+                            Request = Tools.DecodingRequest(Json);
 
                             if (Request.Item1 != ReceiveDataType.Error)
                             {
@@ -158,29 +161,6 @@ namespace NetworkTransmissionLibrary
                 ClientSock.Dispose();
                 Clients.Remove(ClientSock);
                 ClientThreadList.Remove(Thread.CurrentThread);
-            }
-
-            private (ReceiveDataType,string,string) DecodingRequest(
-                string Json)
-            {
-                Json = Json.Trim();
-                if ((Json.StartsWith("{") && Json.EndsWith("}")) ||
-                        (Json.StartsWith("[") && Json.EndsWith("]")))
-                {
-                    dynamic Request = JsonConvert.DeserializeObject(Json);
-                    if (Request["DataType"] == "File")
-                        return (ReceiveDataType.File, 
-                            Request["FileName"], 
-                            Request["MD5Hash"]);
-                    if (Request["DataType"] == "Record")
-                        return (ReceiveDataType.Record,
-                            string.Empty,
-                            string.Empty);
-                }
-
-                return (ReceiveDataType.Error, 
-                    string.Empty, 
-                    string.Empty);
             }
 
             private bool SaveFile(byte[] Data,string FileName)
@@ -261,7 +241,127 @@ namespace NetworkTransmissionLibrary
 
         public class NetworkClient
         {
-            
+            Socket Server;
+            Thread ServerThread;
+            CommunicationBase CB;
+            Queue<(decimal, string[])> DataBuffer;
+            object DataBufferLock = new object();
+            bool NetworkClientSwitch = true;
+
+            public NetworkClient(string ipAddress, int Port)
+            {
+                Server = new Socket(AddressFamily.InterNetwork,
+                    SocketType.Stream,
+                    ProtocolType.Tcp);
+                DataBuffer = new Queue<(decimal, string[])>();
+                Server.Connect(new IPEndPoint(
+                    IPAddress.Parse(ipAddress), Port));
+                CB = new CommunicationBase(Server);
+                ServerThread = new Thread(Work) { IsBackground = true };
+                ServerThread.Start();
+            }
+
+            private void Work()
+            {
+                int DataCount = int.MinValue;
+                (decimal, string[]) RecordAndFiles;
+                while (NetworkClientSwitch)
+                {
+                    lock (DataBufferLock)
+                        DataCount = DataBuffer.Count();
+                    if (DataCount is 0 && NetworkClientSwitch)
+                        SpinWait.SpinUntil(() =>
+                        DataBuffer.Count > 0 && NetworkClientSwitch);
+                    if (NetworkClientSwitch)
+                    {
+                        try
+                        {
+                            bool IsSend = false;
+                            lock (DataBufferLock)
+                                RecordAndFiles = DataBuffer.Dequeue();
+                            foreach(string FilePath in RecordAndFiles.Item2)
+                            {
+                                IsSend = false;
+                                while(IsSend)
+                                {
+                                    var FileAndInfo = GetFileAndInfo(FilePath);
+                                    CB.Send(Tools.EncodingString(
+                                        Tools.EncodingRequest(
+                                            ReceiveDataType.File,
+                                            FileAndInfo.Item2, 
+                                            FileAndInfo.Item3)));
+                                    if (Tools.DecodingString(CB.Receive()) == 
+                                        "Start")
+                                    {
+                                        CB.Send(FileAndInfo.Item1);
+                                        if (Tools.DecodingString(CB.Receive())
+                                            == "Success")
+                                            IsSend = true;
+                                    }
+                                }
+                            }
+                            IsSend = false;
+                            while(IsSend)
+                            {
+                                CB.Send(Tools.EncodingString(
+                                    Tools.EncodingRequest(
+                                    ReceiveDataType.Record,
+                                    string.Empty,
+                                    string.Empty)));
+                                if (Tools.DecodingString(CB.Receive()) ==
+                                    "Start")
+                                {
+                                    if(SendRecord(RecordAndFiles.Item1))
+                                        IsSend = true;
+                                }
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+            }
+
+            private bool SendRecord(dynamic Record)
+            {
+                bool IsSend = false;
+
+                try
+                {
+                    
+                    if (Tools.DecodingString(CB.Receive())
+                        == "Success")
+                        IsSend = true;
+                }
+                catch
+                {
+
+                }
+                return IsSend;
+            }
+
+            private (byte[],string,string) GetFileAndInfo(string FilePath)
+            {
+                try
+                {
+                    byte[] FileData = File.ReadAllBytes(FilePath);
+                    string FileName = Path.GetFileName(FilePath);
+                    string MD5 = Tools.CalculateMD5Value(FileData);
+                    return (FileData, FileName, MD5);
+                }
+                catch(Exception ex)
+                {
+                    throw ex;
+                }
+            }
+
+            public void EnqueueData((decimal, string[]) Data)
+            {
+                lock (DataBufferLock)
+                    DataBuffer.Enqueue(Data);
+            }
         }
     }
 
@@ -280,6 +380,18 @@ namespace NetworkTransmissionLibrary
             return SB.ToString();
         }
 
+        public static byte[] EncodingString(this string Data)
+        {
+            try
+            {
+                return Encoding.Default.GetBytes(Data);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static string DecodingString(this byte[] Data)
         {
             try
@@ -290,6 +402,55 @@ namespace NetworkTransmissionLibrary
             {
                 return string.Empty;
             }
+        }
+
+        public static string EncodingRequest(ReceiveDataType DataType,
+            string FileName, string MD5Hash)
+        {
+            if (DataType == ReceiveDataType.File)
+            {
+                string Json = JsonConvert.SerializeObject(
+                    new
+                    {
+                        DataType = (int)ReceiveDataType.File,
+                        FileName = FileName,
+                        MD5Hash = MD5Hash
+                    });
+                return Json;
+            }
+            if (DataType == ReceiveDataType.Record)
+            {
+                string Json = JsonConvert.SerializeObject(
+                    new
+                    {
+                        DataType = (int)ReceiveDataType.File
+                    });
+                return Json;
+            }
+            return string.Empty;
+        }
+
+        public static (ReceiveDataType, string, string) DecodingRequest(
+            string Json)
+        {
+            Json = Json.Trim();
+            if ((Json.StartsWith("{") && Json.EndsWith("}")) ||
+                    (Json.StartsWith("[") && Json.EndsWith("]")))
+            {
+                dynamic Request = JsonConvert.DeserializeObject(Json);
+                if (Request["DataType"] == "File")
+                    return (ReceiveDataType.File,
+                        Request["FileName"],
+                        Request["MD5Hash"]);
+                if (Request["DataType"] == "Record")
+                    return (ReceiveDataType.Record,
+                        string.Empty,
+                        string.Empty);
+            }
+
+            return (ReceiveDataType.Error,
+                string.Empty,
+                string.Empty);
         }
     }
 }
