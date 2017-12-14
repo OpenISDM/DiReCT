@@ -239,7 +239,7 @@ namespace NetworkTransmissionLibrary
             #endregion
         }
 
-        public class NetworkClient
+        public class NetworkClient :IDisposable
         {
             Socket Server;
             Thread ServerThread;
@@ -362,6 +362,36 @@ namespace NetworkTransmissionLibrary
                 lock (DataBufferLock)
                     DataBuffer.Enqueue(Data);
             }
+
+            #region IDisposable Support
+            private bool disposedValue = false; 
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    NetworkClientSwitch = false;
+                    ServerThread.Join();
+                    CB.Dispose();
+                    Server.Dispose();
+
+                    if (disposing)
+                    {
+                        Server = null;
+                        CB = null;
+                        ServerThread = null;
+                        DataBufferLock = null;
+                    }
+
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+            }
+            #endregion
         }
     }
 
