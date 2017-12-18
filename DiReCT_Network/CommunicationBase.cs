@@ -4,7 +4,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace NetworkTransmissionLibrary
+namespace DiReCT_Network
 {
     public class CommunicationBase : IDisposable
     {

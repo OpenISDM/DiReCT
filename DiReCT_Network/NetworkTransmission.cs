@@ -9,8 +9,9 @@ using System.Net;
 using System.IO;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
+using DiReCT.Logger;
 
-namespace NetworkTransmissionLibrary
+namespace DiReCT_Network
 {
     public enum ReceiveDataType
     {
@@ -33,9 +34,9 @@ namespace NetworkTransmissionLibrary
             private Dictionary<Socket, CommunicationBase> 
                 CommunicationDictionary = 
                 new Dictionary<Socket, CommunicationBase>();
+            private ServerReceiveEvent Event = new ServerReceiveEvent();
             private bool MasterSwitch = true;
             private object ClientsLock = new object();
-            private string FilePath;
 
             public NetworkServer(int Port)
             {
@@ -45,17 +46,6 @@ namespace NetworkTransmissionLibrary
                 ListenServiceThread = new Thread(ListenWork) {
                     IsBackground = true };
                 ListenServiceThread.Start();
-                FilePath = AppDomain.CurrentDomain.BaseDirectory + "\\Media\\";
-            }
-
-            public NetworkServer(int Port,string filePath)
-            {
-                Listener = new Socket(AddressFamily.InterNetwork,
-                    SocketType.Stream, ProtocolType.Tcp);
-                Listener.Bind(new IPEndPoint(IPAddress.Any, Port));
-                ListenServiceThread = new Thread(ListenWork);
-                ListenServiceThread.Start();
-                FilePath = filePath;
             }
 
             private void ListenWork()
@@ -118,12 +108,18 @@ namespace NetworkTransmissionLibrary
                                     Buffer = CB.Receive();
                                     if (Buffer.CalculateMD5Value() ==
                                         Request.Item3)
-                                        if (SaveFile(Buffer, Request.Item2))
-                                            CB.Send(Encoding.Default.GetBytes(
-                                                "Success"));
-                                        else
-                                            CB.Send(Encoding.Default.GetBytes(
-                                                "Fail"));
+                                    {
+                                        ServerReceiveEventArgs SREA =
+                                            new ServerReceiveEventArgs
+                                            {
+                                                receiveDataType =
+                                                    ReceiveDataType.File,
+                                                Data = Buffer
+                                            };
+                                        Event.ReceiveEventCall(SREA);
+                                        CB.Send(Encoding.Default.GetBytes(
+                                                    "Success"));
+                                    }
                                     else
                                         CB.Send(Encoding.Default.GetBytes(
                                             "Fail"));
@@ -137,12 +133,18 @@ namespace NetworkTransmissionLibrary
                                         Buffer = CB.Receive();
                                         Json = Buffer.DecodingString();
                                         if (Json != string.Empty)
-                                            if (SaveRecordToDB(Json))
-                                                CB.Send(Encoding.Default.GetBytes(
+                                        {
+                                            ServerReceiveEventArgs SREA =
+                                                new ServerReceiveEventArgs
+                                                {
+                                                    receiveDataType =
+                                                        ReceiveDataType.Record,
+                                                    Record = Json
+                                                };
+                                            Event.ReceiveEventCall(SREA);
+                                            CB.Send(Encoding.Default.GetBytes(
                                                     "Success"));
-                                            else
-                                                CB.Send(Encoding.Default.GetBytes(
-                                                    "Fail"));
+                                        }
                                         else
                                             CB.Send(Encoding.Default.GetBytes(
                                                 "Fail"));
@@ -152,44 +154,16 @@ namespace NetworkTransmissionLibrary
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    
+                    Logger.Write(Log.ErrorEvent, ex.ToString());
                 }
+
                 CommunicationDictionary[ClientSock].Dispose();
                 CommunicationDictionary.Remove(ClientSock);
                 ClientSock.Dispose();
                 Clients.Remove(ClientSock);
                 ClientThreadList.Remove(Thread.CurrentThread);
-            }
-
-            private bool SaveFile(byte[] Data,string FileName)
-            {
-                bool IsSave = false;
-                try
-                {
-                    File.WriteAllBytes(FilePath + FileName, Data);
-                    IsSave = true;
-                }
-                catch
-                {
-
-                }
-                return IsSave;
-            }
-
-            private bool SaveRecordToDB(string Json)
-            {
-                bool IsSave = false;
-                try
-                {
-                    IsSave = true;
-                }
-                catch
-                {
-
-                }
-                return IsSave;
             }
 
             #region IDisposable Support
@@ -212,7 +186,6 @@ namespace NetworkTransmissionLibrary
 
                     if (disposing)
                     {
-                        FilePath = string.Empty;
                         ClientsLock = null;
                         CommunicationDictionary = null;
                         ClientThreadList = null;
@@ -316,9 +289,9 @@ namespace NetworkTransmissionLibrary
                                 }
                             }
                         }
-                        catch
+                        catch(Exception ex)
                         {
-
+                            Logger.Write(Log.ErrorEvent, ex.ToString());
                         }
                     }
                 }
@@ -335,9 +308,9 @@ namespace NetworkTransmissionLibrary
                         == "Success")
                         IsSend = true;
                 }
-                catch
+                catch(Exception ex)
                 {
-
+                    Logger.Write(Log.ErrorEvent, ex.ToString());
                 }
                 return IsSend;
             }
@@ -416,9 +389,9 @@ namespace NetworkTransmissionLibrary
             {
                 return Encoding.Default.GetBytes(Data);
             }
-            catch
+            catch(Exception ex)
             {
-                return null;
+                throw ex;
             }
         }
 
@@ -428,14 +401,14 @@ namespace NetworkTransmissionLibrary
             {
                 return Encoding.Default.GetString(Data);
             }
-            catch
+            catch (Exception ex)
             {
-                return string.Empty;
+                throw ex;
             }
         }
 
         public static string EncodingRequest(ReceiveDataType DataType,
-            string FileName, string MD5Hash)
+            string _FileName, string _MD5Hash)
         {
             if (DataType == ReceiveDataType.File)
             {
@@ -443,8 +416,8 @@ namespace NetworkTransmissionLibrary
                     new
                     {
                         DataType = (int)ReceiveDataType.File,
-                        FileName = FileName,
-                        MD5Hash = MD5Hash
+                        FileName = _FileName,
+                        MD5Hash = _MD5Hash
                     });
                 return Json;
             }

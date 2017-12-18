@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Logger
+namespace DiReCT.Logger
 {
     public enum Log
     {
