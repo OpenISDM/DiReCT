@@ -20,105 +20,178 @@ namespace DiReCT_Network
         Error
     }
 
-    public class ControlSignalTransmission
+    public class NetworkServer : IDisposable
     {
+        private Thread ListenServiceThread;
+        private Socket Listener;
+        private List<Socket> Clients = new List<Socket>();
+        private List<Thread> ClientThreadList = new List<Thread>();
+        private ManualResetEvent ConnectionEvent =
+            new ManualResetEvent(false);
+        private Dictionary<Socket, CommunicationBase>
+            CommunicationDictionary =
+            new Dictionary<Socket, CommunicationBase>();
+        public ServerEvent Event = new ServerEvent();
+        private bool MasterSwitch = true;
+        private object ClientsLock = new object();
 
-        public class NetworkServer :IDisposable
+        public NetworkServer(int Port)
         {
-            private Thread ListenServiceThread;
-            private Socket Listener;
-            private List<Socket> Clients = new List<Socket>();
-            private List<Thread> ClientThreadList = new List<Thread>();
-            private ManualResetEvent ConnectionEvent = 
-                new ManualResetEvent(false);
-            private Dictionary<Socket, CommunicationBase> 
-                CommunicationDictionary = 
-                new Dictionary<Socket, CommunicationBase>();
-            private ServerEvent Event = new ServerEvent();
-            private bool MasterSwitch = true;
-            private object ClientsLock = new object();
-
-            public NetworkServer(int Port)
+            Listener = new Socket(AddressFamily.InterNetwork,
+                SocketType.Stream, ProtocolType.Tcp);
+            Listener.Bind(new IPEndPoint(IPAddress.Any, Port));
+            ListenServiceThread = new Thread(ListenWork)
             {
-                Listener = new Socket(AddressFamily.InterNetwork, 
-                    SocketType.Stream, ProtocolType.Tcp);
-                Listener.Bind(new IPEndPoint(IPAddress.Any, Port));
-                ListenServiceThread = new Thread(ListenWork) {
-                    IsBackground = true };
-                ListenServiceThread.Start();
+                IsBackground = true
+            };
+        }
+
+        public void Start()
+        {
+            ListenServiceThread.Start();
+        }
+
+        public void Join()
+        {
+            ListenServiceThread.Join();
+            foreach (var q in ClientThreadList)
+                q.Join();
+        }
+
+        private void ListenWork()
+        {
+            Listener.Listen(100);
+            while (MasterSwitch)
+            {
+                ConnectionEvent.Reset();
+                Listener.BeginAccept(new AsyncCallback(AcceptCallback),
+                    Listener);
+
+                ConnectionEvent.WaitOne();
+            }
+        }
+
+        /// <summary>
+        /// Callback when one client successfully connected to the server.
+        /// </summary>
+        /// <param name="ar"></param>
+        private void AcceptCallback(IAsyncResult ar)
+        {
+            Socket listener = (Socket)ar.AsyncState;
+            lock (ClientsLock)
+            {
+                Socket Client = listener.EndAccept(ar);
+                Clients.Add(Client);
+                CommunicationDictionary.Add(Client,
+                    new CommunicationBase(Client));
+                Thread ClientThread = new Thread(ListenClientRequest)
+                {
+                    IsBackground = true
+                };
+                ClientThread.Start(Client);
+                ClientThreadList.Add(ClientThread);
             }
 
-            private void ListenWork()
+            ConnectionEvent.Set();
+        }
+
+        private void ListenClientRequest(object Client)
+        {
+            Socket ClientSock = (Client as Socket);
+            CommunicationBase CB = CommunicationDictionary[ClientSock];
+            string Json = string.Empty;
+            byte[] Buffer;
+
+            (ReceiveDataType, string, string) Request;
+            try
             {
-                Listener.Listen(100);
-                while(MasterSwitch)
+                while (MasterSwitch)
                 {
-                    ConnectionEvent.Reset();
-                    Listener.BeginAccept(new AsyncCallback(AcceptCallback), 
-                        Listener);
-
-                    ConnectionEvent.WaitOne();
-                }
-            }
-
-            /// <summary>
-            /// Callback when one client successfully connected to the server.
-            /// </summary>
-            /// <param name="ar"></param>
-            private void AcceptCallback(IAsyncResult ar)
-            {
-                Socket listener = (Socket)ar.AsyncState;
-                lock(ClientsLock)
-                {
-                    Socket Client = listener.EndAccept(ar);
-                    Clients.Add(Client);
-                    CommunicationDictionary.Add(Client, 
-                        new CommunicationBase(Client));
-                    Thread ClientThread = new Thread(ListenClientRequest) {
-                        IsBackground = true };
-                    ClientThread.Start(Client);
-                    ClientThreadList.Add(ClientThread);
-                }
-
-                ConnectionEvent.Set();
-            }
-
-            private void ListenClientRequest(object Client)
-            {
-                Socket ClientSock = (Client as Socket);
-                CommunicationBase CB = CommunicationDictionary[ClientSock];
-                string Json = string.Empty;
-                byte[] Buffer;
-
-                (ReceiveDataType, string, string) Request;
-                try
-                {
-                    while (MasterSwitch)
+                    Json = CB.Receive().DecodingString();
+                    if (Json != string.Empty)
                     {
-                        Json = CB.Receive().DecodingString();
-                        if (Json != string.Empty)
-                        {
-                            Request = Tools.DecodingRequest(Json);
+                        Request = Tools.DecodingRequest(Json);
 
-                            if (Request.Item1 != ReceiveDataType.Error)
+                        if (Request.Item1 != ReceiveDataType.Error)
+                        {
+                            if (Request.Item1 == ReceiveDataType.File)
                             {
-                                if (Request.Item1 == ReceiveDataType.File)
+                                CB.Send(Encoding.Default.GetBytes("Start"));
+                                Buffer = CB.Receive();
+                                if (Buffer.CalculateMD5Value() ==
+                                    Request.Item3)
+                                {
+                                    ServerReceiveEventArgs SREA =
+                                        new ServerReceiveEventArgs
+                                        {
+                                            ReceiveDataType =
+                                                ReceiveDataType.File,
+                                            Data = Buffer
+                                        };
+                                    Event.ReceiveEventCall(SREA);
+                                    CB.Send(Encoding.Default.GetBytes(
+                                                "Success"));
+
+                                    Event.MessageOutputCall(
+                                        new MessageOutputEventArgs
+                                        {
+                                            Message = "IP: " +
+                                            (ClientSock.RemoteEndPoint
+                                            as IPEndPoint)
+                                            .Address.ToString() +
+                                            " Send a File"
+                                        });
+
+                                    Logger.Write(Log.GeneralEvent,
+                                        "IP: " +
+                                            (ClientSock.RemoteEndPoint
+                                            as IPEndPoint)
+                                            .Address.ToString() +
+                                            " Send a File");
+                                }
+                                else
+                                {
+                                    CB.Send(Encoding.Default.GetBytes(
+                                        "Fail"));
+
+                                    Event.MessageOutputCall(
+                                        new MessageOutputEventArgs
+                                        {
+                                            Message = "IP: " +
+                                            (ClientSock.RemoteEndPoint
+                                            as IPEndPoint)
+                                            .Address.ToString() +
+                                            " Send File Fail"
+                                        });
+
+                                    Logger.Write(Log.GeneralEvent,
+                                        "IP: " +
+                                            (ClientSock.RemoteEndPoint
+                                            as IPEndPoint)
+                                            .Address.ToString() +
+                                            " Send File Fail");
+                                }
+                            }
+
+                            if (Request.Item1 == ReceiveDataType.Record)
+                            {
+                                if (Request.Item1 == ReceiveDataType.Record)
                                 {
                                     CB.Send(Encoding.Default.GetBytes("Start"));
                                     Buffer = CB.Receive();
-                                    if (Buffer.CalculateMD5Value() ==
-                                        Request.Item3)
+                                    Json = Buffer.DecodingString();
+                                    if (Json != string.Empty)
                                     {
                                         ServerReceiveEventArgs SREA =
                                             new ServerReceiveEventArgs
                                             {
                                                 ReceiveDataType =
-                                                    ReceiveDataType.File,
-                                                Data = Buffer
+                                                    ReceiveDataType.Record,
+                                                Record = Json
                                             };
                                         Event.ReceiveEventCall(SREA);
                                         CB.Send(Encoding.Default.GetBytes(
-                                                    "Success"));
+                                                "Success"));
 
                                         Event.MessageOutputCall(
                                             new MessageOutputEventArgs
@@ -127,7 +200,7 @@ namespace DiReCT_Network
                                                 (ClientSock.RemoteEndPoint
                                                 as IPEndPoint)
                                                 .Address.ToString() +
-                                                " Send a File"
+                                                " Send one Record"
                                             });
 
                                         Logger.Write(Log.GeneralEvent,
@@ -135,7 +208,7 @@ namespace DiReCT_Network
                                                 (ClientSock.RemoteEndPoint
                                                 as IPEndPoint)
                                                 .Address.ToString() +
-                                                " Send a File");
+                                                " Send one Record");
                                     }
                                     else
                                     {
@@ -149,7 +222,7 @@ namespace DiReCT_Network
                                                 (ClientSock.RemoteEndPoint
                                                 as IPEndPoint)
                                                 .Address.ToString() +
-                                                " Send File Fail"
+                                                " Send Record Fail"
                                             });
 
                                         Logger.Write(Log.GeneralEvent,
@@ -157,333 +230,272 @@ namespace DiReCT_Network
                                                 (ClientSock.RemoteEndPoint
                                                 as IPEndPoint)
                                                 .Address.ToString() +
-                                                " Send File Fail");
-                                    }
-                                }
-
-                                if (Request.Item1 == ReceiveDataType.Record)
-                                {
-                                    if (Request.Item1 == ReceiveDataType.Record)
-                                    {
-                                        CB.Send(Encoding.Default.GetBytes("Start"));
-                                        Buffer = CB.Receive();
-                                        Json = Buffer.DecodingString();
-                                        if (Json != string.Empty)
-                                        {
-                                            ServerReceiveEventArgs SREA =
-                                                new ServerReceiveEventArgs
-                                                {
-                                                    ReceiveDataType =
-                                                        ReceiveDataType.Record,
-                                                    Record = Json
-                                                };
-                                            Event.ReceiveEventCall(SREA);
-                                            CB.Send(Encoding.Default.GetBytes(
-                                                    "Success"));
-
-                                            Event.MessageOutputCall(
-                                                new MessageOutputEventArgs {
-                                                    Message = "IP: " +
-                                                    (ClientSock.RemoteEndPoint 
-                                                    as IPEndPoint)
-                                                    .Address.ToString() +
-                                                    " Send one Record"
-                                                });
-
-                                            Logger.Write(Log.GeneralEvent,
-                                                "IP: " +
-                                                    (ClientSock.RemoteEndPoint
-                                                    as IPEndPoint)
-                                                    .Address.ToString() +
-                                                    " Send one Record");
-                                        }
-                                        else
-                                        {
-                                            CB.Send(Encoding.Default.GetBytes(
-                                                "Fail"));
-
-                                            Event.MessageOutputCall(
-                                                new MessageOutputEventArgs
-                                                {
-                                                    Message = "IP: " +
-                                                    (ClientSock.RemoteEndPoint
-                                                    as IPEndPoint)
-                                                    .Address.ToString() +
-                                                    " Send Record Fail"
-                                                });
-
-                                            Logger.Write(Log.GeneralEvent,
-                                                "IP: " +
-                                                    (ClientSock.RemoteEndPoint
-                                                    as IPEndPoint)
-                                                    .Address.ToString() +
-                                                    " Send Record Fail");
-                                        }
+                                                " Send Record Fail");
                                     }
                                 }
                             }
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Write(Log.ErrorEvent, ex.ToString());
-                    Event.MessageOutputCall(
-                        new MessageOutputEventArgs
-                        {
-                            Message = "IP: " +
-                                (ClientSock.RemoteEndPoint as IPEndPoint)
-                                .Address.ToString() + ex.ToString()
-                        });
-                }
-
-                CommunicationDictionary[ClientSock].Dispose();
-                CommunicationDictionary.Remove(ClientSock);
-                ClientSock.Dispose();
-                Clients.Remove(ClientSock);
-                ClientThreadList.Remove(Thread.CurrentThread);
-
+            }
+            catch (Exception ex)
+            {
+                Logger.Write(Log.ErrorEvent, ex.ToString());
                 Event.MessageOutputCall(
                     new MessageOutputEventArgs
                     {
                         Message = "IP: " +
-                        (ClientSock.RemoteEndPoint
-                        as IPEndPoint)
-                        .Address.ToString() +
-                        " Close done"
+                            (ClientSock.RemoteEndPoint as IPEndPoint)
+                            .Address.ToString() + ex.ToString()
+                    });
+            }
+
+            CommunicationDictionary[ClientSock].Dispose();
+            CommunicationDictionary.Remove(ClientSock);
+            ClientSock.Dispose();
+            Clients.Remove(ClientSock);
+            ClientThreadList.Remove(Thread.CurrentThread);
+
+            Event.MessageOutputCall(
+                new MessageOutputEventArgs
+                {
+                    Message = "IP: " +
+                    (ClientSock.RemoteEndPoint
+                    as IPEndPoint)
+                    .Address.ToString() +
+                    " Close done"
+                });
+
+            Logger.Write(Log.GeneralEvent,
+                "IP: " +
+                    (ClientSock.RemoteEndPoint
+                    as IPEndPoint)
+                    .Address.ToString() +
+                    " Close done");
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // 偵測多餘的呼叫
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                MasterSwitch = false;
+                Listener.Dispose();
+                ConnectionEvent.Dispose();
+                foreach (var q in Clients)
+                    q.Dispose();
+                foreach (var q in CommunicationDictionary)
+                    q.Value.Dispose();
+
+                foreach (var q in ClientThreadList)
+                    q.Join();
+
+                if (disposing)
+                {
+                    ClientsLock = null;
+                    CommunicationDictionary = null;
+                    ClientThreadList = null;
+                    Clients = null;
+                    // TODO: 處置 Managed 狀態 (Managed 物件)。
+                }
+
+                Event.MessageOutputCall(
+                    new MessageOutputEventArgs
+                    {
+                        Message = "Network server dispose done"
                     });
 
                 Logger.Write(Log.GeneralEvent,
-                    "IP: " +
-                        (ClientSock.RemoteEndPoint
-                        as IPEndPoint)
-                        .Address.ToString() +
-                        " Close done");
+                    "Network server dispose done");
+
+                disposedValue = true;
             }
-
-            #region IDisposable Support
-            private bool disposedValue = false; // 偵測多餘的呼叫
-
-            protected virtual void Dispose(bool disposing)
-            {
-                if (!disposedValue)
-                {
-                    Listener.Dispose();
-                    ConnectionEvent.Dispose();
-                    MasterSwitch = false;
-                    foreach (var q in Clients)
-                        q.Dispose();
-                    foreach (var q in CommunicationDictionary)
-                        q.Value.Dispose();
-
-                    foreach (var q in ClientThreadList)
-                        q.Join();
-
-                    if (disposing)
-                    {
-                        ClientsLock = null;
-                        CommunicationDictionary = null;
-                        ClientThreadList = null;
-                        Clients = null;
-                        // TODO: 處置 Managed 狀態 (Managed 物件)。
-                    }
-
-                    Event.MessageOutputCall(
-                        new MessageOutputEventArgs
-                        {
-                            Message = "Network server dispose done"
-                        });
-
-                    Logger.Write(Log.GeneralEvent, 
-                        "Network server dispose done");
-
-                    disposedValue = true;
-                }
-            }
-
-             ~NetworkServer()
-            {
-                Dispose(false);
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
-            }
-            #endregion
         }
 
-        public class NetworkClient :IDisposable
+        ~NetworkServer()
         {
-            Socket Server;
-            Thread ServerThread;
-            CommunicationBase CB;
-            Queue<(decimal, string[])> DataBuffer;
-            object DataBufferLock = new object();
-            bool NetworkClientSwitch = true;
+            Dispose(false);
+        }
 
-            public NetworkClient(string ipAddress, int Port)
-            {
-                Server = new Socket(AddressFamily.InterNetwork,
-                    SocketType.Stream,
-                    ProtocolType.Tcp);
-                DataBuffer = new Queue<(decimal, string[])>();
-                Server.Connect(new IPEndPoint(
-                    IPAddress.Parse(ipAddress), Port));
-                CB = new CommunicationBase(Server);
-                ServerThread = new Thread(Work) { IsBackground = true };
-                ServerThread.Start();
-            }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
+    }
 
-            private void Work()
+    public class NetworkClient : IDisposable
+    {
+        Socket Server;
+        Thread ServerThread;
+        CommunicationBase CB;
+        Queue<(decimal, string[])> DataBuffer;
+        object DataBufferLock = new object();
+        bool NetworkClientSwitch = true;
+
+        public NetworkClient(string ipAddress, int Port)
+        {
+            Server = new Socket(AddressFamily.InterNetwork,
+                SocketType.Stream,
+                ProtocolType.Tcp);
+            DataBuffer = new Queue<(decimal, string[])>();
+            Server.Connect(new IPEndPoint(
+                IPAddress.Parse(ipAddress), Port));
+            CB = new CommunicationBase(Server);
+            ServerThread = new Thread(Work) { IsBackground = true };
+            ServerThread.Start();
+        }
+
+        private void Work()
+        {
+            int DataCount = int.MinValue;
+            (decimal, string[]) RecordAndFiles;
+            while (NetworkClientSwitch)
             {
-                int DataCount = int.MinValue;
-                (decimal, string[]) RecordAndFiles;
-                while (NetworkClientSwitch)
+                lock (DataBufferLock)
+                    DataCount = DataBuffer.Count();
+                if (DataCount is 0 && NetworkClientSwitch)
+                    SpinWait.SpinUntil(() =>
+                    DataBuffer.Count > 0 && NetworkClientSwitch);
+                if (NetworkClientSwitch)
                 {
-                    lock (DataBufferLock)
-                        DataCount = DataBuffer.Count();
-                    if (DataCount is 0 && NetworkClientSwitch)
-                        SpinWait.SpinUntil(() =>
-                        DataBuffer.Count > 0 && NetworkClientSwitch);
-                    if (NetworkClientSwitch)
+                    try
                     {
-                        try
+                        bool IsSend = false;
+                        lock (DataBufferLock)
+                            RecordAndFiles = DataBuffer.Dequeue();
+                        foreach (string FilePath in RecordAndFiles.Item2)
                         {
-                            bool IsSend = false;
-                            lock (DataBufferLock)
-                                RecordAndFiles = DataBuffer.Dequeue();
-                            foreach(string FilePath in RecordAndFiles.Item2)
-                            {
-                                IsSend = false;
-                                while(IsSend)
-                                {
-                                    var FileAndInfo = GetFileAndInfo(FilePath);
-                                    CB.Send(Tools.EncodingString(
-                                        Tools.EncodingRequest(
-                                            ReceiveDataType.File,
-                                            FileAndInfo.Item2, 
-                                            FileAndInfo.Item3)));
-                                    if (Tools.DecodingString(CB.Receive()) == 
-                                        "Start")
-                                    {
-                                        CB.Send(FileAndInfo.Item1);
-                                        if (Tools.DecodingString(CB.Receive())
-                                            == "Success")
-                                        {
-                                            IsSend = true;
-                                            Logger.Write(Log.GeneralEvent,
-                                                    "Send file done");
-                                        }
-                                        else
-                                            Logger.Write(Log.GeneralEvent,
-                                                    "Send file fail");
-                                    }
-                                }
-                            }
                             IsSend = false;
-                            while(IsSend)
+                            while (IsSend)
                             {
+                                var FileAndInfo = GetFileAndInfo(FilePath);
                                 CB.Send(Tools.EncodingString(
                                     Tools.EncodingRequest(
-                                    ReceiveDataType.Record,
-                                    string.Empty,
-                                    string.Empty)));
+                                        ReceiveDataType.File,
+                                        FileAndInfo.Item2,
+                                        FileAndInfo.Item3)));
                                 if (Tools.DecodingString(CB.Receive()) ==
                                     "Start")
                                 {
-                                    if(SendRecord(RecordAndFiles.Item1))
+                                    CB.Send(FileAndInfo.Item1);
+                                    if (Tools.DecodingString(CB.Receive())
+                                        == "Success")
                                     {
                                         IsSend = true;
                                         Logger.Write(Log.GeneralEvent,
-                                            "Send record done");
+                                                "Send file done");
                                     }
                                     else
                                         Logger.Write(Log.GeneralEvent,
-                                            "Send record fail");
+                                                "Send file fail");
                                 }
                             }
                         }
-                        catch(Exception ex)
+                        IsSend = false;
+                        while (IsSend)
                         {
-                            Logger.Write(Log.ErrorEvent, ex.ToString());
+                            CB.Send(Tools.EncodingString(
+                                Tools.EncodingRequest(
+                                ReceiveDataType.Record,
+                                string.Empty,
+                                string.Empty)));
+                            if (Tools.DecodingString(CB.Receive()) ==
+                                "Start")
+                            {
+                                if (SendRecord(RecordAndFiles.Item1))
+                                {
+                                    IsSend = true;
+                                    Logger.Write(Log.GeneralEvent,
+                                        "Send record done");
+                                }
+                                else
+                                    Logger.Write(Log.GeneralEvent,
+                                        "Send record fail");
+                            }
                         }
                     }
-                }
-            }
-
-            private bool SendRecord(dynamic Record)
-            {
-                bool IsSend = false;
-
-                try
-                {
-                    
-                    if (Tools.DecodingString(CB.Receive())
-                        == "Success")
-                        IsSend = true;
-                }
-                catch(Exception ex)
-                {
-                    Logger.Write(Log.ErrorEvent, ex.ToString());
-                }
-                return IsSend;
-            }
-
-            private (byte[],string,string) GetFileAndInfo(string FilePath)
-            {
-                try
-                {
-                    byte[] FileData = File.ReadAllBytes(FilePath);
-                    string FileName = Path.GetFileName(FilePath);
-                    string MD5 = Tools.CalculateMD5Value(FileData);
-                    return (FileData, FileName, MD5);
-                }
-                catch(Exception ex)
-                {
-                    throw ex;
-                }
-            }
-
-            public void EnqueueData((decimal, string[]) Data)
-            {
-                lock (DataBufferLock)
-                    DataBuffer.Enqueue(Data);
-            }
-
-            #region IDisposable Support
-            private bool disposedValue = false; 
-
-            protected virtual void Dispose(bool disposing)
-            {
-                if (!disposedValue)
-                {
-                    NetworkClientSwitch = false;
-                    ServerThread.Join();
-                    CB.Dispose();
-                    Server.Dispose();
-
-                    if (disposing)
+                    catch (Exception ex)
                     {
-                        Server = null;
-                        CB = null;
-                        ServerThread = null;
-                        DataBufferLock = null;
+                        Logger.Write(Log.ErrorEvent, ex.ToString());
                     }
-
-                    Logger.Write(Log.GeneralEvent,
-                        "Network client dispose done");
-
-                    disposedValue = true;
                 }
             }
-
-            public void Dispose()
-            {
-                Dispose(true);
-            }
-            #endregion
         }
+
+        private bool SendRecord(dynamic Record)
+        {
+            bool IsSend = false;
+
+            try
+            {
+
+                if (Tools.DecodingString(CB.Receive())
+                    == "Success")
+                    IsSend = true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Write(Log.ErrorEvent, ex.ToString());
+            }
+            return IsSend;
+        }
+
+        private (byte[], string, string) GetFileAndInfo(string FilePath)
+        {
+            try
+            {
+                byte[] FileData = File.ReadAllBytes(FilePath);
+                string FileName = Path.GetFileName(FilePath);
+                string MD5 = Tools.CalculateMD5Value(FileData);
+                return (FileData, FileName, MD5);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public void EnqueueData((decimal, string[]) Data)
+        {
+            lock (DataBufferLock)
+                DataBuffer.Enqueue(Data);
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                NetworkClientSwitch = false;
+                ServerThread.Join();
+                CB.Dispose();
+                Server.Dispose();
+
+                if (disposing)
+                {
+                    Server = null;
+                    CB = null;
+                    ServerThread = null;
+                    DataBufferLock = null;
+                }
+
+                Logger.Write(Log.GeneralEvent,
+                    "Network client dispose done");
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 
     public static class Tools

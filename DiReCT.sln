@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiReCT_Network", "DiReCT_Network\DiReCT_Network.csproj", "{EBC5BB03-34B1-4013-8507-150E10B751FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiReCT_Server", "DiReCT_Server\DiReCT_Server.csproj", "{691778D9-57D9-48C2-80EE-FC020B5549AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,12 @@ Global
 		{EBC5BB03-34B1-4013-8507-150E10B751FE}.Publish|Any CPU.Build.0 = Release|Any CPU
 		{EBC5BB03-34B1-4013-8507-150E10B751FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBC5BB03-34B1-4013-8507-150E10B751FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{691778D9-57D9-48C2-80EE-FC020B5549AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{691778D9-57D9-48C2-80EE-FC020B5549AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{691778D9-57D9-48C2-80EE-FC020B5549AE}.Publish|Any CPU.ActiveCfg = Release|Any CPU
+		{691778D9-57D9-48C2-80EE-FC020B5549AE}.Publish|Any CPU.Build.0 = Release|Any CPU
+		{691778D9-57D9-48C2-80EE-FC020B5549AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{691778D9-57D9-48C2-80EE-FC020B5549AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
