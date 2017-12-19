@@ -34,7 +34,7 @@ namespace DiReCT_Network
             private Dictionary<Socket, CommunicationBase> 
                 CommunicationDictionary = 
                 new Dictionary<Socket, CommunicationBase>();
-            private ServerReceiveEvent Event = new ServerReceiveEvent();
+            private ServerEvent Event = new ServerEvent();
             private bool MasterSwitch = true;
             private object ClientsLock = new object();
 
@@ -112,17 +112,53 @@ namespace DiReCT_Network
                                         ServerReceiveEventArgs SREA =
                                             new ServerReceiveEventArgs
                                             {
-                                                receiveDataType =
+                                                ReceiveDataType =
                                                     ReceiveDataType.File,
                                                 Data = Buffer
                                             };
                                         Event.ReceiveEventCall(SREA);
                                         CB.Send(Encoding.Default.GetBytes(
                                                     "Success"));
+
+                                        Event.MessageOutputCall(
+                                            new MessageOutputEventArgs
+                                            {
+                                                Message = "IP: " +
+                                                (ClientSock.RemoteEndPoint
+                                                as IPEndPoint)
+                                                .Address.ToString() +
+                                                " Send a File"
+                                            });
+
+                                        Logger.Write(Log.GeneralEvent,
+                                            "IP: " +
+                                                (ClientSock.RemoteEndPoint
+                                                as IPEndPoint)
+                                                .Address.ToString() +
+                                                " Send a File");
                                     }
                                     else
+                                    {
                                         CB.Send(Encoding.Default.GetBytes(
                                             "Fail"));
+
+                                        Event.MessageOutputCall(
+                                            new MessageOutputEventArgs
+                                            {
+                                                Message = "IP: " +
+                                                (ClientSock.RemoteEndPoint
+                                                as IPEndPoint)
+                                                .Address.ToString() +
+                                                " Send File Fail"
+                                            });
+
+                                        Logger.Write(Log.GeneralEvent,
+                                            "IP: " +
+                                                (ClientSock.RemoteEndPoint
+                                                as IPEndPoint)
+                                                .Address.ToString() +
+                                                " Send File Fail");
+                                    }
                                 }
 
                                 if (Request.Item1 == ReceiveDataType.Record)
@@ -137,17 +173,52 @@ namespace DiReCT_Network
                                             ServerReceiveEventArgs SREA =
                                                 new ServerReceiveEventArgs
                                                 {
-                                                    receiveDataType =
+                                                    ReceiveDataType =
                                                         ReceiveDataType.Record,
                                                     Record = Json
                                                 };
                                             Event.ReceiveEventCall(SREA);
                                             CB.Send(Encoding.Default.GetBytes(
                                                     "Success"));
+
+                                            Event.MessageOutputCall(
+                                                new MessageOutputEventArgs {
+                                                    Message = "IP: " +
+                                                    (ClientSock.RemoteEndPoint 
+                                                    as IPEndPoint)
+                                                    .Address.ToString() +
+                                                    " Send one Record"
+                                                });
+
+                                            Logger.Write(Log.GeneralEvent,
+                                                "IP: " +
+                                                    (ClientSock.RemoteEndPoint
+                                                    as IPEndPoint)
+                                                    .Address.ToString() +
+                                                    " Send one Record");
                                         }
                                         else
+                                        {
                                             CB.Send(Encoding.Default.GetBytes(
                                                 "Fail"));
+
+                                            Event.MessageOutputCall(
+                                                new MessageOutputEventArgs
+                                                {
+                                                    Message = "IP: " +
+                                                    (ClientSock.RemoteEndPoint
+                                                    as IPEndPoint)
+                                                    .Address.ToString() +
+                                                    " Send Record Fail"
+                                                });
+
+                                            Logger.Write(Log.GeneralEvent,
+                                                "IP: " +
+                                                    (ClientSock.RemoteEndPoint
+                                                    as IPEndPoint)
+                                                    .Address.ToString() +
+                                                    " Send Record Fail");
+                                        }
                                     }
                                 }
                             }
@@ -157,6 +228,13 @@ namespace DiReCT_Network
                 catch (Exception ex)
                 {
                     Logger.Write(Log.ErrorEvent, ex.ToString());
+                    Event.MessageOutputCall(
+                        new MessageOutputEventArgs
+                        {
+                            Message = "IP: " +
+                                (ClientSock.RemoteEndPoint as IPEndPoint)
+                                .Address.ToString() + ex.ToString()
+                        });
                 }
 
                 CommunicationDictionary[ClientSock].Dispose();
@@ -164,6 +242,23 @@ namespace DiReCT_Network
                 ClientSock.Dispose();
                 Clients.Remove(ClientSock);
                 ClientThreadList.Remove(Thread.CurrentThread);
+
+                Event.MessageOutputCall(
+                    new MessageOutputEventArgs
+                    {
+                        Message = "IP: " +
+                        (ClientSock.RemoteEndPoint
+                        as IPEndPoint)
+                        .Address.ToString() +
+                        " Close done"
+                    });
+
+                Logger.Write(Log.GeneralEvent,
+                    "IP: " +
+                        (ClientSock.RemoteEndPoint
+                        as IPEndPoint)
+                        .Address.ToString() +
+                        " Close done");
             }
 
             #region IDisposable Support
@@ -193,8 +288,14 @@ namespace DiReCT_Network
                         // TODO: 處置 Managed 狀態 (Managed 物件)。
                     }
 
-                    // TODO: 釋放 Unmanaged 資源 (Unmanaged 物件) 並覆寫下方的完成項。
-                    // TODO: 將大型欄位設為 null。
+                    Event.MessageOutputCall(
+                        new MessageOutputEventArgs
+                        {
+                            Message = "Network server dispose done"
+                        });
+
+                    Logger.Write(Log.GeneralEvent, 
+                        "Network server dispose done");
 
                     disposedValue = true;
                 }
@@ -269,7 +370,14 @@ namespace DiReCT_Network
                                         CB.Send(FileAndInfo.Item1);
                                         if (Tools.DecodingString(CB.Receive())
                                             == "Success")
+                                        {
                                             IsSend = true;
+                                            Logger.Write(Log.GeneralEvent,
+                                                    "Send file done");
+                                        }
+                                        else
+                                            Logger.Write(Log.GeneralEvent,
+                                                    "Send file fail");
                                     }
                                 }
                             }
@@ -285,7 +393,14 @@ namespace DiReCT_Network
                                     "Start")
                                 {
                                     if(SendRecord(RecordAndFiles.Item1))
+                                    {
                                         IsSend = true;
+                                        Logger.Write(Log.GeneralEvent,
+                                            "Send record done");
+                                    }
+                                    else
+                                        Logger.Write(Log.GeneralEvent,
+                                            "Send record fail");
                                 }
                             }
                         }
@@ -355,6 +470,9 @@ namespace DiReCT_Network
                         ServerThread = null;
                         DataBufferLock = null;
                     }
+
+                    Logger.Write(Log.GeneralEvent,
+                        "Network client dispose done");
 
                     disposedValue = true;
                 }
