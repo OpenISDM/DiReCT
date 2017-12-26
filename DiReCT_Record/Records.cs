@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace DiReCT_Record
 {
+    //Enumerate disaster type
     public enum EnumDisasterType
     {
         Error = 0,
@@ -11,6 +12,7 @@ namespace DiReCT_Record
         DebrisFlow,
     };
 
+    //Disaster events
     public class DisasterEvent
     {
         public Guid DisasterId { get; set; }
@@ -25,13 +27,20 @@ namespace DiReCT_Record
     }
 
     #region RecordOfFieldVisits
+    //Debris flow record of field visits
     public class DebrisFlow : RecordOfFieldVisits, IRecordOfDebrisFlow
     {
+
+        //Catchment Datas
         public string CatchmentDatas { get; set; }
+        //Rock Datas
         public string RockDatas { get; set; }
+        //Plantation Datas
         public string PlantationDatas { get; set; }
+        //Slope datas
         public string SlopeDatas { get; set; }
 
+        //JSON is used because the database can't be inserted into the list
         public DebrisFlow(List<Catchment> CatchmentList, List<Rock> RockList,
             List<Plantation> PlantationList, List<Slope> SlopeList)
         {
@@ -47,24 +56,28 @@ namespace DiReCT_Record
             DisasterType = (int)EnumDisasterType.DebrisFlow;
         }
 
+        //Catchment data converted to list
         public List<Catchment> GetCatchmentList()
         {
             return JsonConvert
                 .DeserializeObject<List<Catchment>>(CatchmentDatas);
         }
 
+        //Rock data converted to list
         public List<Rock> GetRockList()
         {
             return JsonConvert
                 .DeserializeObject<List<Rock>>(RockDatas);
         }
 
+        //Plantation data converted to list
         public List<Plantation> GetPlantationList()
         {
             return JsonConvert
                 .DeserializeObject<List<Plantation>>(PlantationDatas);
         }
 
+        //Slope data converted to list
         public List<Slope> GetSlopeList()
         {
             return JsonConvert
@@ -74,8 +87,11 @@ namespace DiReCT_Record
 
     public class Flood : RecordOfFieldVisits, IRecordOfFlood
     {
+        //Water Leve
         public int WaterLevel { get; set; }
+        //Cause Of Disaster
         public string CauseOfDisaster { get; set; }
+        //Rain Fall
         public float RainFall { get; set; }
 
         public Flood()
@@ -86,6 +102,7 @@ namespace DiReCT_Record
     #endregion
 
     #region RecordOfMedical
+    //General Medical Record
     public class GeneralMedicalRecord : RecordOfMedical
     {
         public GeneralMedicalRecord(EnumDisasterType disasterType)
@@ -101,14 +118,18 @@ namespace DiReCT_Record
     #endregion
 
     #region RecordOfFacilityDamage
-    public class DebrisFlowOfFacilityDamage
+    //General Facility Damage Record
+    public class GeneralFacilityDamageRecord : RecordOfFacilityDamage
     {
-        public string Description { get; set; }
-    }
+        public GeneralFacilityDamageRecord(EnumDisasterType disasterType)
+        {
+            DisasterType = (int)disasterType;
+        }
 
-    public class FloodOfFacilityDamage
-    {
-        public string Description { get; set; }
+        public GeneralFacilityDamageRecord()
+        {
+
+        }
     }
     #endregion
 }
