@@ -28,7 +28,7 @@ namespace DiReCT_Record
 
     #region RecordOfFieldVisits
     //Debris flow record of field visits
-    public class DebrisFlow : RecordOfFieldVisits, IRecordOfDebrisFlow
+    public class DebrisFlowOfFieldVisits : RecordOfFieldVisits, IRecordOfDebrisFlow
     {
 
         //Catchment Datas
@@ -41,7 +41,7 @@ namespace DiReCT_Record
         public string SlopeDatas { get; set; }
 
         //JSON is used because the database can't be inserted into the list
-        public DebrisFlow(List<Catchment> CatchmentList, List<Rock> RockList,
+        public DebrisFlowOfFieldVisits(List<Catchment> CatchmentList, List<Rock> RockList,
             List<Plantation> PlantationList, List<Slope> SlopeList)
         {
             CatchmentDatas = JsonConvert.SerializeObject(CatchmentList);
@@ -51,7 +51,7 @@ namespace DiReCT_Record
             DisasterType = (int)EnumDisasterType.DebrisFlow;
         }
 
-        public DebrisFlow()
+        public DebrisFlowOfFieldVisits()
         {
             DisasterType = (int)EnumDisasterType.DebrisFlow;
         }
@@ -85,7 +85,7 @@ namespace DiReCT_Record
         }
     }
 
-    public class Flood : RecordOfFieldVisits, IRecordOfFlood
+    public class FloodOfFieldVisits : RecordOfFieldVisits, IRecordOfFlood
     {
         //Water Leve
         public int WaterLevel { get; set; }
@@ -94,7 +94,7 @@ namespace DiReCT_Record
         //Rain Fall
         public float RainFall { get; set; }
 
-        public Flood()
+        public FloodOfFieldVisits()
         {
             DisasterType = (int)EnumDisasterType.Flood;
         }

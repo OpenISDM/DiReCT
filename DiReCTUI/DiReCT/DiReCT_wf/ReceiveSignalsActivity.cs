@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Activities;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiReCT_wpf.ServiceLocator;
 using DiReCT_wpf.ScreenInterface;
-using DiReCT_wpf.RepresentaionLayer;
 using System.Diagnostics;
 using DiReCT_wpf.Model;
 using DiReCT_wpf.ViewModel;
