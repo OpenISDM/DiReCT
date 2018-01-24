@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Activities;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiReCT_wpf.ServiceLocator;
 using DiReCT_wpf.ScreenInterface;
-using System.Diagnostics;
 
 namespace DiReCT_wf
 {
