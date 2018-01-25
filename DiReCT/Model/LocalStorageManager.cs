@@ -38,6 +38,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Threading;
 using Newtonsoft.Json.Linq;
+using DiReCT.Logger;
 
 namespace DiReCT.Model
 {
@@ -142,25 +143,31 @@ namespace DiReCT.Model
                     <(Action<(dynamic, RecordStorageLocation)>,
                     (dynamic, RecordStorageLocation))>();
 
-                Debug.WriteLine("RSInit complete Phase 1 Initialization");
+                Log.GeneralEvent
+                    .Write("RSInit complete Phase 1 Initialization");
 
                 // Wait for core StartWork Signal
                 ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
                 ModuleStartWorkEvent.WaitOne();
 
-                Debug.WriteLine("RSInit complete Phase 2 Initialization");
-                Debug.WriteLine("RS module is working...");
+                Log.GeneralEvent
+                    .Write("RSInit complete Phase 2 Initialization");
+                Log.GeneralEvent
+                    .Write("RS module is working...");
 
                 RecordStoraageWork();
 
-                Debug.WriteLine("RecordStorage module is aborting.");
+                Log.GeneralEvent
+                    .Write("RecordStorage module is aborting.");
             }
             catch(Exception ex)
             {
-                Debug.WriteLine(ex.Message);
-                Debug.WriteLine("RecordStorage thread failed.");
+                Log.ErrorEvent.Write(ex.Message);
+                Log.ErrorEvent
+                    .Write("RecordStorage thread failed.");
                 threadParameters.ModuleInitFailedEvent.Set();
-                Debug.WriteLine("RecordStorage ModuleInitFailedEvent Set");
+                Log.GeneralEvent
+                    .Write("RecordStorage ModuleInitFailedEvent Set");
             }
 
             CleanupExit();
@@ -306,7 +313,8 @@ namespace DiReCT.Model
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.ToString());
+                Log.ErrorEvent.Write(ex.ToString());
+                Log.ErrorEvent.Write("Load on file failed.");
             }
             return LoadingSuccess;
         }
@@ -601,7 +609,8 @@ namespace DiReCT.Model
             }
             catch(Exception ex)
             {
-                Debug.WriteLine(ex.ToString());
+                Log.ErrorEvent.Write(ex.ToString());
+                Log.ErrorEvent.Write("Convert to record failed.");
             }
 
             return IsConvertSuccess;
@@ -609,6 +618,9 @@ namespace DiReCT.Model
 
         private static void CleanupExit()
         {
+            //
+            // Cleanup code
+            //
             defectiveData.Clear();
             defectiveData = null;
             cleanData.Clear();
