@@ -193,10 +193,6 @@
       <Project>{461c695e-6a5b-4724-b59d-5fe7e6d142bd}</Project>
       <Name>DiReCT_wpf</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DiReCT_Record\DiReCT_Record.csproj">
-      <Project>{cce7ea12-75be-469e-92c9-034715dad4c4}</Project>
-      <Name>DiReCT_Record</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Logger\Logger.csproj">
       <Project>{52b1d836-eac5-43e2-b62b-ad21e04096f0}</Project>
       <Name>Logger</Name>
