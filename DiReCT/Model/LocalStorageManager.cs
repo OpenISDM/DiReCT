@@ -50,8 +50,112 @@ namespace DiReCT.Model
 
     public class LocalStorage
     {
-        public static string StoragePath = @"./LocalStorage\";
-        public static string TemporaryPath = StoragePath + @"TemporaryFolder\";
+        public static string StorageFolder = @"./LocalStorage\";
+        public static string TemporaryFolder = 
+            StorageFolder + @"TemporaryFolder\";
+
+        static ModuleControlDataBlock moduleControlDataBlock;
+        static ThreadParameters threadParameters;
+        static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
+        static AutoResetEvent ModuleReadyEvent;
+
+        // Multi-threaded environment, used to lock resources
+        private static object StorageWorkQueueLock = new object();
+
+        // Add work, Update work, Remove work
+        private static Queue<(Action<object>, object)> StorageWorkQueue;
+
+        /// <summary>
+        /// Local storage module initialization
+        /// </summary>
+        /// <param name="objectParameters"></param>
+        public static void LSInit(object objectParameters)
+        {
+            moduleControlDataBlock
+                 = (ModuleControlDataBlock)objectParameters;
+            threadParameters = moduleControlDataBlock.ThreadParameters;
+
+            try
+            {
+                // Initialize Ready/Abort Event and threadpool    
+                ModuleReadyEvent = threadParameters.ModuleReadyEvent;
+                ModuleAbortEvent = threadParameters.ModuleAbortEvent;
+
+                StorageWorkQueue = new Queue<(Action<object>, object)>();
+
+                Log.GeneralEvent
+                    .Write("LSInit complete Phase 1 Initialization");
+
+                // Wait for core StartWork Signal
+                ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
+                ModuleStartWorkEvent.WaitOne();
+
+                Log.GeneralEvent
+                    .Write("LSInit complete Phase 2 Initialization");
+                Log.GeneralEvent
+                    .Write("LS module is working...");
+
+                //Local Storage start working
+                LocalStoraageWork();
+
+                Log.GeneralEvent
+                    .Write("LocalStorage module is aborting.");
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorEvent.Write(ex.Message);
+                Log.ErrorEvent
+                    .Write("LocalStorage thread failed.");
+                threadParameters.ModuleInitFailedEvent.Set();
+                Log.GeneralEvent
+                    .Write("LocalStorage ModuleInitFailedEvent Set");
+            }
+
+            CleanupExit();
+        }
+
+        /// <summary>
+        /// Function to handle work (add, update, remove)
+        /// </summary>
+        private static void LocalStoraageWork()
+        {
+            // Check ModuleAbortEvent periodically
+            while (!ModuleAbortEvent
+                        .WaitOne((int)TimeInterval.VeryVeryShortTime))
+            {
+                // Wait module abort event or work
+                SpinWait.SpinUntil(() => (ModuleAbortEvent
+                        .WaitOne((int)TimeInterval.VeryVeryShortTime) &&
+                        StorageWorkQueue.Count != 0));
+
+                // Check whether inside the work queue has job or not
+                lock (StorageWorkQueueLock)
+                    if (StorageWorkQueue.Count != 0)
+                    {
+                        var Work = StorageWorkQueue.Dequeue();
+                        Work.Item1.Invoke(Work.Item2);
+                    }
+            }
+        }
+
+        /// <summary>
+        /// Enqueue jobs to the work queue
+        /// </summary>
+        /// <param name="action"></param>
+        protected internal static void AddWork((Action<object>, object) action)
+        {
+            lock (StorageWorkQueueLock)
+                StorageWorkQueue.Enqueue(action);
+        }
+
+        private static void CleanupExit()
+        {
+            //
+            // Cleanup code
+            //
+            StorageWorkQueue = null;
+            StorageWorkQueueLock = null;
+        }
 
         /// <summary>
         /// A tool for copying picture media to temporary folder
@@ -75,7 +179,7 @@ namespace DiReCT.Model
                         Path.GetExtension(SourcePath);
                     // Generate a new Id ID file name
                     FileName = Guid.NewGuid().ToString() + Extension;
-                    string DestPath = TemporaryPath + FileName;
+                    string DestPath = TemporaryFolder + FileName;
 
                     // Check destination folder exists and copy
                     if (!File.Exists(DestPath))
@@ -97,102 +201,50 @@ namespace DiReCT.Model
 
     public class RecordStorage
     {
-        // This folder, used to store the record of each recorder
-        // There will be one file for each recorder
-        private static string RecordPath = 
-            LocalStorage.StoragePath + @"Record\";
+        // This folder, used to store the record of each record staff's
+        // There will be one file for each record staff
+        private static string RecordPath =
+            LocalStorage.StorageFolder + @"Record\";
 
-        static ModuleControlDataBlock moduleControlDataBlock;
-        static ThreadParameters threadParameters;
-        static ManualResetEvent ModuleAbortEvent, ModuleStartWorkEvent;
-        static AutoResetEvent ModuleReadyEvent;
-
-        // Multi-threaded environment, used to lock resources
-        private static object RecordWorkQueueLock = new object();
         private static object FileLock = new object();
         private static object dictionaryLock = new object();
 
-        // Add record work, Update record work, Remove record work
-        private static Queue<(Action<(dynamic, RecordStorageLocation)>,
-            (dynamic,RecordStorageLocation))> RecordWorkQueue;
-
         // Record storage loads the corresponding defective data or clean data 
-        // according to the recorder's current data.
-        private static Guid CurrentRecorder;
+        // according to the record staff's current data.
+        private static Guid Current_Record_Staff;
         // Tkey is record class full name, Tvalue is records
         private static Dictionary<string, List<dynamic>> defectiveData;
         private static Dictionary<string, List<dynamic>> cleanData;
 
-        /// <summary>
-        /// Record storage module initialization
-        /// </summary>
-        /// <param name="objectParameters"></param>
-        public static void RSInit(object objectParameters)
+        // Encapsulate the information needed for the work
+        // (add record, update record, remove record)
+        private class RecordItem
         {
-            moduleControlDataBlock
-                 = (ModuleControlDataBlock)objectParameters;
-            threadParameters = moduleControlDataBlock.ThreadParameters;
-
-            try
-            {
-                // Initialize Ready/Abort Event and threadpool    
-                ModuleReadyEvent = threadParameters.ModuleReadyEvent;
-                ModuleAbortEvent = threadParameters.ModuleAbortEvent;
-
-                RecordWorkQueue = new Queue
-                    <(Action<(dynamic, RecordStorageLocation)>,
-                    (dynamic, RecordStorageLocation))>();
-
-                Log.GeneralEvent
-                    .Write("RSInit complete Phase 1 Initialization");
-
-                // Wait for core StartWork Signal
-                ModuleStartWorkEvent = threadParameters.ModuleStartWorkEvent;
-                ModuleStartWorkEvent.WaitOne();
-
-                Log.GeneralEvent
-                    .Write("RSInit complete Phase 2 Initialization");
-                Log.GeneralEvent
-                    .Write("RS module is working...");
-
-                RecordStoraageWork();
-
-                Log.GeneralEvent
-                    .Write("RecordStorage module is aborting.");
-            }
-            catch(Exception ex)
-            {
-                Log.ErrorEvent.Write(ex.Message);
-                Log.ErrorEvent
-                    .Write("RecordStorage thread failed.");
-                threadParameters.ModuleInitFailedEvent.Set();
-                Log.GeneralEvent
-                    .Write("RecordStorage ModuleInitFailedEvent Set");
-            }
-
-            CleanupExit();
+            public Guid Record_Staff_Id { get; set; }
+            public dynamic Record { get; set; }
+            public RecordStorageLocation Record_Location { get; set; }
         }
 
         /// <summary>
-        /// Obtain the recorder's data
+        /// Obtain the record staff's data
         /// </summary>
-        /// <param name="Records">Input record id</param>
+        /// <param name="Record_Staff_Id">Input record staff id</param>
         /// <returns>
         /// First dynamic array is defective Data,
         /// second dynamic array is cleanData
         /// </returns>
-        public (dynamic[], dynamic[]) GetRecord(Guid Records)
+        public (dynamic[], dynamic[]) GetRecord(Guid Record_Staff_Id)
         {
             // Check if the currently loaded logger is the desired logger
             // if true thhen return defective data and clean data
-            if (Records == CurrentRecorder)
+            if (Record_Staff_Id == Current_Record_Staff)
                 return (RecordConsolidation(defectiveData),
                     RecordConsolidation(cleanData));
 
-            // Read the data of a specific recorder
+            // Read the data of a specific record staff
             // from the hard disk and send it back
-            LoadOnFile(Records, 
-                out Dictionary<string, List<dynamic>> defectiveRecord, 
+            LoadOnFile(Record_Staff_Id,
+                out Dictionary<string, List<dynamic>> defectiveRecord,
                 out Dictionary<string, List<dynamic>> cleanRecord);
             return (RecordConsolidation(defectiveRecord),
                     RecordConsolidation(cleanRecord));
@@ -205,12 +257,18 @@ namespace DiReCT.Model
         /// <param name="RecordLocation">
         /// defective data or clen data
         /// </param>
-        public void Add(dynamic Record, RecordStorageLocation RecordLocation)
+        public static void Add(
+            Guid RecordStaffId,
+            dynamic Record,
+            RecordStorageLocation RecordLocation)
         {
             // Enqueue add record work to work queue
-            lock (RecordWorkQueueLock)
-                RecordWorkQueue.Enqueue((AddRecordWork,
-                    (Record, RecordLocation)));
+            LocalStorage.AddWork((AddRecordWork, new RecordItem
+            {
+                Record_Staff_Id = RecordStaffId,
+                Record = Record,
+                Record_Location = RecordLocation
+            }));
         }
 
         /// <summary>
@@ -220,12 +278,18 @@ namespace DiReCT.Model
         /// <param name="RecordLocation">
         /// defective data or clen data
         /// </param>
-        public void Update(dynamic Record,RecordStorageLocation RecordLocation)
+        public static void Update(
+            Guid RecordStaffId,
+            dynamic Record,
+            RecordStorageLocation RecordLocation)
         {
             // Enqueue update record work to work queue
-            lock (RecordWorkQueueLock)
-                RecordWorkQueue.Enqueue((UpdateRecordWork,
-                    (Record, RecordLocation)));
+            LocalStorage.AddWork((UpdateRecordWork, new RecordItem
+            {
+                Record_Staff_Id = RecordStaffId,
+                Record = Record,
+                Record_Location = RecordLocation
+            }));
         }
 
         /// <summary>
@@ -235,48 +299,29 @@ namespace DiReCT.Model
         /// <param name="RecordLocation">
         /// defective data or clen data
         /// </param>
-        public void Remove(dynamic Record, 
+        public static void Remove(
+            Guid RecordStaffId,
+            dynamic Record,
             RecordStorageLocation RecordLocation)
         {
             // Enqueue remove record work to work queue
-            lock (RecordWorkQueueLock)
-                RecordWorkQueue.Enqueue((RemoveRecordWork,
-                    (Record, RecordLocation)));
-        }
-
-        /// <summary>
-        /// Function to handle work (add, update, remove)
-        /// </summary>
-        private static void RecordStoraageWork()
-        {
-            // Check ModuleAbortEvent periodically
-            while (!ModuleAbortEvent
-                        .WaitOne((int)TimeInterval.VeryVeryShortTime))
+            LocalStorage.AddWork((RemoveRecordWork, new RecordItem
             {
-                // Wait module abort event or work
-                SpinWait.SpinUntil(() => (ModuleAbortEvent
-                        .WaitOne((int)TimeInterval.VeryVeryShortTime) && 
-                        RecordWorkQueue.Count != 0));
-
-                // Check whether inside the work queue has job or not
-                lock (RecordWorkQueueLock)
-                    if (RecordWorkQueue.Count != 0)
-                    {
-                        var Work = RecordWorkQueue.Dequeue();
-                        Work.Item1.Invoke(Work.Item2);
-                    }
-            }
+                Record_Staff_Id = RecordStaffId,
+                Record = Record,
+                Record_Location = RecordLocation
+            }));
         }
 
         /// <summary>
         /// load json data on file then convert Json data into record objects
         /// </summary>
-        /// <param name="Recorder">record id</param>
+        /// <param name="RecordStaffId">Record staff id</param>
         /// <param name="defectiveData"></param>
         /// <param name="cleanData"></param>
         /// <returns></returns>
         private static bool LoadOnFile(
-            Guid Recorder,
+            Guid RecordStaffId,
             out Dictionary<string, List<dynamic>> defectiveData,
             out Dictionary<string, List<dynamic>> cleanData)
         {
@@ -290,7 +335,8 @@ namespace DiReCT.Model
                 // Open file and load json data
                 lock (FileLock)
                     using (StreamReader streamReader
-                        = new StreamReader(RecordPath + Recorder.ToString(),
+                        = new StreamReader(RecordPath +
+                        RecordStaffId.ToString(),
                         Encoding.Default))
                     {
                         string buffer = streamReader.ReadToEnd();
@@ -304,7 +350,7 @@ namespace DiReCT.Model
                         out defectiveData))
                         defectiveData = new Dictionary<string,List<dynamic>>();
 
-                    if (ConvertToRecord((string)JSON.Clean, 
+                    if (ConvertToRecord((string)JSON.Clean,
                         out cleanData))
                         cleanData = new Dictionary<string, List<dynamic>>();
                 }
@@ -313,6 +359,8 @@ namespace DiReCT.Model
             }
             catch (Exception ex)
             {
+                defectiveData = new Dictionary<string, List<dynamic>>();
+                cleanData = new Dictionary<string, List<dynamic>>();
                 Log.ErrorEvent.Write(ex.ToString());
                 Log.ErrorEvent.Write("Load on file failed.");
             }
@@ -322,28 +370,28 @@ namespace DiReCT.Model
         /// <summary>
         /// work function for add record
         /// </summary>
-        /// <param name="Record">
-        /// Item1 is record
-        /// Item2 is set the purpose of storage (defective data, clean data)
-        /// </param>
+        /// <param name="ObjectParameters">RecordItem</param>
         private static void AddRecordWork(
-            (dynamic, RecordStorageLocation) Record)
+            object ObjectParameters)
         {
+            RecordItem recordItem =
+                ObjectParameters as RecordItem;
+
             // Check if the currently loaded logger is the desired logger
             // if true thhen adding
             // else reload data before adding
             lock (dictionaryLock)
-                if (CurrentRecorder == Record.Item1.Recorder)
-                    AddRecord(Record);
+                if (Current_Record_Staff == recordItem.Record_Staff_Id)
+                    AddRecord(recordItem);
                 else
                 {
-                    LoadOnFile(Record.Item1.Recorder,
+                    LoadOnFile(recordItem.Record_Staff_Id,
                         out defectiveData,
                         out cleanData);
 
-                    CurrentRecorder = Record.Item1.Recorder;
+                    Current_Record_Staff = recordItem.Record_Staff_Id;
 
-                    AddRecord(Record);
+                    AddRecord(recordItem);
                 }
 
             SaveChange();
@@ -352,28 +400,28 @@ namespace DiReCT.Model
         /// <summary>
         /// work function for update record
         /// </summary>
-        /// <param name="Record">
-        /// Item1 is record
-        /// Item2 is set the purpose of storage (defective data, clean data)
-        /// </param>
+        /// <param name="ObjectParameters">RecordItem</param>
         private static void UpdateRecordWork(
-            (dynamic, RecordStorageLocation) Record)
+            object ObjectParameters)
         {
+            RecordItem recordItem =
+                    ObjectParameters as RecordItem;
+
             // Check if the currently loaded logger is the desired logger
             // if true thhen updating
             // else reload data before updating
             lock (dictionaryLock)
-                if (CurrentRecorder == Record.Item1.Recorder)
-                    UpdateRecord(Record);
+                if (Current_Record_Staff == recordItem.Record_Staff_Id)
+                    UpdateRecord(recordItem);
                 else
                 {
-                    LoadOnFile(Record.Item1.Recorder,
+                    LoadOnFile(recordItem.Record_Staff_Id,
                         out defectiveData,
                         out cleanData);
 
-                    CurrentRecorder = Record.Item1.Recorder;
+                    Current_Record_Staff = recordItem.Record_Staff_Id;
 
-                    UpdateRecord(Record);
+                    UpdateRecord(recordItem);
                 }
 
             SaveChange();
@@ -382,28 +430,26 @@ namespace DiReCT.Model
         /// <summary>
         /// work function for remove record
         /// </summary>
-        /// <param name="Record">
-        /// Item1 is record
-        /// Item2 is set the purpose of storage (defective data, clean data)
-        /// </param>
-        private static void RemoveRecordWork(
-            (dynamic, RecordStorageLocation) Record)
+        /// <param name="ObjectParameters">RecordItem</param>
+        private static void RemoveRecordWork(object ObjectParameters)
         {
+            RecordItem recordItem =
+                    ObjectParameters as RecordItem;
             // Check if the currently loaded logger is the desired logger
             // if true thhen removing
             // else reload data before removing
             lock (dictionaryLock)
-                if (CurrentRecorder == Record.Item1.Recorder)
-                    RemoveRecord(Record);
+                if (Current_Record_Staff == recordItem.Record_Staff_Id)
+                    RemoveRecord(recordItem);
                 else
                 {
-                    LoadOnFile(Record.Item1.Recorder,
+                    LoadOnFile(recordItem.Record_Staff_Id,
                         out defectiveData,
                         out cleanData);
 
-                    CurrentRecorder = Record.Item1.Recorder;
+                    Current_Record_Staff = recordItem.Record_Staff_Id;
 
-                    RemoveRecord(Record);
+                    RemoveRecord(recordItem);
                 }
 
             SaveChange();
@@ -412,12 +458,12 @@ namespace DiReCT.Model
         /// <summary>
         /// Add record function
         /// </summary>
-        /// <param name="Record"></param>
-        private static void AddRecord((dynamic, RecordStorageLocation) Record)
+        /// <param name="recordItem"></param>
+        private static void AddRecord(RecordItem recordItem)
         {
             // Tkey of dictionary (defectiveData, cleanData)
-            Type RecordType = Record.Item1.GetType();
-            switch (Record.Item2)
+            Type RecordType = recordItem.Record.GetType();
+            switch (recordItem.Record_Location)
             {
                 case RecordStorageLocation.DefectiveData:
                     // Check if Tkey exists
@@ -427,7 +473,7 @@ namespace DiReCT.Model
                         defectiveData.Add
                             (RecordType.FullName, new List<dynamic>());
 
-                    defectiveData[RecordType.FullName].Add(Record.Item1);
+                    defectiveData[RecordType.FullName].Add(recordItem.Record);
                     break;
 
                 case RecordStorageLocation.CleanData:
@@ -435,7 +481,7 @@ namespace DiReCT.Model
                         cleanData.Add
                             (RecordType.FullName, new List<dynamic>());
 
-                    cleanData[RecordType.FullName].Add(Record.Item1);
+                    cleanData[RecordType.FullName].Add(recordItem.Record);
                     break;
             }
         }
@@ -443,18 +489,17 @@ namespace DiReCT.Model
         /// <summary>
         /// Update record function
         /// </summary>
-        /// <param name="Record"></param>
-        private static void UpdateRecord(
-            (dynamic, RecordStorageLocation) Record)
+        /// <param name="recordItem"></param>
+        private static void UpdateRecord(RecordItem recordItem)
         {
             // This function finds the key which stores record,  
             // and get the record list.
             // The the record with the same record id will be removed. 
             // The new record will added.
-            var RecordId = Record.Item1.Id;
-            Type RecordType = Record.Item1.GetType();
+            var RecordId = recordItem.Record.Id;
+            Type RecordType = recordItem.Record.GetType();
             List<dynamic> Records;
-            switch (Record.Item2)
+            switch (recordItem.Record_Location)
             {
                 case RecordStorageLocation.DefectiveData:
                     Records = defectiveData[RecordType.FullName]
@@ -464,7 +509,7 @@ namespace DiReCT.Model
                     foreach (var q in Records)
                         defectiveData[RecordType.FullName].Remove(q);
 
-                    AddRecord(Record);
+                    AddRecord(recordItem);
                     break;
 
                 case RecordStorageLocation.CleanData:
@@ -475,7 +520,7 @@ namespace DiReCT.Model
                     foreach (var q in Records)
                         cleanData[RecordType.FullName].Remove(q);
 
-                    AddRecord(Record);
+                    AddRecord(recordItem);
                     break;
             }
         }
@@ -483,20 +528,22 @@ namespace DiReCT.Model
         /// <summary>
         /// Remove record function
         /// </summary>
-        /// <param name="Record"></param>
+        /// <param name="recordItem"></param>
         private static void RemoveRecord(
-            (dynamic, RecordStorageLocation) Record)
+            RecordItem recordItem)
         {
-            var RecordId = Record.Item1.Id;
-            Type RecordType = Record.Item1.GetType();
-            switch (Record.Item2)
+            var RecordId = recordItem.Record.Id;
+            Type RecordType = recordItem.Record.GetType();
+            switch (recordItem.Record_Location)
             {
                 case RecordStorageLocation.DefectiveData:
-                    defectiveData[RecordType.FullName].Remove(Record.Item1);
+                    defectiveData[RecordType.FullName]
+                        .Remove(recordItem.Record);
                     break;
 
                 case RecordStorageLocation.CleanData:
-                    cleanData[RecordType.FullName].Remove(Record.Item1);
+                    cleanData[RecordType.FullName]
+                        .Remove(recordItem.Record);
                     break;
             }
         }
@@ -510,13 +557,14 @@ namespace DiReCT.Model
             string Json;
             // Convert record to json
             lock (dictionaryLock)
-                Json = JsonConvert.SerializeObject(new {
+                Json = JsonConvert.SerializeObject(new
+                {
                     DefectiveData = JsonConvert.SerializeObject(defectiveData),
                     CleanData = JsonConvert.SerializeObject(cleanData)
                 });
 
             // save json to file 
-            return SaveJsonToFile(CurrentRecorder,Json);
+            return SaveJsonToFile(Current_Record_Staff, Json);
         }
 
         /// <summary>
@@ -538,8 +586,8 @@ namespace DiReCT.Model
         /// Save json data to file
         /// </summary>
         /// <param name="JSON">Input json data</param>
-        /// <returns></returns>
-        private static bool SaveJsonToFile(Guid Recorder,string JSON)
+        /// <returns></returns>        
+        private static bool SaveJsonToFile(Guid Record_Staff_Id, string JSON)
         {
             bool SaveSuccessfully = false;
 
@@ -554,7 +602,8 @@ namespace DiReCT.Model
                     // Write data to the file
                     // Named using Logger Id
                     using (StreamWriter streamWriter
-                        = new StreamWriter(RecordPath + Recorder.ToString()
+                        = new StreamWriter(RecordPath +
+                        Record_Staff_Id.ToString()
                         , false))
                     {
                         streamWriter.WriteLine(JSON);
@@ -563,7 +612,7 @@ namespace DiReCT.Model
 
                 SaveSuccessfully = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Debug.WriteLine(ex.ToString());
             }
@@ -577,11 +626,11 @@ namespace DiReCT.Model
         /// <param name="DataCategory">Input json data</param>
         /// /// <param name="OutPutData">Output Record Dictionary</param>
         /// <returns></returns>
-        private static bool ConvertToRecord(string DataCategory, 
+        private static bool ConvertToRecord(string DataCategory,
             out Dictionary<string, List<dynamic>> OutPutData)
         {
             bool IsConvertSuccess = false;
-            OutPutData = 
+            OutPutData =
                 new Dictionary<string, List<dynamic>>();
 
             try
@@ -589,7 +638,7 @@ namespace DiReCT.Model
                 JObject JsonObject = JObject.Parse(DataCategory);
 
                 // According to the number of record type
-                foreach (KeyValuePair<string,JToken> KVP in JsonObject)
+                foreach (KeyValuePair<string, JToken> KVP in JsonObject)
                 {
                     // json reverse into objects, for example: list <flood>
                     Type DisasterType = Type.GetType(KVP.Key);
@@ -607,7 +656,7 @@ namespace DiReCT.Model
                 }
                 IsConvertSuccess = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.ErrorEvent.Write(ex.ToString());
                 Log.ErrorEvent.Write("Convert to record failed.");
@@ -615,20 +664,109 @@ namespace DiReCT.Model
 
             return IsConvertSuccess;
         }
+    }
 
-        private static void CleanupExit()
+    public class DutyStorage
+    {
+        // This folder, used to store from cloud downloads the files
+        // required for this recording duty
+        private static string DutyFolder =
+            LocalStorage.StorageFolder + @"Duty\";
+
+        private class DutyItem
         {
-            //
-            // Cleanup code
-            //
-            defectiveData.Clear();
-            defectiveData = null;
-            cleanData.Clear();
-            cleanData = null;
-            RecordWorkQueue = null;
-            RecordWorkQueueLock = null;
-            FileLock = null;
-            dictionaryLock = null;
+            public byte[] FileData { get; set; }
+            public string FileName { get; set; }
+        }
+
+        /// <summary>
+        /// save duty data 
+        /// </summary>
+        /// <param name="FileName"></param>
+        /// <param name="FileData"></param>
+        public static void Save(string FileName, byte[] FileData)
+        {
+            // Enqueue add duty data work to work queue
+            LocalStorage.AddWork((SaveFileWork, new DutyItem
+            {
+                FileData = FileData,
+                FileName = FileName
+            }));
+        }
+
+        /// <summary>
+        /// delete duty data
+        /// </summary>
+        /// <param name="FileName"></param>
+        public static void Delete(string FileName)
+        {
+            // Enqueue delete duty data work to work queue
+            LocalStorage.AddWork((DeleteFileWork, new DutyItem
+            {
+                FileName = FileName
+            }));
+        }
+
+        /// <summary>
+        /// work function for save file
+        /// </summary>
+        /// <param name="ObjectParameters"></param>
+        private static void SaveFileWork(object ObjectParameters)
+        {
+            DutyItem dutyItem = ObjectParameters as DutyItem;
+
+            try
+            {
+                // Check the folder exists
+                if (!Directory.Exists(DutyFolder))
+                    Directory.CreateDirectory(DutyFolder);
+
+                // Write file stream (byte array) to file
+                using (FileStream fileStream = new FileStream(
+                    DutyFolder + dutyItem.FileName,
+                    FileMode.Create,
+                    FileAccess.Write))
+                {
+                    fileStream.Write(dutyItem.FileData, 0,
+                        dutyItem.FileData.Length);
+                }
+
+                Log.GeneralEvent.Write("Save " +
+                    dutyItem.FileName +
+                    " File successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorEvent.Write(ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// work function for delete file
+        /// </summary>
+        /// <param name="ObjectParameters"></param>
+        private static void DeleteFileWork(object ObjectParameters)
+        {
+            DutyItem dutyItem = ObjectParameters as DutyItem;
+
+            try
+            {
+                // check file exists, then delete the file
+                if (File.Exists(DutyFolder + dutyItem.FileName))
+                {
+                    File.SetAttributes(DutyFolder + dutyItem.FileName,
+                        FileAttributes.Normal);
+                    File.Delete(DutyFolder + dutyItem.FileName);
+
+                    Log.GeneralEvent.Write("Save " +
+                    dutyItem.FileName +
+                    " File successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorEvent.Write(ex.ToString());
+            }
         }
     }
 }
