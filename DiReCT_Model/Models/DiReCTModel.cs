@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DiReCT.Record;
 
 // Through Microsoft Entity Framework, 
 // these class contains the functions which could insert the records
-// to the corresponding table in the database
-// The objects in the class would be set as the field name in the table
+// to the corresponding table in the database.
+// The objects in the class would be set as the field name in the table.
 namespace DiReCT.Models
 {
-    public partial class DisasterInformation
+    public partial class DisasterInfo
     {
         [Key]
         [Required]
@@ -95,6 +96,88 @@ namespace DiReCT.Models
 
         public ICollection<SystemUser> SystemUsers { get; set; }
 
+    }
+    #endregion
+
+    #region Record table
+    /// <summary>
+    /// Debris flow records table on the database.
+    /// </summary>
+    public partial class Tbl_DebrisFlow : DebrisFlow, IRecordTable
+    {
+        // Associated with the Id of disaster information
+        // TheDisasterInfo is defined below
+        // public virtual DisasterInfo TheDisasterInfo { get; set; }
+        [ForeignKey("TheDisasterInfo")]
+        public Guid DisasterId { get; set; }
+
+        // Associated with the Id of system user
+        // TheSystemUser is defined below
+        // public virtual SystemUser TheSystemUser { get; set; }
+        [ForeignKey("TheSystemUser")]
+        public Guid StaffId { get; set; }
+
+        public virtual DisasterInfo TheDisasterInfo { get; set; }
+        public virtual SystemUser TheSystemUser { get; set; }
+    }
+
+    /// <summary>
+    ///  Flood records table on the database.
+    /// </summary>
+    public partial class Tbl_Flood : Flood, IRecordTable
+    {
+        [ForeignKey("TheDisasterInfo")]
+        public Guid DisasterId { get; set; }
+        [ForeignKey("TheSystemUser")]
+        public Guid StaffId { get; set; }
+
+        public virtual DisasterInfo TheDisasterInfo { get; set; }
+        public virtual SystemUser TheSystemUser { get; set; }
+    }
+
+    /// <summary>
+    /// General medical records table on the database.
+    /// </summary>
+    public partial class Tbl_GeneralMedicalRecord : 
+        GeneralMedicalRecord, IRecordTable
+    {
+        [ForeignKey("TheDisasterInfo")]
+        public Guid DisasterId { get; set; }
+        [ForeignKey("TheSystemUser")]
+        public Guid StaffId { get; set; }
+
+        public virtual DisasterInfo TheDisasterInfo { get; set; }
+        public virtual SystemUser TheSystemUser { get; set; }
+    }
+
+    /// <summary>
+    /// General damage records table on the database.
+    /// </summary>
+    public partial class Tbl_GeneralDamageRecord :
+        GeneralDamageRecord, IRecordTable
+    {
+        [ForeignKey("TheDisasterInfo")]
+        public Guid DisasterId { get; set; }
+        [ForeignKey("TheSystemUser")]
+        public Guid StaffId { get; set; }
+
+        public virtual DisasterInfo TheDisasterInfo { get; set; }
+        public virtual SystemUser TheSystemUser { get; set; }
+    }
+
+    /// <summary>
+    /// Total number Of people records table on the database.
+    /// </summary>
+    public partial class Tbl_TotalNumberOfPeople :
+        TotalNumberOfPeople, IRecordTable
+    {
+        [ForeignKey("TheDisasterInfo")]
+        public Guid DisasterId { get; set; }
+        [ForeignKey("TheSystemUser")]
+        public Guid StaffId { get; set; }
+
+        public virtual DisasterInfo TheDisasterInfo { get; set; }
+        public virtual SystemUser TheSystemUser { get; set; }
     }
     #endregion
 }

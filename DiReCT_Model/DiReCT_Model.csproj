@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\DiReCTModel.cs" />
+    <Compile Include="Models\ModelsInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Records\Record.cs" />
     <Compile Include="Utilities.cs" />
