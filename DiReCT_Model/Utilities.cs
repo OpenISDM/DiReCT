@@ -5,8 +5,13 @@ namespace System
     public static class Utilities
     {
         /// <summary>
+        /// Database records tables inherit the observation records,
+        /// so the observation record must be converted to the type 
+        /// of the record table before it is stored in the database.
+        /// 
         /// Super class objects convert to son object.
         /// In the concept of oop,
+        /// 
         /// super class object can not be transformed into Sub Class object.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -25,7 +30,7 @@ namespace System
                 BindingFlags.NonPublic |
                 BindingFlags.Public);
 
-            // Copy all field to son object.
+            // Copy all field value to son object.
             foreach (var q in fields)
                 q.SetValue(SonObject, q.GetValue(Father));
 
