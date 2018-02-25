@@ -46,16 +46,25 @@ namespace DiReCT.Models
         public string Email { get; set; }
 
         [Required]
+        public Guid CreateBy { get; set; }
+
+        [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreateOn { get; set; }
+
+        public Guid? UpdateBy { get; set; }
+
+        public DateTime? UpdateOn { get; set; }
 
         public SystemUser()
         {
             this.Id = Guid.NewGuid();
+            this.CreateBy = new Guid();
 
             this.SystemRoles = new List<SystemRole>();
         }
 
+        // Realize the database association
         public ICollection<SystemRole> SystemRoles { get; set; }
     }
 
@@ -72,9 +81,6 @@ namespace DiReCT.Models
         public int Sort { get; set; }
 
         [Required]
-        public bool IsEnable { get; set; }
-
-        [Required]
         public Guid CreateBy { get; set; }
 
         [Required]
@@ -88,12 +94,12 @@ namespace DiReCT.Models
         public SystemRole()
         {
             this.ID = Guid.NewGuid();
-            this.IsEnable = false;
             this.CreateBy = new Guid();
 
             this.SystemUsers = new List<SystemUser>();
         }
 
+        // Realize the database association
         public ICollection<SystemUser> SystemUsers { get; set; }
 
     }

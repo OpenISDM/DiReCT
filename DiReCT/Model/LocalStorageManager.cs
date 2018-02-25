@@ -42,7 +42,7 @@ using DiReCT.Logger;
 
 namespace DiReCT.Model
 {
-    public enum RecordStorageLocation
+    public enum RecordStorageCategor
     {
         DefectiveData = 0,
         CleanData
@@ -222,7 +222,7 @@ namespace DiReCT.Model
         {
             public Guid Record_Staff_Id { get; set; }
             public dynamic Record { get; set; }
-            public RecordStorageLocation Record_Location { get; set; }
+            public RecordStorageCategor Record_Location { get; set; }
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace DiReCT.Model
         public static void Add(
             Guid RecordStaffId,
             dynamic Record,
-            RecordStorageLocation RecordLocation)
+            RecordStorageCategor RecordLocation)
         {
             // Enqueue add record work to work queue
             LocalStorage.AddWork((AddRecordWork, new RecordItem
@@ -281,7 +281,7 @@ namespace DiReCT.Model
         public static void Update(
             Guid RecordStaffId,
             dynamic Record,
-            RecordStorageLocation RecordLocation)
+            RecordStorageCategor RecordLocation)
         {
             // Enqueue update record work to work queue
             LocalStorage.AddWork((UpdateRecordWork, new RecordItem
@@ -302,7 +302,7 @@ namespace DiReCT.Model
         public static void Remove(
             Guid RecordStaffId,
             dynamic Record,
-            RecordStorageLocation RecordLocation)
+            RecordStorageCategor RecordLocation)
         {
             // Enqueue remove record work to work queue
             LocalStorage.AddWork((RemoveRecordWork, new RecordItem
@@ -325,7 +325,7 @@ namespace DiReCT.Model
             out Dictionary<string, List<dynamic>> defectiveData,
             out Dictionary<string, List<dynamic>> cleanData)
         {
-            bool LoadingSuccess = false;
+            bool LoadingSucceeded = false;
             dynamic JSON = null;
             defectiveData = null;
             cleanData = null;
@@ -355,7 +355,7 @@ namespace DiReCT.Model
                         cleanData = new Dictionary<string, List<dynamic>>();
                 }
 
-                LoadingSuccess = true;
+                LoadingSucceeded = true;
             }
             catch (Exception ex)
             {
@@ -364,7 +364,7 @@ namespace DiReCT.Model
                 Log.ErrorEvent.Write(ex.ToString());
                 Log.ErrorEvent.Write("Load on file failed.");
             }
-            return LoadingSuccess;
+            return LoadingSucceeded;
         }
 
         /// <summary>
@@ -465,7 +465,7 @@ namespace DiReCT.Model
             Type RecordType = recordItem.Record.GetType();
             switch (recordItem.Record_Location)
             {
-                case RecordStorageLocation.DefectiveData:
+                case RecordStorageCategor.DefectiveData:
                     // Check if Tkey exists
                     // if exists then adding
                     // else add Tkey before adding new value
@@ -476,7 +476,7 @@ namespace DiReCT.Model
                     defectiveData[RecordType.FullName].Add(recordItem.Record);
                     break;
 
-                case RecordStorageLocation.CleanData:
+                case RecordStorageCategor.CleanData:
                     if (!cleanData.ContainsKey(RecordType.FullName))
                         cleanData.Add
                             (RecordType.FullName, new List<dynamic>());
@@ -501,7 +501,7 @@ namespace DiReCT.Model
             List<dynamic> Records;
             switch (recordItem.Record_Location)
             {
-                case RecordStorageLocation.DefectiveData:
+                case RecordStorageCategor.DefectiveData:
                     Records = defectiveData[RecordType.FullName]
                         .Where(c => c.Id == RecordId)
                         .ToList();
@@ -512,7 +512,7 @@ namespace DiReCT.Model
                     AddRecord(recordItem);
                     break;
 
-                case RecordStorageLocation.CleanData:
+                case RecordStorageCategor.CleanData:
                     Records = cleanData[RecordType.FullName]
                         .Where(c => c.Id == RecordId)
                         .ToList();
@@ -536,12 +536,12 @@ namespace DiReCT.Model
             Type RecordType = recordItem.Record.GetType();
             switch (recordItem.Record_Location)
             {
-                case RecordStorageLocation.DefectiveData:
+                case RecordStorageCategor.DefectiveData:
                     defectiveData[RecordType.FullName]
                         .Remove(recordItem.Record);
                     break;
 
-                case RecordStorageLocation.CleanData:
+                case RecordStorageCategor.CleanData:
                     cleanData[RecordType.FullName]
                         .Remove(recordItem.Record);
                     break;
