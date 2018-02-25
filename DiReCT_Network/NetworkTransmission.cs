@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 using System.Security.Cryptography;
 using DiReCT.Logger;
 
-namespace DiReCT_Network
+namespace DiReCT.Network
 {
     public enum ReceiveDataType
     {
@@ -142,7 +142,8 @@ namespace DiReCT_Network
                                             " Send a File"
                                         });
 
-                                    Logger.Write(Log.GeneralEvent,
+                                    
+                                    Log.GeneralEvent.Write(
                                         "IP: " +
                                             (ClientSock.RemoteEndPoint
                                             as IPEndPoint)
@@ -164,7 +165,7 @@ namespace DiReCT_Network
                                             " Send File Fail"
                                         });
 
-                                    Logger.Write(Log.GeneralEvent,
+                                    Log.GeneralEvent.Write(
                                         "IP: " +
                                             (ClientSock.RemoteEndPoint
                                             as IPEndPoint)
@@ -203,7 +204,7 @@ namespace DiReCT_Network
                                                 " Send one Record"
                                             });
 
-                                        Logger.Write(Log.GeneralEvent,
+                                        Log.GeneralEvent.Write(
                                             "IP: " +
                                                 (ClientSock.RemoteEndPoint
                                                 as IPEndPoint)
@@ -225,8 +226,7 @@ namespace DiReCT_Network
                                                 " Send Record Fail"
                                             });
 
-                                        Logger.Write(Log.GeneralEvent,
-                                            "IP: " +
+                                        Log.GeneralEvent.Write( "IP: " +
                                                 (ClientSock.RemoteEndPoint
                                                 as IPEndPoint)
                                                 .Address.ToString() +
@@ -240,7 +240,7 @@ namespace DiReCT_Network
             }
             catch (Exception ex)
             {
-                Logger.Write(Log.ErrorEvent, ex.ToString());
+                Log.ErrorEvent.Write(ex.ToString());
                 Event.MessageOutputCall(
                     new MessageOutputEventArgs
                     {
@@ -266,12 +266,9 @@ namespace DiReCT_Network
                     " Close done"
                 });
 
-            Logger.Write(Log.GeneralEvent,
-                "IP: " +
-                    (ClientSock.RemoteEndPoint
-                    as IPEndPoint)
-                    .Address.ToString() +
-                    " Close done");
+            Log.GeneralEvent.Write("IP: " + (
+                ClientSock.RemoteEndPoint as IPEndPoint)
+                .Address.ToString() + " Close done");
         }
 
         #region IDisposable Support
@@ -307,8 +304,7 @@ namespace DiReCT_Network
                         Message = "Network server dispose done"
                     });
 
-                Logger.Write(Log.GeneralEvent,
-                    "Network server dispose done");
+                Log.GeneralEvent.Write("Network server dispose done");
 
                 disposedValue = true;
             }
@@ -385,11 +381,11 @@ namespace DiReCT_Network
                                         == "Success")
                                     {
                                         IsSend = true;
-                                        Logger.Write(Log.GeneralEvent,
+                                        Log.GeneralEvent.Write(
                                                 "Send file done");
                                     }
                                     else
-                                        Logger.Write(Log.GeneralEvent,
+                                        Log.GeneralEvent.Write(
                                                 "Send file fail");
                                 }
                             }
@@ -402,24 +398,23 @@ namespace DiReCT_Network
                                 ReceiveDataType.Record,
                                 string.Empty,
                                 string.Empty)));
-                            if (Tools.DecodingString(CB.Receive()) ==
-                                "Start")
+                            if (Tools.DecodingString(CB.Receive()) is "Start")
                             {
                                 if (SendRecord(RecordAndFiles.Item1))
                                 {
                                     IsSend = true;
-                                    Logger.Write(Log.GeneralEvent,
+                                    Log.GeneralEvent.Write(
                                         "Send record done");
                                 }
                                 else
-                                    Logger.Write(Log.GeneralEvent,
+                                    Log.GeneralEvent.Write(
                                         "Send record fail");
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Write(Log.ErrorEvent, ex.ToString());
+                        Log.ErrorEvent.Write(ex.ToString());
                     }
                 }
             }
@@ -432,13 +427,12 @@ namespace DiReCT_Network
             try
             {
 
-                if (Tools.DecodingString(CB.Receive())
-                    == "Success")
+                if (Tools.DecodingString(CB.Receive()) is "Success")
                     IsSend = true;
             }
             catch (Exception ex)
             {
-                Logger.Write(Log.ErrorEvent, ex.ToString());
+                Log.ErrorEvent.Write(ex.ToString());
             }
             return IsSend;
         }
@@ -484,7 +478,7 @@ namespace DiReCT_Network
                     DataBufferLock = null;
                 }
 
-                Logger.Write(Log.GeneralEvent,
+                Log.GeneralEvent.Write(
                     "Network client dispose done");
 
                 disposedValue = true;

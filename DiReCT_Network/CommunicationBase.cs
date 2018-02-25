@@ -3,17 +3,18 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using DiReCT.Logger;
 
-namespace DiReCT_Network
+namespace DiReCT.Network
 {
     public class CommunicationBase : IDisposable
     {
         private Socket mSocket;
         private MemoryStream SendStream;
         private MemoryStream ReceiveStream;
-        private static ManualResetEvent receiveDone =
+        private static ManualResetEvent ReceiveDone =
             new ManualResetEvent(false);
-        private static ManualResetEvent sendDone =
+        private static ManualResetEvent SendDone =
             new ManualResetEvent(false);
 
         private static int signal;
@@ -24,83 +25,87 @@ namespace DiReCT_Network
         }
 
         /// <summary>
-        /// Receive the Data send by the server.
+        /// Receive data send by the target.
         /// </summary>
         public byte[] Receive()
         {
-            StateObject state = new StateObject();
+            CommunicationObject CommunicationState = new CommunicationObject();
             ReceiveStream = new MemoryStream();
-            state.WorkSocket = mSocket;
-            receiveDone.Reset();
+            CommunicationState.WorkSocket = mSocket;
+            ReceiveDone.Reset();
 
-            mSocket.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReceiveCallback), state);
-            receiveDone.WaitOne();
+            mSocket.BeginReceive(CommunicationState.Buffer, 0, 
+                CommunicationObject.BufferSize, 0,
+                new AsyncCallback(ReceiveCallback), CommunicationState);
+            ReceiveDone.WaitOne();
 
-            state.Buffer = new byte[ReceiveStream.Length];
+            CommunicationState.Buffer = new byte[ReceiveStream.Length];
             Array.Copy(ReceiveStream.GetBuffer(),
-                state.Buffer,
+                CommunicationState.Buffer,
                 ReceiveStream.Length);
 
             ReceiveStream.Dispose();
-            return state.Buffer;
+            return CommunicationState.Buffer;
         }
 
         /// <summary>
-        /// Send Data from server to clients.
+        /// Send data to the target.
         /// </summary>
         /// <param name="Value"></param>
         public void Send(byte[] Value)
         {
-            int readBytes = 0;
+            int ReadBytes = 0;
             SendStream = new MemoryStream(Value);
-            byte[] buffer = new byte[StateObject.BufferSize];
+            byte[] Buffer = new byte[CommunicationObject.BufferSize];
 
             do
             {
-                sendDone.Reset();
+                SendDone.Reset();
                 signal = 0;
-                readBytes = SendStream.Read(buffer, 0, StateObject.BufferSize);
+                ReadBytes = SendStream.Read(Buffer, 0, 
+                    CommunicationObject.BufferSize);
 
                 Socket handler = mSocket;
 
-                handler.BeginSend(buffer, 0, readBytes, SocketFlags.None,
+                handler.BeginSend(Buffer, 0, ReadBytes, SocketFlags.None,
                     new AsyncCallback(SendCallback), handler);
 
-                sendDone.WaitOne();
+                SendDone.WaitOne();
             }
-            while (readBytes > 0);
+            while (ReadBytes > 0);
 
             SendStream.Dispose();
         }
 
         /// <summary>
-        /// Callback when receive a Data chunk from the server successfully.
+        /// Callback when receive a data chunk from the target successfully.
         /// </summary>
         /// <param name="ar"></param>
         private void ReceiveCallback(IAsyncResult ar)
         {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket clientSocket = state.WorkSocket;
+            CommunicationObject CommunicationState 
+                = (CommunicationObject)ar.AsyncState;
+            Socket TargetSocket = CommunicationState.WorkSocket;
 
-            int bytesRead = clientSocket.EndReceive(ar);
+            int bytesRead = TargetSocket.EndReceive(ar);
             if (bytesRead > 0)
             {
-                ReceiveStream.Write(state.Buffer, 0, bytesRead);
+                ReceiveStream.Write(CommunicationState.Buffer, 0, bytesRead);
 
-                clientSocket.BeginReceive(state.Buffer, 0,
-                    StateObject.BufferSize, 0,
-                    new AsyncCallback(ReceiveCallback), state);
+                TargetSocket.BeginReceive(CommunicationState.Buffer, 0,
+                    CommunicationObject.BufferSize, 0,
+                    new AsyncCallback(ReceiveCallback), CommunicationState);
             }
             else
             {
                 // Signal if all the file received.
-                receiveDone.Set();
+                ReceiveDone.Set();
             }
         }
 
         /// <summary>
-        /// Callback when a part of the Data has been sent to the clients successfully.
+        /// Callback when a part of the Data 
+        /// has been sent to the targets successfully.
         /// </summary>
         /// <param name="ar"></param>
         private static void SendCallback(IAsyncResult ar)
@@ -112,7 +117,7 @@ namespace DiReCT_Network
                 signal++;
                 int bytesSent = handler.EndSend(ar);
 
-                // Close the socket when all the data has sent to the client.
+                // Close the socket when all the data has sent to the target.
                 if (bytesSent == 0)
                 {
                     handler.Shutdown(SocketShutdown.Both);
@@ -121,20 +126,15 @@ namespace DiReCT_Network
             }
             catch (ArgumentException argEx)
             {
-                Debug.WriteLine(argEx.Message);
-            }
-            catch (SocketException)
-            {
-                // Close the socket if the client disconnected.
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
+                Log.ErrorEvent.Write(argEx.Message);
             }
             finally
             {
-                // Signal when the file chunk has sent to all the clients successfully. 
+                // Signal when the file chunk has sent 
+                // to all the target successfully.
                 if (signal >= 1)
                 {
-                    sendDone.Set();
+                    SendDone.Set();
                 }
             }
         }
@@ -151,8 +151,8 @@ namespace DiReCT_Network
 
                 }
 
-                receiveDone.Dispose();
-                sendDone.Dispose();
+                ReceiveDone.Dispose();
+                SendDone.Dispose();
 
                 disposedValue = true;
             }
@@ -170,7 +170,7 @@ namespace DiReCT_Network
         #endregion
     }
 
-    class StateObject
+    internal class CommunicationObject
     {
         public Socket WorkSocket = null;
 

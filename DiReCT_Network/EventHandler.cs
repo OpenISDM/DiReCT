@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiReCT_Network
+namespace DiReCT.Network
 {
     public class ServerReceiveEventArgs : EventArgs
     {
