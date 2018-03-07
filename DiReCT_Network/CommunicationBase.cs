@@ -17,11 +17,15 @@ namespace DiReCT.Network
         private static ManualResetEvent SendDone =
             new ManualResetEvent(false);
 
+        public ManualResetEvent ConnectDone;
+
         private static int signal;
 
         public CommunicationBase(Socket socket)
         {
             mSocket = socket;
+            ConnectDone = new ManualResetEvent(false);
+            ConnectDone.WaitOne();
         }
 
         /// <summary>
@@ -108,7 +112,7 @@ namespace DiReCT.Network
         /// has been sent to the targets successfully.
         /// </summary>
         /// <param name="ar"></param>
-        private static void SendCallback(IAsyncResult ar)
+        private void SendCallback(IAsyncResult ar)
         {
             Socket handler = null;
             try
@@ -153,6 +157,7 @@ namespace DiReCT.Network
 
                 ReceiveDone.Dispose();
                 SendDone.Dispose();
+                ConnectDone.Dispose();
 
                 disposedValue = true;
             }
