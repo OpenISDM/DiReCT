@@ -84,11 +84,41 @@ namespace DiReCT
             CleanupExit();
         }
 
+        public static void Send(string ControlSignal)
+        {
+            try
+            {
+                string JsonString = JsonConvert.SerializeObject(
+                    new
+                    {
+                        Type = "ControlSignal",
+                        Data = ControlSignal
+                    });
+
+                ServerCommunication.Send(Encoding.UTF8.GetBytes(JsonString));
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorEvent.Write(ex.Message);
+                ServerCommunication.ConnectDone.Set();
+                throw ex;
+            }
+        }
+
         public static void Send(byte[] Data)
         {
             try
             {
-                ServerCommunication.Send(Data);
+                string DataFlowString = Encoding.UTF8.GetString(Data);
+
+                string JsonString = JsonConvert.SerializeObject(
+                    new
+                    {
+                        Type = "ControlSignal",
+                        Data = DataFlowString
+                    });
+
+                ServerCommunication.Send(Encoding.UTF8.GetBytes(JsonString));
             }
             catch (Exception ex)
             {
@@ -104,7 +134,7 @@ namespace DiReCT
             {
                 byte[] Data = ServerCommunication.Receive();
 
-                string JsonString = Encoding.Unicode.GetString(Data);
+                string JsonString = Encoding.UTF8.GetString(Data);
                 dynamic Json = JsonConvert.DeserializeObject(JsonString);
 
                 if (Json["Type"] is "ControlSignal")
@@ -119,7 +149,7 @@ namespace DiReCT
 
                 if (Json["Type"] is "DataFlow")
                 {
-                    byte[] DataFlow = Encoding.Unicode.GetBytes(Json["Data"]);
+                    byte[] DataFlow = Encoding.UTF8.GetBytes(Json["Data"]);
 
                     ReceiveEventArgs.DataFlowEventArgs DataFlowReceive
                          = new ReceiveEventArgs.DataFlowEventArgs { 
