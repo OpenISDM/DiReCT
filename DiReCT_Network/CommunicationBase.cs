@@ -182,7 +182,5 @@ namespace DiReCT.Network
         public const int BufferSize = 5242880;
 
         public byte[] Buffer = new byte[BufferSize];
-
-        public bool Connected = false;
     }
 }
