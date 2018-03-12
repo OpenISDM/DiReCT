@@ -25,39 +25,42 @@ namespace DiReCT_wf
         private object recordData;
         private IView recordView;
         private IView menuScreen;
+
         protected override void Execute(NativeActivityContext context)
         {
-            Debug.WriteLine("in Record workflow");
             bookmarkName = context.GetValue(this.BookmarkName);
-
-
+            
             string currentView = HomeScreenViewModel.GetInstance().CurrentMenuView.WorkFlowName();
-            if (currentView == "RecordWorkFlow")
+            if (currentView == "RecordWorkFlow")  // Flood Observation's Record
             {
+                Debug.WriteLine("in Flood Record");
                 recordView = HomeScreenViewModel.GetInstance().ShowRecordView();
             }
-            else 
+            else  // Landslide Observation's Record
             {
+                Debug.WriteLine("in Landslide Record");
                 recordView = HomeScreenViewModel.GetInstance().ShowOtherView();
             }
-         
-          
+                   
           
             menuScreen = ServiceLocator.Instance.RepresentationLayerMain.ShowMenuScreen();
-            if(recordView!=null)
-            recordView.UserEnteredInput += OnInputReady;
-            menuScreen.UserEnteredInput += OnInputReady;
+            if(recordView != null)
+            {
+                recordView.UserEnteredInput += OnInputReady;
+                menuScreen.UserEnteredInput += OnInputReady;
+            }
 
             context.CreateBookmark(bookmarkName,
                 new BookmarkCallback(OnResumeBookmark));
         }
+
         private void OnInputReady(object sender, EventArgs e)
         {
             Debug.WriteLine("in oninputready");
 
+            // only Landslide Observation's Record, Flood Observation is not needed now
             if (e.GetType() == typeof(SaveButtonClickedEventArgs))
             {
-                Debug.WriteLine("SaveButtonClickedEventArgs");
                 recordView.UserEnteredInput -= OnInputReady;
                 menuScreen.UserEnteredInput -= OnInputReady;
 
@@ -67,7 +70,7 @@ namespace DiReCT_wf
 
                 ServiceLocator.Instance.CurrentWorkFlow.ResumeBookmark(bookmarkName, e);
             }
-            else if (e.GetType() == typeof(MouseOnMenuEventArgs))
+            else if (e.GetType() == typeof(MouseOnMenuEventArgs))  // when mouse move to menu
             {
                 recordView.UserEnteredInput -= OnInputReady;
                 menuScreen.UserEnteredInput -= OnInputReady;

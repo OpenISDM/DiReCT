@@ -27,8 +27,8 @@
                     </Grid.Resources>
                     <m:Map x:Name="mapView" CredentialsProvider="KEEEDTBMuatP82T0lBaz~LyodepcBdLJbXPBIPbavGQ~An_AVM9YZUJmROHUkFUGL2ujCmxsUDNCpps94i5ACIJYMuB9I-Ex3jihxTYdpj1x"
                            Height="300" Center="{Binding CurrentLocation, Mode=TwoWay}" ZoomLevel="17"
-                           MouseRightButtonUp="mapViewMouseUp"
-                           MouseMove="mapViewMouseMove" >
+                           MouseRightButtonUp="MapViewMouseUp"
+                           MouseMove="MapViewMouseMove" >
                         <m:Pushpin x:Name="pushpin" Location="{Binding Source={StaticResource LMapVM}, Path=CurrentLocation, Mode=TwoWay}"></m:Pushpin>
                     </m:Map>
                     <Border Margin="5" CornerRadius="10" Background="White"   BorderBrush="SteelBlue" BorderThickness="3"

@@ -18,8 +18,8 @@ namespace DiReCT_wf
 
             protected override void Execute(NativeActivityContext context)
             {
-            NextWorkFlow.Set(context, "MenuWorkFlow");
-            mainView = HomeScreenViewModel.GetInstance().ShowDFHistoryView();
+                NextWorkFlow.Set(context, "MenuWorkFlow");
+                mainView = HomeScreenViewModel.GetInstance().ShowDFHistoryView();
 
             }
 

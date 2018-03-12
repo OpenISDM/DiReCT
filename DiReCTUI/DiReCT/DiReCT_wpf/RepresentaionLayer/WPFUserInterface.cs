@@ -7,7 +7,6 @@ using System.Diagnostics;
 namespace DiReCT_wpf.RepresentaionLayer
 {
     public class WPFUserInterface : IRepresentationLayer
-
     {
 
         private LoginScreen loginScreen;
@@ -41,7 +40,6 @@ namespace DiReCT_wpf.RepresentaionLayer
             }
         }
 
-
         private void ChangeScreen(ScreenBase control)
         {
             _CurrentScreen = control;
@@ -52,7 +50,7 @@ namespace DiReCT_wpf.RepresentaionLayer
         {
             // menuScreen.UpdateScreen();
             Debug.WriteLine("showMenu");
-             ChangeScreen(menuScreen);
+            ChangeScreen(menuScreen);
             return menuScreen;
            
         }
@@ -60,7 +58,7 @@ namespace DiReCT_wpf.RepresentaionLayer
         public ScreenBase ShowLoginScreen()
         {
             //loginScreen.UpdateScreen();
-             ChangeScreen(loginScreen);
+            ChangeScreen(loginScreen);
             return loginScreen;
            
         }

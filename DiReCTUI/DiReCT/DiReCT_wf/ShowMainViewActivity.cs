@@ -20,9 +20,9 @@ namespace DiReCT_wf
 
         protected override void Execute(NativeActivityContext context)
         {
-            NextWorkFlow.Set(context, "MainWorkFlow");
+            NextWorkFlow.Set(context, "MainWorkFlow");  // page of Today's Task
             Debug.WriteLine("Show Main View Activity");
-            mainView =HomeScreenViewModel.GetInstance().ShowMainView();
+            mainView = HomeScreenViewModel.GetInstance().ShowMainView();
 
         }
 

@@ -5,10 +5,11 @@ namespace DiReCT_wpf.ScreenInterface
     public interface IView
     {
 
-        event EventHandler UserEnteredInput;
+        event EventHandler UserEnteredInput;  // capture mouse event(position or click)
         event EventHandler ScreenTimedOut;
 
     }
+
     public class MenuItemSelectedEventArgs : EventArgs
     {
         public MenuItemSelectedEventArgs(Object item)
@@ -17,6 +18,7 @@ namespace DiReCT_wpf.ScreenInterface
         }
         public Object SelectedItem;
     }
+
     public class LoginButtonClickedEventArgs : EventArgs
     {
     }

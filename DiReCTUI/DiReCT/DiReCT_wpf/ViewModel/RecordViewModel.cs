@@ -13,9 +13,10 @@ namespace DiReCT_wpf.ViewModel
 {
     public class RecordViewModel : ViewModelBase
     {
-        public string others { get; set; }
-        public bool othersIsChecked { get; set; }
+        public string Others { get; set; }
+        public bool OthersIsChecked { get; set; }
         private Microsoft.Maps.MapControl.WPF.Location currentLocation;
+
         public Microsoft.Maps.MapControl.WPF.Location CurrentLocation
         {
            
@@ -33,7 +34,9 @@ namespace DiReCT_wpf.ViewModel
             }
              set{ }
         }
-        public List<CauseOfDisaster> AvailablePresentationObjects {
+
+        public List<CauseOfDisaster> AvailablePresentationObjects
+        {
             get
             {
                 for (int i = 0; i < availablePresentationObjects.Count(); i++)
@@ -46,12 +49,13 @@ namespace DiReCT_wpf.ViewModel
         }
         private List<CauseOfDisaster> availablePresentationObjects;
 
-        public string currentLongitude { get; set; }
-        public string currentLatitude { get; set; }
-        public string currentTimeStamp { get; set; }
+        public string CurrentLongitude { get; set; }
+        public string CurrentLatitude { get; set; }
+        public string CurrentTimeStamp { get; set; }
         private int _waterLevel;
         private readonly object _someValueLock = new object();
-        public int waterLevel
+
+        public int WaterLevel
         {
             get
             {
@@ -76,19 +80,20 @@ namespace DiReCT_wpf.ViewModel
 
         public RecordViewModel()
         {
-            initializeCheckBox();
+            InitializeCheckBox();
 
             GeoCoordinateWatcher watcher;
             watcher = new GeoCoordinateWatcher();
-            watcher.PositionChanged += new EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>>(watcher_PositionChanged);
+            watcher.PositionChanged += new EventHandler<GeoPositionChangedEventArgs<GeoCoordinate>>(Watcher_PositionChanged);
             watcher.TryStart(false, TimeSpan.FromMilliseconds(2000));
             startclock();
             SaveCommand = new RelayCommand(DoSaveRecord);
             _waterLevel = 230/2;
-            others = "";
-            othersIsChecked = false;
+            Others = "";
+            OthersIsChecked = false;
         }
-        private void initializeCheckBox()
+
+        private void InitializeCheckBox()
         {
             PossibleCausesOfDisaster possiblecauses = PossibleCausesOfDisaster.GetInstance();
             availablePresentationObjects = new List<CauseOfDisaster>();
@@ -97,15 +102,17 @@ namespace DiReCT_wpf.ViewModel
                 availablePresentationObjects.Add(new CauseOfDisaster(i, possiblecauses.causes[i], false));
             }
         }
-        private void watcher_PositionChanged(object sender, GeoPositionChangedEventArgs<GeoCoordinate> e)
+
+        private void Watcher_PositionChanged(object sender, GeoPositionChangedEventArgs<GeoCoordinate> e)
         {
             currentLocation = new Microsoft.Maps.MapControl.WPF.Location(e.Position.Location.Latitude, e.Position.Location.Longitude);
-            currentLongitude = e.Position.Location.Longitude.ToString();
-            currentLatitude = e.Position.Location.Latitude.ToString();
+            CurrentLongitude = e.Position.Location.Longitude.ToString();
+            CurrentLatitude = e.Position.Location.Latitude.ToString();
             RaisePropertyChanged("currentLongitude");
             RaisePropertyChanged("currentLatitude");
             RaisePropertyChanged("CurrentLocation");
         }
+
         private void startclock()
         {
             DispatcherTimer timer = new DispatcherTimer();
@@ -113,9 +120,10 @@ namespace DiReCT_wpf.ViewModel
             timer.Tick += tickevent;
             timer.Start();
         }
+
         private void tickevent(Object sender, EventArgs e)
         {
-            currentTimeStamp = DateTime.Now.ToString();
+            CurrentTimeStamp = DateTime.Now.ToString();
             RaisePropertyChanged("currentTimeStamp");
         }
        
@@ -143,8 +151,8 @@ namespace DiReCT_wpf.ViewModel
                 _waterLevel = 230/2;
                 RaisePropertyChanged("waterLevel");
             }
-            othersIsChecked = false;
-            others = "";
+            OthersIsChecked = false;
+            Others = "";
             RaisePropertyChanged("AvailablePresentationObjects");
             RaisePropertyChanged("others");
             RaisePropertyChanged("othersIsChecked");
@@ -152,8 +160,8 @@ namespace DiReCT_wpf.ViewModel
             //recordView.RaiseUserInputReadyEvent(new SaveButtonClickedEventArgs(record));
 
             // Initialize the record object
-            dynamic record = RecordGenerator.CreateFloodRecord(waterLevel, causes, 
-                currentLatitude, currentLongitude, currentTimeStamp);
+            dynamic record = RecordGenerator.CreateFloodRecord(WaterLevel, causes, 
+                CurrentLatitude, CurrentLongitude, CurrentTimeStamp);
             // Signal Core for record
             recordView.OnSavingRecord(record);
         }       

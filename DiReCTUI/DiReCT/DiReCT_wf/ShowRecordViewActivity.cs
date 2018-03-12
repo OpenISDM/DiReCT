@@ -12,7 +12,6 @@ using System.Diagnostics;
 namespace DiReCT_wf
 {
     public sealed class ShowRecordViewActivity : NativeActivity<string>
-
     {
        
         public OutArgument<string> NextWorkFlow { get; set; }
@@ -20,7 +19,7 @@ namespace DiReCT_wf
        
         protected override void Execute(NativeActivityContext context)
         {
-            Debug.WriteLine("Show record View Activity");
+            Debug.WriteLine("Show Record View Activity");
             NextWorkFlow.Set(context, "RecordWorkFlow");
             HomeScreenViewModel.GetInstance().ShowRecordView();
 

@@ -53,7 +53,7 @@ namespace DiReCT_wpf.View
         private Point currentPoint;
         private bool isFirstPress;
 
-        void mapViewMouseUp(Object sender, MouseButtonEventArgs e)
+        void MapViewMouseUp(Object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)
                 currentPoint = e.GetPosition(this);
@@ -61,7 +61,7 @@ namespace DiReCT_wpf.View
             isFirstPress = true;
 
         }
-        private void mapViewMouseMove(object sender, MouseEventArgs e)
+        private void MapViewMouseMove(object sender, MouseEventArgs e)
         {   //isFirstPress = true;
             if (e.RightButton == MouseButtonState.Pressed)
             {

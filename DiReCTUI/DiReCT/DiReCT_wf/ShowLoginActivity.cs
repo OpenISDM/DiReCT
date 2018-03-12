@@ -2,6 +2,7 @@
 using System.Activities;
 using DiReCT_wpf.ServiceLocator;
 using DiReCT_wpf.ScreenInterface;
+using System.Diagnostics;
 
 namespace DiReCT_wf
 {
@@ -18,7 +19,7 @@ namespace DiReCT_wf
         {
             loginScreen = ServiceLocator.Instance.RepresentationLayerMain.ShowLoginScreen();
             loginScreen.UserEnteredInput += OnInputReady;
-            bookmarkName = context.GetValue(this.BookmarkName);
+            bookmarkName = BookmarkName.Get(context);
 
             context.CreateBookmark(bookmarkName,
                 new BookmarkCallback(OnResumeBookmark));
@@ -43,7 +44,7 @@ namespace DiReCT_wf
 
         public void OnResumeBookmark(NativeActivityContext context, Bookmark bookmark, object obj)
         {
-            NextWorkFlow.Set(context, nextWorkFlow);
+            NextWorkFlow.Set(context, nextWorkFlow);  // in LoginWF, vNextWorkFlow is NextWorkFlow
             context.RemoveAllBookmarks();
         }
 

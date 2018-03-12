@@ -43,8 +43,7 @@ namespace DiReCT_wpf.Helpers
             try
             {
                 Assemblies = Assembly.LoadFrom(targetClassName + ".dll");
-                return Assemblies.CreateInstance(targetClassName +
-                                                "." + targetClassName);
+                return Assemblies.CreateInstance(targetClassName + "." + targetClassName);
             }
             catch (Exception ex)
             {

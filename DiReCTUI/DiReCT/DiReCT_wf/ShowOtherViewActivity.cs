@@ -13,14 +13,14 @@ namespace DiReCT_wf
 {
     public sealed class ShowOtherViewActivity : NativeActivity<string>
     {
-        public OutArgument<string> NextWorkFlow { get; set; }
 
+        public OutArgument<string> NextWorkFlow { get; set; }
        
 
         protected override void Execute(NativeActivityContext context)
         {
             Debug.WriteLine("Show Other View Activity");
-            NextWorkFlow.Set(context, "RecordWorkFlow");
+            NextWorkFlow.Set(context, "OtherWorkFlow");
             HomeScreenViewModel.GetInstance().ShowOtherView();
 
         }

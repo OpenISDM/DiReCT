@@ -18,7 +18,7 @@ namespace DiReCT_wf
 
         private string nextWorkFlow;
         public OutArgument<string> NextState { get; set; }
-        private string nextState;
+        private string nextState;  // is used to change page
 
         private IView menuScreen;
 
@@ -28,16 +28,18 @@ namespace DiReCT_wf
             menuScreen = ServiceLocator.Instance.RepresentationLayerMain.ShowMenuScreen();
             menuScreen.UserEnteredInput += OnInputReady;
 
-              if (HomeScreenViewModel.GetInstance().CurrentMenuView == null)
-              {
-                  HomeScreenViewModel.GetInstance().ShowMainView();
-              }
+            if (HomeScreenViewModel.GetInstance().CurrentMenuView == null)
+            {
+                HomeScreenViewModel.GetInstance().ShowMainView();
+            }
 
             nextWorkFlow = HomeScreenViewModel.GetInstance().CurrentMenuView.WorkFlowName();
-            if (nextWorkFlow == "OtherWorkFlow") {
+            // Debug.WriteLine("nextWorkFlow: " + nextWorkFlow);
+            if (nextWorkFlow == "OtherWorkFlow")  // these two pages handle the same thing(record) 
+            {
                 nextWorkFlow = "RecordWorkFlow";
-            }          
-               
+            }
+            
             bookmarkName = context.GetValue(this.BookmarkName);
             context.CreateBookmark(bookmarkName,
                 new BookmarkCallback(OnResumeBookmark));
@@ -47,27 +49,28 @@ namespace DiReCT_wf
         {
             Debug.WriteLine("homeScreen onInputReady");
 
-            if (e.GetType() == typeof(MenuItemSelectedEventArgs))
+            if (e.GetType() == typeof(MenuItemSelectedEventArgs))  // click menu item
             {
                 menuScreen.UserEnteredInput -= OnInputReady;
-
                 MenuItemSelectedEventArgs menuEventArgs = e as MenuItemSelectedEventArgs;
                 MenuItem menuItem = menuEventArgs.SelectedItem as MenuItem;
-                nextState = menuItem.Lable;
-               
+                nextState = menuItem.Lable;  // page's name
+                
                 ServiceLocator.Instance.CurrentWorkFlow.ResumeBookmark(bookmarkName, null);
             }
-            else if (e.GetType() == typeof(MouseOnViewEventArgs))
+            else if (e.GetType() == typeof(MouseOnViewEventArgs))  // while mouse on view(right of menu's view)
             {
                 menuScreen.UserEnteredInput -= OnInputReady;
                 nextState = "FinalState";
+                
                 ServiceLocator.Instance.CurrentWorkFlow.ResumeBookmark(bookmarkName, null);
             }
-            else if (e.GetType() == typeof(LoginButtonClickedEventArgs)) {
+            else if (e.GetType() == typeof(LoginButtonClickedEventArgs))  // click Logout button
+            {
                 menuScreen.UserEnteredInput -= OnInputReady;
-                Debug.WriteLine("loginButtonClickedEvent");
                 nextState = "FinalState";
                 nextWorkFlow = "LoginWorkFlow";
+                
                 ServiceLocator.Instance.CurrentWorkFlow.ResumeBookmark(bookmarkName, null);
             }
 

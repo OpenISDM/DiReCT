@@ -10,6 +10,7 @@ namespace DiReCT_wpf.View
     public partial class RecordView : MenuViewBase
     {
         public RecordViewModel recordViewModel;
+
         public RecordView()
         {
             InitializeComponent();
