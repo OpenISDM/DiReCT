@@ -25,7 +25,7 @@ namespace DiReCT
         static string ServerIPAddress;
         static int ServerPort;
 
-        public static ReceiveEvent receiveEvent;
+        static ReceiveEvent receiveEvent;
 
         public static void DRInit(object objectParameters)
         {
@@ -128,7 +128,7 @@ namespace DiReCT
             }
         }
 
-        public static void Receive()
+        private static void Receive()
         {
             try
             {
@@ -166,6 +166,8 @@ namespace DiReCT
                 throw ex;
             }
         }
+
+        public ReceiveEvent ReceiveServerEvent { get { return receiveEvent; } }
 
         private static void CleanupExit()
         {
