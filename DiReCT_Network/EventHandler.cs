@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -40,11 +41,13 @@ namespace DiReCT.Network
         public class ControlSignalEventArgs : EventArgs
         {
             public string ControlSignal { get; set; }
+            public Socket Socket { get; set; }
         }
 
         public class DataFlowEventArgs : EventArgs
         {
             public byte[] Data { get; set; }
+            public Socket Socket { get; set; }
         }
     }
 
