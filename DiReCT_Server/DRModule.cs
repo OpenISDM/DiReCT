@@ -106,7 +106,7 @@ namespace DiReCT.Server
                 string JsonString = JsonConvert.SerializeObject(
                     new
                     {
-                        Type = "ControlSignal",
+                        Type = "DataFlow",
                         Data = DataFlowString
                     });
 

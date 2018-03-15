@@ -114,7 +114,7 @@ namespace DiReCT
                 string JsonString = JsonConvert.SerializeObject(
                     new
                     {
-                        Type = "ControlSignal",
+                        Type = "DataFlow",
                         Data = DataFlowString
                     });
 
@@ -168,6 +168,7 @@ namespace DiReCT
         }
 
         public ReceiveEvent ReceiveServerEvent { get { return receiveEvent; } }
+        public bool Connected { get { return ServerSocket.Connected; } }
 
         private static void CleanupExit()
         {
