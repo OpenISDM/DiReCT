@@ -167,8 +167,10 @@ namespace DiReCT
             }
         }
 
-        public ReceiveEvent ReceiveServerEvent { get { return receiveEvent; } }
-        public bool Connected { get { return ServerSocket.Connected; } }
+        public static ReceiveEvent ReceiveServerEvent {
+            get { return receiveEvent; } }
+        public static bool Connected {
+            get { return ServerSocket.Connected; } }
 
         private static void CleanupExit()
         {
