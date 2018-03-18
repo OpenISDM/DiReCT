@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
-using DiReCT.Logger;
 
 namespace DiReCT.Network
 {
@@ -17,15 +17,9 @@ namespace DiReCT.Network
         private static ManualResetEvent SendDone =
             new ManualResetEvent(false);
 
-        public ManualResetEvent ConnectDone;
-
-        private static int signal;
-
         public CommunicationBase(Socket socket)
         {
             mSocket = socket;
-            ConnectDone = new ManualResetEvent(false);
-            ConnectDone.WaitOne();
         }
 
         /// <summary>
@@ -38,7 +32,7 @@ namespace DiReCT.Network
             CommunicationState.WorkSocket = mSocket;
             ReceiveDone.Reset();
 
-            mSocket.BeginReceive(CommunicationState.Buffer, 0, 
+            mSocket.BeginReceive(CommunicationState.Buffer, 0,
                 CommunicationObject.BufferSize, 0,
                 new AsyncCallback(ReceiveCallback), CommunicationState);
             ReceiveDone.WaitOne();
@@ -65,20 +59,25 @@ namespace DiReCT.Network
             do
             {
                 SendDone.Reset();
-                signal = 0;
-                ReadBytes = SendStream.Read(Buffer, 0, 
+                ReadBytes = SendStream.Read(Buffer, 0,
                     CommunicationObject.BufferSize);
 
-                Socket handler = mSocket;
-
-                handler.BeginSend(Buffer, 0, ReadBytes, SocketFlags.None,
-                    new AsyncCallback(SendCallback), handler);
+                mSocket.BeginSend(Buffer, 0, ReadBytes, SocketFlags.None,
+                    new AsyncCallback(SendCallback), mSocket);
 
                 SendDone.WaitOne();
             }
             while (ReadBytes > 0);
 
             SendStream.Dispose();
+
+            SendDone.Reset();
+
+            mSocket.BeginSend(Encoding.ASCII.GetBytes("<EOF>"),
+                0, 0x05, SocketFlags.None,
+                    new AsyncCallback(SendCallback), mSocket);
+
+            SendDone.WaitOne();
         }
 
         /// <summary>
@@ -87,23 +86,38 @@ namespace DiReCT.Network
         /// <param name="ar"></param>
         private void ReceiveCallback(IAsyncResult ar)
         {
-            CommunicationObject CommunicationState 
+            CommunicationObject CommunicationState
                 = (CommunicationObject)ar.AsyncState;
             Socket TargetSocket = CommunicationState.WorkSocket;
 
             int bytesRead = TargetSocket.EndReceive(ar);
             if (bytesRead > 0)
             {
-                ReceiveStream.Write(CommunicationState.Buffer, 0, bytesRead);
+                if (bytesRead == 0x05)
+                {
+                    byte[] Buffer = new byte[5];
+                    Array.Copy(CommunicationState.Buffer, Buffer, bytesRead);
+                    if (Encoding.ASCII.GetString(Buffer) == "<EOF>")
+                        ReceiveDone.Set();
+                    else
+                    {
+                        ReceiveStream.Write(CommunicationState.Buffer,
+                            0, bytesRead);
 
-                TargetSocket.BeginReceive(CommunicationState.Buffer, 0,
-                    CommunicationObject.BufferSize, 0,
-                    new AsyncCallback(ReceiveCallback), CommunicationState);
-            }
-            else
-            {
-                // Signal if all the file received.
-                ReceiveDone.Set();
+                        TargetSocket.BeginReceive(CommunicationState.Buffer, 0,
+                            CommunicationObject.BufferSize, 0,
+                            new AsyncCallback(ReceiveCallback),
+                            CommunicationState);
+                    }
+                }
+                else
+                {
+                    ReceiveStream.Write(CommunicationState.Buffer,0,bytesRead);
+
+                    TargetSocket.BeginReceive(CommunicationState.Buffer, 0,
+                        CommunicationObject.BufferSize, 0,
+                        new AsyncCallback(ReceiveCallback),CommunicationState);
+                }
             }
         }
 
@@ -118,28 +132,13 @@ namespace DiReCT.Network
             try
             {
                 handler = (Socket)ar.AsyncState;
-                signal++;
                 int bytesSent = handler.EndSend(ar);
 
-                // Close the socket when all the data has sent to the target.
-                if (bytesSent == 0)
-                {
-                    handler.Shutdown(SocketShutdown.Both);
-                    handler.Close();
-                }
+                SendDone.Set();
             }
             catch (ArgumentException argEx)
             {
-                Log.ErrorEvent.Write(argEx.Message);
-            }
-            finally
-            {
-                // Signal when the file chunk has sent 
-                // to all the target successfully.
-                if (signal >= 1)
-                {
-                    SendDone.Set();
-                }
+                Debug.WriteLine(argEx.Message);
             }
         }
 
@@ -157,7 +156,6 @@ namespace DiReCT.Network
 
                 ReceiveDone.Dispose();
                 SendDone.Dispose();
-                ConnectDone.Dispose();
 
                 disposedValue = true;
             }
