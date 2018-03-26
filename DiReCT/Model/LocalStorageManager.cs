@@ -40,9 +40,9 @@ using System.Threading;
 using Newtonsoft.Json.Linq;
 using DiReCT.Logger;
 
-namespace DiReCT.Model
+namespace DiReCT.LocalStorage
 {
-    public enum RecordStorageCategor
+    public enum RecordStorageCategory
     {
         DefectiveData = 0,
         CleanData
@@ -60,10 +60,10 @@ namespace DiReCT.Model
         static AutoResetEvent ModuleReadyEvent;
 
         // Multi-threaded environment, used to lock resources
-        private static object StorageWorkQueueLock = new object();
+        static object StorageWorkQueueLock = new object();
 
-        // Add work, Update work, Remove work
-        private static Queue<(Action<object>, object)> StorageWorkQueue;
+        // Add work item, Update work item, Remove work item.
+        static Queue<(Action<object>, object)> StorageWorkQueue;
 
         /// <summary>
         /// Local storage module initialization
@@ -96,7 +96,7 @@ namespace DiReCT.Model
                     .Write("LS module is working...");
 
                 //Local Storage start working
-                LocalStoraageWork();
+                LocalStorageWork();
 
                 Log.GeneralEvent
                     .Write("LocalStorage module is aborting.");
@@ -117,7 +117,7 @@ namespace DiReCT.Model
         /// <summary>
         /// Function to handle work (add, update, remove)
         /// </summary>
-        private static void LocalStoraageWork()
+        private static void LocalStorageWork()
         {
             // Check ModuleAbortEvent periodically
             while (!ModuleAbortEvent
@@ -125,13 +125,18 @@ namespace DiReCT.Model
             {
                 // Wait module abort event or work
                 SpinWait.SpinUntil(() => (ModuleAbortEvent
-                        .WaitOne((int)TimeInterval.VeryVeryShortTime) &&
+                        .WaitOne((int)TimeInterval.VeryVeryShortTime) ||
                         StorageWorkQueue.Count != 0));
 
-                // Check whether inside the work queue has job or not
+                // Check whether the work queue has work item.
                 lock (StorageWorkQueueLock)
                     if (StorageWorkQueue.Count != 0)
                     {
+                        // Work variable type is (Action<object>, object).
+                        // The Item1 is Action<T> delegate. 
+                        // ex: RecordStorage class -> AddRecordWork function
+                        // The item2 is a object, 
+                        // object which is to be fed into the work function.
                         var Work = StorageWorkQueue.Dequeue();
                         Work.Item1.Invoke(Work.Item2);
                     }
@@ -139,10 +144,11 @@ namespace DiReCT.Model
         }
 
         /// <summary>
-        /// Enqueue jobs to the work queue
+        /// Enqueue work item to the work queue
         /// </summary>
         /// <param name="action"></param>
-        protected internal static void AddWork((Action<object>, object) action)
+        protected internal static void AddWorkItem(
+            (Action<object>, object) action)
         {
             lock (StorageWorkQueueLock)
                 StorageWorkQueue.Enqueue(action);
@@ -158,7 +164,7 @@ namespace DiReCT.Model
         }
 
         /// <summary>
-        /// A tool for copying picture media to temporary folder
+        /// A tool for copying multi media data to temporary folder
         /// </summary>
         /// <param name="SourcePath"></param>
         /// <param name="FileName">The copied Id file name</param>
@@ -181,7 +187,7 @@ namespace DiReCT.Model
                     FileName = Guid.NewGuid().ToString() + Extension;
                     string DestPath = TemporaryFolder + FileName;
 
-                    // Check destination folder exists and copy
+                    // Check whether destination folder exists and copy
                     if (!File.Exists(DestPath))
                     {
                         File.Copy(SourcePath, DestPath);
@@ -201,9 +207,10 @@ namespace DiReCT.Model
 
     public class RecordStorage
     {
-        // This folder, used to store the record of each record staff's
-        // There will be one file for each record staff
-        private static string RecordPath =
+        // Record folder, file is used to store the records of each 
+        // record staff's.
+        // Every record staff has their own file
+        private static string RecordFolder =
             LocalStorage.StorageFolder + @"Record\";
 
         private static object FileLock = new object();
@@ -222,7 +229,7 @@ namespace DiReCT.Model
         {
             public Guid Record_Staff_Id { get; set; }
             public dynamic Record { get; set; }
-            public RecordStorageCategor Record_Location { get; set; }
+            public RecordStorageCategory Record_Location { get; set; }
         }
 
         /// <summary>
@@ -230,20 +237,19 @@ namespace DiReCT.Model
         /// </summary>
         /// <param name="Record_Staff_Id">Input record staff id</param>
         /// <returns>
-        /// First dynamic array is defective Data,
-        /// second dynamic array is cleanData
+        /// First dynamic array is defective data,
+        /// second dynamic array is clean data
         /// </returns>
         public (dynamic[], dynamic[]) GetRecord(Guid Record_Staff_Id)
         {
-            // Check if the currently loaded logger is the desired logger
-            // if true thhen return defective data and clean data
+            // Check if currently record logger is the desired record
+            // if true then return defective data and clean data
             if (Record_Staff_Id == Current_Record_Staff)
                 return (RecordConsolidation(defectiveData),
                     RecordConsolidation(cleanData));
 
-            // Read the data of a specific record staff
-            // from the hard disk and send it back
-            LoadOnFile(Record_Staff_Id,
+            // Read the data of a specific record staff from the hard disk
+            LoadRecordOnFile(Record_Staff_Id,
                 out Dictionary<string, List<dynamic>> defectiveRecord,
                 out Dictionary<string, List<dynamic>> cleanRecord);
             return (RecordConsolidation(defectiveRecord),
@@ -254,41 +260,41 @@ namespace DiReCT.Model
         /// Add record to local storage
         /// </summary>
         /// <param name="Record"></param>
-        /// <param name="RecordLocation">
+        /// <param name="RecordTarget">
         /// defective data or clen data
         /// </param>
         public static void Add(
             Guid RecordStaffId,
             dynamic Record,
-            RecordStorageCategor RecordLocation)
+            RecordStorageCategory RecordTarget)
         {
-            // Enqueue add record work to work queue
-            LocalStorage.AddWork((AddRecordWork, new RecordItem
+            // Enqueue add record work item to work queue
+            LocalStorage.AddWorkItem((AddRecordWork, new RecordItem
             {
                 Record_Staff_Id = RecordStaffId,
                 Record = Record,
-                Record_Location = RecordLocation
+                Record_Location = RecordTarget
             }));
         }
 
         /// <summary>
-        /// Update record to local storage
+        /// Update record in local storage
         /// </summary>
         /// <param name="Record"></param>
-        /// <param name="RecordLocation">
+        /// <param name="RecordTarget">
         /// defective data or clen data
         /// </param>
         public static void Update(
             Guid RecordStaffId,
             dynamic Record,
-            RecordStorageCategor RecordLocation)
+            RecordStorageCategory RecordTarget)
         {
-            // Enqueue update record work to work queue
-            LocalStorage.AddWork((UpdateRecordWork, new RecordItem
+            // Enqueue update record work item to work queue
+            LocalStorage.AddWorkItem((UpdateRecordWork, new RecordItem
             {
                 Record_Staff_Id = RecordStaffId,
                 Record = Record,
-                Record_Location = RecordLocation
+                Record_Location = RecordTarget
             }));
         }
 
@@ -296,31 +302,32 @@ namespace DiReCT.Model
         /// Remove record to local storage
         /// </summary>
         /// <param name="Record"></param>
-        /// <param name="RecordLocation">
+        /// <param name="RecordTarget">
         /// defective data or clen data
         /// </param>
         public static void Remove(
             Guid RecordStaffId,
             dynamic Record,
-            RecordStorageCategor RecordLocation)
+            RecordStorageCategory RecordTarget)
         {
-            // Enqueue remove record work to work queue
-            LocalStorage.AddWork((RemoveRecordWork, new RecordItem
+            // Enqueue remove record work item to work queue
+            LocalStorage.AddWorkItem((RemoveRecordWork, new RecordItem
             {
                 Record_Staff_Id = RecordStaffId,
                 Record = Record,
-                Record_Location = RecordLocation
+                Record_Location = RecordTarget
             }));
         }
 
         /// <summary>
-        /// load json data on file then convert Json data into record objects
+        /// load record json data on file then convert Json data 
+        /// into record objects
         /// </summary>
         /// <param name="RecordStaffId">Record staff id</param>
         /// <param name="defectiveData"></param>
         /// <param name="cleanData"></param>
         /// <returns></returns>
-        private static bool LoadOnFile(
+        private static bool LoadRecordOnFile(
             Guid RecordStaffId,
             out Dictionary<string, List<dynamic>> defectiveData,
             out Dictionary<string, List<dynamic>> cleanData)
@@ -335,7 +342,7 @@ namespace DiReCT.Model
                 // Open file and load json data
                 lock (FileLock)
                     using (StreamReader streamReader
-                        = new StreamReader(RecordPath +
+                        = new StreamReader(RecordFolder +
                         RecordStaffId.ToString(),
                         Encoding.Default))
                     {
@@ -385,7 +392,7 @@ namespace DiReCT.Model
                     AddRecord(recordItem);
                 else
                 {
-                    LoadOnFile(recordItem.Record_Staff_Id,
+                    LoadRecordOnFile(recordItem.Record_Staff_Id,
                         out defectiveData,
                         out cleanData);
 
@@ -415,7 +422,7 @@ namespace DiReCT.Model
                     UpdateRecord(recordItem);
                 else
                 {
-                    LoadOnFile(recordItem.Record_Staff_Id,
+                    LoadRecordOnFile(recordItem.Record_Staff_Id,
                         out defectiveData,
                         out cleanData);
 
@@ -443,7 +450,7 @@ namespace DiReCT.Model
                     RemoveRecord(recordItem);
                 else
                 {
-                    LoadOnFile(recordItem.Record_Staff_Id,
+                    LoadRecordOnFile(recordItem.Record_Staff_Id,
                         out defectiveData,
                         out cleanData);
 
@@ -465,7 +472,7 @@ namespace DiReCT.Model
             Type RecordType = recordItem.Record.GetType();
             switch (recordItem.Record_Location)
             {
-                case RecordStorageCategor.DefectiveData:
+                case RecordStorageCategory.DefectiveData:
                     // Check if Tkey exists
                     // if exists then adding
                     // else add Tkey before adding new value
@@ -476,7 +483,7 @@ namespace DiReCT.Model
                     defectiveData[RecordType.FullName].Add(recordItem.Record);
                     break;
 
-                case RecordStorageCategor.CleanData:
+                case RecordStorageCategory.CleanData:
                     if (!cleanData.ContainsKey(RecordType.FullName))
                         cleanData.Add
                             (RecordType.FullName, new List<dynamic>());
@@ -501,7 +508,7 @@ namespace DiReCT.Model
             List<dynamic> Records;
             switch (recordItem.Record_Location)
             {
-                case RecordStorageCategor.DefectiveData:
+                case RecordStorageCategory.DefectiveData:
                     Records = defectiveData[RecordType.FullName]
                         .Where(c => c.Id == RecordId)
                         .ToList();
@@ -512,7 +519,7 @@ namespace DiReCT.Model
                     AddRecord(recordItem);
                     break;
 
-                case RecordStorageCategor.CleanData:
+                case RecordStorageCategory.CleanData:
                     Records = cleanData[RecordType.FullName]
                         .Where(c => c.Id == RecordId)
                         .ToList();
@@ -536,12 +543,12 @@ namespace DiReCT.Model
             Type RecordType = recordItem.Record.GetType();
             switch (recordItem.Record_Location)
             {
-                case RecordStorageCategor.DefectiveData:
+                case RecordStorageCategory.DefectiveData:
                     defectiveData[RecordType.FullName]
                         .Remove(recordItem.Record);
                     break;
 
-                case RecordStorageCategor.CleanData:
+                case RecordStorageCategory.CleanData:
                     cleanData[RecordType.FullName]
                         .Remove(recordItem.Record);
                     break;
@@ -596,13 +603,13 @@ namespace DiReCT.Model
                 lock (FileLock)
                 {
                     // Check the folder exists
-                    if (!Directory.Exists(RecordPath))
-                        Directory.CreateDirectory(RecordPath);
+                    if (!Directory.Exists(RecordFolder))
+                        Directory.CreateDirectory(RecordFolder);
 
                     // Write data to the file
                     // Named using Logger Id
                     using (StreamWriter streamWriter
-                        = new StreamWriter(RecordPath +
+                        = new StreamWriter(RecordFolder +
                         Record_Staff_Id.ToString()
                         , false))
                     {
@@ -686,8 +693,8 @@ namespace DiReCT.Model
         /// <param name="FileData"></param>
         public static void Save(string FileName, byte[] FileData)
         {
-            // Enqueue add duty data work to work queue
-            LocalStorage.AddWork((SaveFileWork, new DutyItem
+            // Enqueue add duty data work item to work queue
+            LocalStorage.AddWorkItem((SaveFileWork, new DutyItem
             {
                 FileData = FileData,
                 FileName = FileName
@@ -700,8 +707,8 @@ namespace DiReCT.Model
         /// <param name="FileName"></param>
         public static void Delete(string FileName)
         {
-            // Enqueue delete duty data work to work queue
-            LocalStorage.AddWork((DeleteFileWork, new DutyItem
+            // Enqueue delete duty data work item to work queue
+            LocalStorage.AddWorkItem((DeleteFileWork, new DutyItem
             {
                 FileName = FileName
             }));
