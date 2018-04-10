@@ -197,7 +197,7 @@ namespace DiReCT.LocalStorage
             }
             catch (Exception ex)
             {
-                throw ex;
+                Log.ErrorEvent.Write(ex.Message);
             }
 
             return IsCopyDone;
@@ -216,7 +216,7 @@ namespace DiReCT.LocalStorage
         private static object FileLock = new object();
         private static object dictionaryLock = new object();
 
-        // Record storage loads the corresponding defective data or clean data 
+        // Record storage loads the corresponding defective data or clean data
         // according to the record staff's current data.
         private static Guid Current_Record_Staff;
         // Tkey is record class full name, Tvalue is records
@@ -317,61 +317,6 @@ namespace DiReCT.LocalStorage
                 Record = Record,
                 Record_Location = RecordTarget
             }));
-        }
-
-        /// <summary>
-        /// load record json data on file then convert Json data 
-        /// into record objects
-        /// </summary>
-        /// <param name="RecordStaffId">Record staff id</param>
-        /// <param name="defectiveData"></param>
-        /// <param name="cleanData"></param>
-        /// <returns></returns>
-        private static bool LoadRecordOnFile(
-            Guid RecordStaffId,
-            out Dictionary<string, List<dynamic>> defectiveData,
-            out Dictionary<string, List<dynamic>> cleanData)
-        {
-            bool LoadingSucceeded = false;
-            dynamic JSON = null;
-            defectiveData = null;
-            cleanData = null;
-
-            try
-            {
-                // Open file and load json data
-                lock (FileLock)
-                    using (StreamReader streamReader
-                        = new StreamReader(RecordFolder +
-                        RecordStaffId.ToString(),
-                        Encoding.Default))
-                    {
-                        string buffer = streamReader.ReadToEnd();
-                        JSON = JsonConvert.DeserializeObject(buffer);
-                    }
-
-                // Convert Json data into record objects
-                lock (dictionaryLock)
-                {
-                    if (!ConvertToRecord((string)JSON.Defective,
-                        out defectiveData))
-                        defectiveData = new Dictionary<string,List<dynamic>>();
-
-                    if (ConvertToRecord((string)JSON.Clean,
-                        out cleanData))
-                        cleanData = new Dictionary<string, List<dynamic>>();
-                }
-
-                LoadingSucceeded = true;
-            }
-            catch (Exception ex)
-            {
-                defectiveData = new Dictionary<string, List<dynamic>>();
-                cleanData = new Dictionary<string, List<dynamic>>();
-                Log.ErrorEvent.Write(ex.ToString());
-                Log.ErrorEvent.Write("Load on file failed.");
-            }
-            return LoadingSucceeded;
         }
 
         /// <summary>
@@ -566,7 +511,7 @@ namespace DiReCT.LocalStorage
             lock (dictionaryLock)
                 Json = JsonConvert.SerializeObject(new
                 {
-                    DefectiveData = JsonConvert.SerializeObject(defectiveData),
+                    DefectiveData =JsonConvert.SerializeObject(defectiveData),
                     CleanData = JsonConvert.SerializeObject(cleanData)
                 });
 
@@ -579,6 +524,7 @@ namespace DiReCT.LocalStorage
         /// </summary>
         /// <param name="Records"></param>
         /// <returns></returns>
+        //  This function referred by GetRecord function.
         private static dynamic[] RecordConsolidation(
             Dictionary<string, List<dynamic>> Records)
         {
@@ -590,10 +536,67 @@ namespace DiReCT.LocalStorage
         }
 
         /// <summary>
+        /// load record json data on file then convert Json data 
+        /// into record objects
+        /// </summary>
+        /// <param name="RecordStaffId">Record staff id</param>
+        /// <param name="defectiveData"></param>
+        /// <param name="cleanData"></param>
+        /// <returns></returns>
+        //  This function referred by GetRecord function.
+        private static bool LoadRecordOnFile(
+            Guid RecordStaffId,
+            out Dictionary<string, List<dynamic>> defectiveData,
+            out Dictionary<string, List<dynamic>> cleanData)
+        {
+            bool LoadingSucceeded = false;
+            dynamic JSON = null;
+            defectiveData = null;
+            cleanData = null;
+
+            try
+            {
+                // Open file and load json data
+                lock (FileLock)
+                    using (StreamReader streamReader
+                        = new StreamReader(RecordFolder +
+                        RecordStaffId.ToString(),
+                        Encoding.Default))
+                    {
+                        string buffer = streamReader.ReadToEnd();
+                        JSON = JsonConvert.DeserializeObject(buffer);
+                    }
+
+                // Convert Json data into record objects
+                lock (dictionaryLock)
+                {
+                    if (!ConvertToRecord((string)JSON.Defective,
+                        out defectiveData))
+                        defectiveData=new Dictionary<string, List<dynamic>>();
+
+                    if (ConvertToRecord((string)JSON.Clean,
+                        out cleanData))
+                        cleanData = new Dictionary<string, List<dynamic>>();
+                }
+
+                LoadingSucceeded = true;
+            }
+            catch (Exception ex)
+            {
+                defectiveData = new Dictionary<string, List<dynamic>>();
+                cleanData = new Dictionary<string, List<dynamic>>();
+                Log.ErrorEvent.Write(ex.ToString());
+                Log.ErrorEvent.Write("Load on file failed.");
+            }
+            return LoadingSucceeded;
+        }
+
+        /// <summary>
         /// Save json data to file
         /// </summary>
         /// <param name="JSON">Input json data</param>
-        /// <returns></returns>        
+        /// <returns></returns>
+        //  This function referred by SaveChange function.
         private static bool SaveJsonToFile(Guid Record_Staff_Id, string JSON)
         {
             bool SaveSuccessfully = false;
@@ -633,6 +636,7 @@ namespace DiReCT.LocalStorage
         /// <param name="DataCategory">Input json data</param>
         /// /// <param name="OutPutData">Output Record Dictionary</param>
         /// <returns></returns>
+        //  This function referred by LoadRecordOnFile function.
         private static bool ConvertToRecord(string DataCategory,
             out Dictionary<string, List<dynamic>> OutPutData)
         {

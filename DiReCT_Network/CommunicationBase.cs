@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace DiReCT.Network
 {
+    /// <summary>
+    /// Provides simple asynchronous send and receive APIs
+    /// </summary>
     public class CommunicationBase : IDisposable
     {
         private Socket mSocket;
@@ -27,7 +30,8 @@ namespace DiReCT.Network
         /// </summary>
         public byte[] Receive()
         {
-            CommunicationObject CommunicationState = new CommunicationObject();
+            CommunicationObject CommunicationState = 
+                 new CommunicationObject();
             ReceiveStream = new MemoryStream();
             CommunicationState.WorkSocket = mSocket;
             ReceiveDone.Reset();
@@ -73,6 +77,8 @@ namespace DiReCT.Network
 
             SendDone.Reset();
 
+            // Send end of file message
+            // Notify the end of the data stream
             mSocket.BeginSend(Encoding.ASCII.GetBytes("<EOF>"),
                 0, 0x05, SocketFlags.None,
                     new AsyncCallback(SendCallback), mSocket);
@@ -97,6 +103,9 @@ namespace DiReCT.Network
                 {
                     byte[] Buffer = new byte[5];
                     Array.Copy(CommunicationState.Buffer, Buffer, bytesRead);
+
+                    // Check the end of file message to determine the
+                    // end of the data stream
                     if (Encoding.ASCII.GetString(Buffer) == "<EOF>")
                         ReceiveDone.Set();
                     else
@@ -104,7 +113,7 @@ namespace DiReCT.Network
                         ReceiveStream.Write(CommunicationState.Buffer,
                             0, bytesRead);
 
-                        TargetSocket.BeginReceive(CommunicationState.Buffer, 0,
+                        TargetSocket.BeginReceive(CommunicationState.Buffer,0,
                             CommunicationObject.BufferSize, 0,
                             new AsyncCallback(ReceiveCallback),
                             CommunicationState);
@@ -112,11 +121,14 @@ namespace DiReCT.Network
                 }
                 else
                 {
-                    ReceiveStream.Write(CommunicationState.Buffer,0,bytesRead);
+                    ReceiveStream.Write(
+                        CommunicationState.Buffer,
+                        0,
+                        bytesRead);
 
                     TargetSocket.BeginReceive(CommunicationState.Buffer, 0,
-                        CommunicationObject.BufferSize, 0,
-                        new AsyncCallback(ReceiveCallback),CommunicationState);
+                       CommunicationObject.BufferSize, 0,
+                       new AsyncCallback(ReceiveCallback),CommunicationState);
                 }
             }
         }

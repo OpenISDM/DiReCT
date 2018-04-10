@@ -46,7 +46,6 @@
   <ItemGroup>
     <Compile Include="CommunicationBase.cs" />
     <Compile Include="EventHandler.cs" />
-    <Compile Include="NetworkTransmission.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
