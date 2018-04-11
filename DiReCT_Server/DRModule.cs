@@ -52,6 +52,7 @@ namespace DiReCT.Server
         static Thread ListenThread;
         static Socket Listener;
         static ManualResetEvent ConnectionEvent;
+        static int ListenPort;
 
         // Client connection configuration
         static Dictionary<Socket, CommunicationBase> CommunicationDictionary;
@@ -83,6 +84,13 @@ namespace DiReCT.Server
                 CommunicationDictionary 
                     = new Dictionary<Socket, CommunicationBase>();
 
+                // Set listener socket configuration
+                Listener = new Socket(AddressFamily.InterNetwork,
+                    SocketType.Stream, ProtocolType.Tcp);
+                Listener.Bind(new IPEndPoint(IPAddress.Any, ListenPort));
+
+                ListenThread = new Thread(ListenWork);
+
                 ModuleReadyEvent.Set();
 
                 Log.GeneralEvent
@@ -94,9 +102,13 @@ namespace DiReCT.Server
 
                 Log.GeneralEvent
                     .Write("DRInit complete Phase 2 Initialization");
+
+                ListenThread.Start();
                 Log.GeneralEvent.Write("DR module is working...");
 
-                ListenWork();
+                // Check ModuleAbortEvent periodically
+                SpinWait.SpinUntil(() => !ModuleAbortEvent
+                .WaitOne((int)TimeInterval.VeryVeryShortTime));
 
                 Log.GeneralEvent.Write("DR module is aborting.");
             }
@@ -177,11 +189,17 @@ namespace DiReCT.Server
             while (!ModuleAbortEvent
                         .WaitOne((int)TimeInterval.VeryVeryShortTime))
             {
-                ConnectionEvent.Reset();
-                Listener.BeginAccept(new AsyncCallback(AcceptCallback),
-                    Listener);
-
-                ConnectionEvent.WaitOne();
+                try
+                {
+                    ConnectionEvent.Reset();
+                    Listener.BeginAccept(new AsyncCallback(AcceptCallback),
+                        Listener);
+                    ConnectionEvent.WaitOne();
+                }
+                catch(Exception ex)
+                {
+                    Log.ErrorEvent.Write(ex.Message);
+                }
             }
         }
 

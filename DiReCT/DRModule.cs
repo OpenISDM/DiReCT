@@ -69,6 +69,7 @@ namespace DiReCT
                 ModuleReadyEvent = threadParameters.ModuleReadyEvent;
                 ModuleAbortEvent = threadParameters.ModuleAbortEvent;
 
+                // Set the socket configuration
                 ServerSocket = new Socket(AddressFamily.InterNetwork,
                     SocketType.Stream,ProtocolType.Tcp);
                 receiveEvent = new ReceiveEvent();
